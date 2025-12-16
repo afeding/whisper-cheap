@@ -2009,13 +2009,40 @@ def open_settings_window(config_path: Path, history_manager=None) -> Optional[Se
         return None
 
 
-# Alias for compatibility
-def open_modern_settings(config_path: Path, history_manager=None) -> None:
-    """Compatibility wrapper - opens settings in daemon thread like CustomTkinter version."""
-    def _run():
-        window = open_settings_window(config_path, history_manager)
-        if window:
-            # Keep window alive
-            pass
+# Global reference to keep window alive
+_settings_window: Optional[SettingsWindow] = None
 
-    threading.Thread(target=_run, daemon=True).start()
+
+def open_modern_settings(config_path: Path, history_manager=None) -> None:
+    """
+    Open settings window (non-blocking, main thread).
+
+    PyQt6 widgets MUST be created on the main thread where QApplication runs.
+    Unlike CustomTkinter, we cannot use threading.Thread for Qt widgets.
+    """
+    global _settings_window
+
+    if not PYQT6_AVAILABLE:
+        print("[settings] PyQt6 not available")
+        return
+
+    try:
+        # If window exists and is visible, just raise it
+        if _settings_window is not None:
+            try:
+                if _settings_window.isVisible():
+                    _settings_window.raise_()
+                    _settings_window.activateWindow()
+                    return
+            except RuntimeError:
+                # Window was deleted
+                _settings_window = None
+
+        # Create new window on main thread
+        _settings_window = SettingsWindow(config_path, history_manager)
+        _settings_window.show()
+
+    except Exception as e:
+        print(f"[settings] Failed to open window: {e}")
+        import traceback
+        traceback.print_exc()
