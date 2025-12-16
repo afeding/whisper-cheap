@@ -43,7 +43,7 @@ try:
     from src.ui.win_overlay import WinOverlayBar
 except Exception:
     WinOverlayBar = None
-from src.ui.settings_modern import open_modern_settings
+from src.ui.settings_pyqt6 import open_modern_settings
 from src.utils.llm_client import LLMClient
 from src.utils.paste import PasteMethod, ClipboardPolicy
 try:
