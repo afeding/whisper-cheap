@@ -20,6 +20,29 @@ except ImportError:  # pragma: no cover - optional dependency
     QtWidgets = None
 
 _APP_LOCK = threading.Lock()
+_invoker: Optional["QtCore.QObject"] = None
+
+
+def _get_invoker():
+    """Get or create the thread-safe invoker singleton."""
+    global _invoker
+    if _invoker is None and QtCore is not None:
+        class _Invoker(QtCore.QObject):
+            """Thread-safe invoker using Qt signals (works from any thread)."""
+            invoke = QtCore.pyqtSignal(object)
+
+            def __init__(self, parent=None):
+                super().__init__(parent)
+                self.invoke.connect(self._execute)
+
+            def _execute(self, fn):
+                try:
+                    fn()
+                except Exception:
+                    pass
+
+        _invoker = _Invoker()
+    return _invoker
 
 
 def ensure_app() -> Optional["QtWidgets.QApplication"]:
@@ -35,6 +58,8 @@ def ensure_app() -> Optional["QtWidgets.QApplication"]:
             os.environ.setdefault("QT_QPA_PLATFORM", "windows:darkmode=2" if os.name == "nt" else "")
             app = QtWidgets.QApplication([])
             app.setQuitOnLastWindowClosed(False)
+        # Initialize the thread-safe invoker on the main thread
+        _get_invoker()
         return app
 
 
@@ -83,9 +108,17 @@ class _BaseOverlay:
     def _run_on_ui(self, fn):
         if QtCore is None:
             return fn()
-        if QtCore.QThread.currentThread() == self.window.thread():
+        # Check if we're on the main Qt thread
+        app = QtWidgets.QApplication.instance()
+        if app and QtCore.QThread.currentThread() == app.thread():
             return fn()
-        QtCore.QTimer.singleShot(0, fn)
+        # Use thread-safe signal instead of QTimer.singleShot
+        invoker = _get_invoker()
+        if invoker:
+            invoker.invoke.emit(fn)
+        else:
+            # Fallback: just call directly (may cause issues but better than crash)
+            fn()
 
     def _place(self):
         def _place_inner():

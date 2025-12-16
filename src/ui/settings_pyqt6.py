@@ -20,7 +20,7 @@ try:
     from PyQt6.QtCore import Qt, QTimer, QThread, pyqtSignal
     from PyQt6.QtGui import QFont, QPixmap, QIcon, QCloseEvent, QKeyEvent
     from PyQt6.QtWidgets import (
-        QMainWindow, QWidget, QFrame, QLabel, QPushButton,
+        QApplication, QMainWindow, QWidget, QFrame, QLabel, QPushButton,
         QLineEdit, QComboBox, QCheckBox, QRadioButton, QSlider,
         QVBoxLayout, QHBoxLayout, QScrollArea, QStackedWidget,
         QButtonGroup, QMessageBox, QProgressBar, QSizePolicy
@@ -30,9 +30,10 @@ except ImportError:
     PYQT6_AVAILABLE = False
 
 try:
-    from src.ui.overlay import ensure_app
+    from src.ui.overlay import ensure_app, _get_invoker
 except ImportError:
     ensure_app = None
+    _get_invoker = None
 
 try:
     import sounddevice as sd
@@ -44,507 +45,19 @@ try:
 except ImportError:
     requests = None
 
-
-# =============================================================================
-# iOS DARK MODE COLOR SYSTEM
-# =============================================================================
-
-COLORS = {
-    # Backgrounds (iOS semantic)
-    "bg_primary": "#080808",
-    "bg_secondary": "#0d0d0d",
-    "bg_tertiary": "#111111",
-    "bg_elevated": "#1a1a1a",
-
-    # Accent (Neon Green - Brand)
-    "accent_primary": "#00ff88",
-    "accent_hover": "#00ffaa",
-    "accent_active": "#00dd77",
-    "accent_dim": "#00aa55",
-
-    # Text (iOS labels)
-    "label": "#ffffff",
-    "label_secondary": "#b0b0b0",
-    "label_tertiary": "#707070",
-    "label_quaternary": "#505050",
-
-    # Borders
-    "separator": "#1f1f1f",
-    "border": "#262626",
-
-    # Fill (buttons, inputs)
-    "fill_primary": "#0f0f0f",
-    "fill_secondary": "#141414",
-
-    # System colors
-    "system_red": "#ff453a",
-}
-
-# =============================================================================
-# SPACING SYSTEM (iOS-Inspired)
-# =============================================================================
-
-WINDOW_MARGIN = 28
-SIDEBAR_WIDTH = 260
-CARD_PADDING_H = 32
-CARD_PADDING_V = 24
-ROW_SPACING = 16
-LABEL_WIDTH = 180
-INPUT_HEIGHT = 48
-
-# =============================================================================
-# QSS STYLESHEET
-# =============================================================================
-
-STYLESHEET = """
-/* ===== GLOBAL RESET ===== */
-QMainWindow {
-    background-color: #080808;
-}
-
-QWidget {
-    background-color: transparent;
-    color: #ffffff;
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    font-size: 14px;
-}
-
-/* ===== SCROLLBARS (iOS Thin Style) ===== */
-QScrollArea {
-    background-color: transparent;
-    border: none;
-}
-
-QScrollBar:vertical {
-    background: transparent;
-    width: 8px;
-    margin: 0px;
-    border-radius: 4px;
-}
-
-QScrollBar::handle:vertical {
-    background: rgba(255, 255, 255, 0.2);
-    min-height: 30px;
-    border-radius: 4px;
-}
-
-QScrollBar::handle:vertical:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-QScrollBar::add-line:vertical,
-QScrollBar::sub-line:vertical,
-QScrollBar::add-page:vertical,
-QScrollBar::sub-page:vertical {
-    background: none;
-    border: none;
-    height: 0px;
-}
-
-QScrollBar:horizontal {
-    background: transparent;
-    height: 8px;
-    margin: 0px;
-    border-radius: 4px;
-}
-
-QScrollBar::handle:horizontal {
-    background: rgba(255, 255, 255, 0.2);
-    min-width: 30px;
-    border-radius: 4px;
-}
-
-QScrollBar::handle:horizontal:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-QScrollBar::add-line:horizontal,
-QScrollBar::sub-line:horizontal,
-QScrollBar::add-page:horizontal,
-QScrollBar::sub-page:horizontal {
-    background: none;
-    border: none;
-    width: 0px;
-}
-
-/* ===== QLINEEDIT (Text inputs) ===== */
-QLineEdit {
-    background-color: #0f0f0f;
-    color: #ffffff;
-    border: 1px solid #262626;
-    border-radius: 12px;
-    padding: 12px 16px;
-    font-size: 14px;
-    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
-}
-
-QLineEdit:hover {
-    border-color: #2a2a2a;
-    background-color: #141414;
-}
-
-QLineEdit:focus {
-    border-color: #00ff88;
-    background-color: #0f0f0f;
-}
-
-QLineEdit:disabled {
-    background-color: #1f1f1f;
-    color: #505050;
-    border-color: #1f1f1f;
-}
-
-QLineEdit[readOnly="true"] {
-    background-color: #0a0a0a;
-    color: #b0b0b0;
-    border-color: #1f1f1f;
-}
-
-/* ===== QCOMBOBOX (Dropdowns) ===== */
-QComboBox {
-    background-color: #0f0f0f;
-    color: #ffffff;
-    border: 1px solid #262626;
-    border-radius: 12px;
-    padding: 12px 16px;
-    padding-right: 40px;
-    font-size: 14px;
-    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
-}
-
-QComboBox:hover {
-    border-color: #2a2a2a;
-    background-color: #141414;
-}
-
-QComboBox:focus {
-    border-color: #00ff88;
-}
-
-QComboBox::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: center right;
-    width: 40px;
-    border: none;
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-}
-
-QComboBox::down-arrow {
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 6px solid #00ff88;
-}
-
-QComboBox QAbstractItemView {
-    background-color: #0f0f0f;
-    color: #ffffff;
-    border: 1px solid #262626;
-    border-radius: 8px;
-    selection-background-color: rgba(0, 255, 136, 0.15);
-    selection-color: #00ff88;
-    padding: 4px;
-    outline: none;
-}
-
-QComboBox QAbstractItemView::item {
-    padding: 10px 16px;
-    border-radius: 6px;
-}
-
-QComboBox QAbstractItemView::item:hover {
-    background-color: #1a1a1a;
-}
-
-QComboBox QAbstractItemView::item:selected {
-    background-color: rgba(0, 255, 136, 0.15);
-    color: #00ff88;
-}
-
-/* ===== QPUSHBUTTON (Buttons) ===== */
-QPushButton {
-    background-color: #0f0f0f;
-    color: #b0b0b0;
-    border: 1px solid #262626;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 13px;
-    font-weight: bold;
-    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
-}
-
-QPushButton:hover {
-    background-color: #1a1a1a;
-    color: #ffffff;
-    border-color: #2a2a2a;
-}
-
-QPushButton:pressed {
-    background-color: #0d0d0d;
-    color: #b0b0b0;
-}
-
-QPushButton:disabled {
-    background-color: #1f1f1f;
-    color: #505050;
-    border-color: #1f1f1f;
-}
-
-/* Primary button */
-QPushButton[primary="true"] {
-    background-color: #00ff88;
-    color: #000000;
-    border: none;
-}
-
-QPushButton[primary="true"]:hover {
-    background-color: #00ffaa;
-}
-
-QPushButton[primary="true"]:pressed {
-    background-color: #00dd77;
-}
-
-QPushButton[primary="true"]:disabled {
-    background-color: #00aa55;
-    color: rgba(0, 0, 0, 0.5);
-}
-
-/* Navigation button */
-QPushButton[nav="true"] {
-    background-color: transparent;
-    color: #707070;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 16px;
-    text-align: left;
-    font-size: 13px;
-    font-weight: bold;
-}
-
-QPushButton[nav="true"]:hover {
-    background-color: #1a1a1a;
-    color: #b0b0b0;
-}
-
-QPushButton[nav="true"][active="true"] {
-    background-color: #00ff88;
-    color: #000000;
-}
-
-QPushButton[nav="true"][active="true"]:hover {
-    background-color: #00ffaa;
-}
-
-/* Danger button */
-QPushButton[danger="true"] {
-    background-color: transparent;
-    color: #ff453a;
-    border: 1px solid #ff453a;
-}
-
-QPushButton[danger="true"]:hover {
-    background-color: rgba(255, 69, 58, 0.1);
-}
-
-QPushButton[danger="true"]:pressed {
-    background-color: rgba(255, 69, 58, 0.2);
-}
-
-/* ===== QCHECKBOX ===== */
-QCheckBox {
-    spacing: 12px;
-    color: #ffffff;
-    font-size: 14px;
-}
-
-QCheckBox::indicator {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #262626;
-    border-radius: 6px;
-    background-color: #0f0f0f;
-}
-
-QCheckBox::indicator:hover {
-    border-color: #2a2a2a;
-    background-color: #141414;
-}
-
-QCheckBox::indicator:checked {
-    background-color: #00ff88;
-    border-color: #00ff88;
-}
-
-QCheckBox::indicator:checked:hover {
-    background-color: #00ffaa;
-    border-color: #00ffaa;
-}
-
-QCheckBox::indicator:disabled {
-    background-color: #1f1f1f;
-    border-color: #1f1f1f;
-}
-
-/* ===== QRADIOBUTTON ===== */
-QRadioButton {
-    spacing: 12px;
-    color: #ffffff;
-    font-size: 14px;
-}
-
-QRadioButton::indicator {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #262626;
-    border-radius: 10px;
-    background-color: #0f0f0f;
-}
-
-QRadioButton::indicator:hover {
-    border-color: #2a2a2a;
-    background-color: #141414;
-}
-
-QRadioButton::indicator:checked {
-    background-color: #00ff88;
-    border-color: #00ff88;
-}
-
-QRadioButton::indicator:checked:hover {
-    border-color: #00ffaa;
-}
-
-/* ===== QSLIDER ===== */
-QSlider::groove:horizontal {
-    background: #262626;
-    height: 4px;
-    border-radius: 2px;
-}
-
-QSlider::handle:horizontal {
-    background: #00ff88;
-    width: 16px;
-    height: 16px;
-    margin: -6px 0;
-    border-radius: 8px;
-}
-
-QSlider::handle:horizontal:hover {
-    background: #00ffaa;
-    width: 18px;
-    height: 18px;
-    margin: -7px 0;
-}
-
-QSlider::handle:horizontal:pressed {
-    background: #00dd77;
-}
-
-QSlider::sub-page:horizontal {
-    background: #00ff88;
-    border-radius: 2px;
-}
-
-/* ===== QPROGRESSBAR ===== */
-QProgressBar {
-    background-color: #262626;
-    border: none;
-    border-radius: 2px;
-    text-align: center;
-}
-
-QProgressBar::chunk {
-    background-color: #00ff88;
-    border-radius: 2px;
-}
-
-/* ===== QLABEL ===== */
-QLabel {
-    color: #ffffff;
-    background-color: transparent;
-    border: none;
-}
-
-/* ===== QFRAME ===== */
-QFrame[card="true"] {
-    background-color: #0d0d0d;
-    border: 1px solid #1f1f1f;
-    border-radius: 16px;
-}
-
-QFrame[sidebar="true"] {
-    background-color: #111111;
-    border-radius: 20px;
-}
-
-QFrame[divider="true"] {
-    background-color: rgba(0, 255, 136, 0.2);
-}
-
-QFrame[accentBar="true"] {
-    background-color: #00ff88;
-    border-radius: 2px;
-}
-
-/* ===== QMESSAGEBOX ===== */
-QMessageBox {
-    background-color: #0d0d0d;
-}
-
-QMessageBox QLabel {
-    color: #ffffff;
-}
-
-QMessageBox QPushButton {
-    min-width: 80px;
-}
-"""
-
-# =============================================================================
-# LLM SYSTEM PROMPT
-# =============================================================================
-
-LLM_SYSTEM_PROMPT = (
-    "You are \"Transcription 2.0\": a real-time dictation post-editor.\n\n"
-    "Task:\n"
-    "- Take the user's raw speech-to-text transcript and return the same content as clean written text.\n\n"
-    "Absolute output rules:\n"
-    "- Output ONLY the transformed text. No titles, no prefixes, no explanations, no markdown wrappers.\n"
-    "- Keep the SAME language as the transcript. Do NOT translate.\n"
-    "- Preserve meaning strictly. Do NOT add new ideas, facts, steps, names, or assumptions.\n"
+from src.ui.settings_style import (
+    COLORS, WINDOW_MARGIN, SIDEBAR_WIDTH, CARD_PADDING_H,
+    CARD_PADDING_V, ROW_SPACING, LABEL_WIDTH, INPUT_HEIGHT, STYLESHEET
 )
-
-# =============================================================================
-# DEFAULT MODELS
-# =============================================================================
-
-MAX_MODELS_SHOWN = 50
-DEFAULT_MODELS_PATH = Path(__file__).resolve().parent.parent / "resources" / "models_default.json"
-
-
-def _load_config(path: Path) -> Dict[str, Any]:
-    """Load config from JSON file."""
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-
-
-def _save_config(path: Path, data: Dict[str, Any]) -> None:
-    """Save config to JSON file."""
-    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-
-
-def _load_default_models(path: Path, fallback: List[str]) -> List[str]:
-    """Load default models from JSON file."""
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        if isinstance(data, list):
-            return [str(x) for x in data if x]
-    except Exception:
-        pass
-    return list(fallback)
+from src.ui.settings_helpers import (
+    load_config, save_config, load_default_models,
+    build_card, create_row,
+    LLM_SYSTEM_PROMPT, MAX_MODELS_SHOWN, DEFAULT_MODELS_PATH
+)
+from src.ui.settings_sections import (
+    build_general_section, build_audio_section, build_overlay_section,
+    build_post_section, build_history_section, build_about_section
+)
 
 
 # =============================================================================
@@ -581,11 +94,11 @@ class SettingsWindow(QMainWindow):
         super().__init__()
 
         self.config_path = config_path
-        self.data = _load_config(config_path)
+        self.data = load_config(config_path)
         self.history_manager = history_manager
 
         # Load default models
-        self.default_models: List[str] = _load_default_models(
+        self.default_models: List[str] = load_default_models(
             DEFAULT_MODELS_PATH,
             fallback=[
                 "openai/gpt-oss-20b",
@@ -642,10 +155,18 @@ class SettingsWindow(QMainWindow):
 
     def _run_on_ui(self, fn: Callable) -> None:
         """Execute function on Qt UI thread safely."""
-        if QThread.currentThread() == self.thread():
+        app = QApplication.instance()
+        if app and QThread.currentThread() == app.thread():
             fn()
+        elif _get_invoker:
+            # Use thread-safe signal instead of QTimer.singleShot
+            invoker = _get_invoker()
+            if invoker:
+                invoker.invoke.emit(fn)
+            else:
+                fn()  # Fallback
         else:
-            QTimer.singleShot(0, fn)
+            fn()  # Fallback when invoker not available
 
     # =========================================================================
     # LAYOUT BUILDING
@@ -788,16 +309,16 @@ class SettingsWindow(QMainWindow):
     def _build_sections(self) -> None:
         """Build all content sections."""
         sections = [
-            ("General", self._build_general),
-            ("Audio", self._build_audio),
-            ("Overlay", self._build_overlay),
-            ("Post", self._build_post),
-            ("History", self._build_history),
-            ("About", self._build_about),
+            ("General", build_general_section),
+            ("Audio", build_audio_section),
+            ("Overlay", build_overlay_section),
+            ("Post", build_post_section),
+            ("History", build_history_section),
+            ("About", build_about_section),
         ]
 
         for name, builder in sections:
-            section = builder()
+            section = builder(self)
             self.section_widgets[name] = section
             self.sections_stack.addWidget(section)
 
@@ -813,516 +334,6 @@ class SettingsWindow(QMainWindow):
             btn.setProperty("active", is_active)
             btn.style().unpolish(btn)
             btn.style().polish(btn)
-
-    # =========================================================================
-    # HELPER METHODS
-    # =========================================================================
-
-    def _build_card(self, parent: QWidget, title: str) -> QFrame:
-        """Create card container with title and accent bar."""
-        card = QFrame(parent)
-        card.setProperty("card", True)
-
-        layout = QVBoxLayout(card)
-        layout.setContentsMargins(CARD_PADDING_H, CARD_PADDING_V, CARD_PADDING_H, CARD_PADDING_V)
-        layout.setSpacing(20)
-
-        # Title row with accent bar
-        title_row = QFrame()
-        title_layout = QHBoxLayout(title_row)
-        title_layout.setContentsMargins(0, 0, 0, 0)
-        title_layout.setSpacing(14)
-
-        # Accent bar
-        accent_bar = QFrame()
-        accent_bar.setProperty("accentBar", True)
-        accent_bar.setFixedSize(3, 24)
-        title_layout.addWidget(accent_bar)
-
-        # Title label
-        title_label = QLabel(title.upper())
-        title_label.setStyleSheet("font-size: 20px; font-weight: bold;")
-        title_layout.addWidget(title_label)
-        title_layout.addStretch()
-
-        layout.addWidget(title_row)
-
-        return card
-
-    def _create_row(
-        self,
-        label_text: str,
-        widget: QWidget,
-        label_width: int = LABEL_WIDTH
-    ) -> QFrame:
-        """Create standardized input row."""
-        row = QFrame()
-        layout = QHBoxLayout(row)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(12)
-
-        # Label column
-        label_col = QFrame()
-        label_col.setFixedWidth(label_width)
-        label_layout = QHBoxLayout(label_col)
-        label_layout.setContentsMargins(0, 0, 0, 0)
-
-        label = QLabel(label_text)
-        label.setStyleSheet("font-size: 15px; font-weight: bold;")
-        label_layout.addWidget(label, alignment=Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-
-        layout.addWidget(label_col)
-        layout.addWidget(widget, 1)
-
-        return row
-
-    # =========================================================================
-    # SECTION BUILDERS
-    # =========================================================================
-
-    def _build_general(self) -> QWidget:
-        """Build General settings section."""
-        section = QWidget()
-        layout = QVBoxLayout(section)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-
-        card = self._build_card(section, "General Settings")
-        card_layout = card.layout()
-
-        # Content container
-        content = QFrame()
-        content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(ROW_SPACING)
-
-        # Hotkey row
-        hotkey_row = QFrame()
-        hotkey_layout = QHBoxLayout(hotkey_row)
-        hotkey_layout.setContentsMargins(0, 0, 0, 0)
-        hotkey_layout.setSpacing(12)
-
-        label_col = QFrame()
-        label_col.setFixedWidth(LABEL_WIDTH)
-        label_layout = QHBoxLayout(label_col)
-        label_layout.setContentsMargins(0, 0, 0, 0)
-        label = QLabel("Hotkey")
-        label.setStyleSheet("font-size: 15px; font-weight: bold;")
-        label_layout.addWidget(label)
-        hotkey_layout.addWidget(label_col)
-
-        hotkey_entry = QLineEdit()
-        hotkey_entry.setReadOnly(True)
-        hotkey_entry.setFixedHeight(INPUT_HEIGHT)
-        hotkey_entry.setMinimumWidth(260)
-        self.widgets["hotkey"] = hotkey_entry
-        hotkey_layout.addWidget(hotkey_entry)
-
-        capture_btn = QPushButton("RECORD")
-        capture_btn.setProperty("primary", True)
-        capture_btn.setFixedSize(120, INPUT_HEIGHT)
-        capture_btn.clicked.connect(self._start_hotkey_capture)
-        self.widgets["hotkey_btn"] = capture_btn
-        hotkey_layout.addWidget(capture_btn)
-        hotkey_layout.addStretch()
-
-        content_layout.addWidget(hotkey_row)
-
-        # Mode row
-        mode_row = QFrame()
-        mode_layout = QHBoxLayout(mode_row)
-        mode_layout.setContentsMargins(0, 0, 0, 0)
-        mode_layout.setSpacing(12)
-
-        label_col = QFrame()
-        label_col.setFixedWidth(LABEL_WIDTH)
-        label_layout = QHBoxLayout(label_col)
-        label_layout.setContentsMargins(0, 0, 0, 0)
-        label = QLabel("Mode")
-        label.setStyleSheet("font-size: 15px; font-weight: bold;")
-        label_layout.addWidget(label)
-        mode_layout.addWidget(label_col)
-
-        mode_group = QButtonGroup(self)
-        rb_ptt = QRadioButton("Push-to-Talk")
-        rb_toggle = QRadioButton("Toggle")
-        mode_group.addButton(rb_ptt, 0)
-        mode_group.addButton(rb_toggle, 1)
-        rb_ptt.toggled.connect(lambda: self._auto_save())
-        rb_toggle.toggled.connect(lambda: self._auto_save())
-        self.widgets["activation_mode"] = mode_group
-        self.widgets["rb_ptt"] = rb_ptt
-        self.widgets["rb_toggle"] = rb_toggle
-
-        mode_layout.addWidget(rb_ptt)
-        mode_layout.addSpacing(16)
-        mode_layout.addWidget(rb_toggle)
-        mode_layout.addStretch()
-
-        content_layout.addWidget(mode_row)
-
-        # Start on boot
-        cb_boot = QCheckBox("Start on Windows boot")
-        cb_boot.stateChanged.connect(lambda: self._auto_save())
-        self.widgets["start_on_boot"] = cb_boot
-        content_layout.addWidget(cb_boot)
-
-        # Clipboard policy
-        clip_combo = QComboBox()
-        clip_combo.addItems(["dont_modify", "copy_to_clipboard"])
-        clip_combo.setFixedHeight(INPUT_HEIGHT)
-        clip_combo.setMinimumWidth(260)
-        clip_combo.currentTextChanged.connect(lambda: self._auto_save())
-        self.widgets["clipboard_policy"] = clip_combo
-
-        clip_row = self._create_row("Clipboard", clip_combo)
-        content_layout.addWidget(clip_row)
-
-        card_layout.addWidget(content)
-        layout.addWidget(card)
-        layout.addStretch()
-
-        return section
-
-    def _build_audio(self) -> QWidget:
-        """Build Audio settings section."""
-        section = QWidget()
-        layout = QVBoxLayout(section)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-
-        card = self._build_card(section, "Audio Settings")
-        card_layout = card.layout()
-
-        content = QFrame()
-        content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(ROW_SPACING)
-
-        # Microphone combo
-        device_combo = QComboBox()
-        device_combo.setFixedHeight(INPUT_HEIGHT)
-        device_combo.setMinimumWidth(420)
-        device_combo.currentTextChanged.connect(lambda: self._auto_save())
-        self.widgets["device_id"] = device_combo
-
-        device_row = self._create_row("Microphone", device_combo)
-        content_layout.addWidget(device_row)
-
-        # Hidden vars
-        self.hidden_vars["use_vad"] = False
-        self.hidden_vars["vad_threshold"] = 0.5
-        self.hidden_vars["mute_while_recording"] = False
-        self.hidden_vars["chunk_size"] = 4096
-
-        card_layout.addWidget(content)
-        layout.addWidget(card)
-        layout.addStretch()
-
-        return section
-
-    def _build_overlay(self) -> QWidget:
-        """Build Overlay settings section."""
-        section = QWidget()
-        layout = QVBoxLayout(section)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-
-        card = self._build_card(section, "Overlay Settings")
-        card_layout = card.layout()
-
-        content = QFrame()
-        content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(ROW_SPACING)
-
-        # Enable overlay
-        cb_enabled = QCheckBox("Show overlay")
-        cb_enabled.stateChanged.connect(lambda: self._auto_save())
-        self.widgets["overlay_enabled"] = cb_enabled
-        content_layout.addWidget(cb_enabled)
-
-        # Position
-        pos_combo = QComboBox()
-        pos_combo.addItems(["bottom", "top"])
-        pos_combo.setFixedHeight(INPUT_HEIGHT)
-        pos_combo.setMinimumWidth(260)
-        pos_combo.currentTextChanged.connect(lambda: self._auto_save())
-        self.widgets["overlay_position"] = pos_combo
-
-        pos_row = self._create_row("Position", pos_combo)
-        content_layout.addWidget(pos_row)
-
-        # Opacity slider
-        opacity_container = QFrame()
-        opacity_layout = QHBoxLayout(opacity_container)
-        opacity_layout.setContentsMargins(0, 0, 0, 0)
-        opacity_layout.setSpacing(12)
-
-        opacity_slider = QSlider(Qt.Orientation.Horizontal)
-        opacity_slider.setRange(50, 100)
-        opacity_slider.setValue(85)
-        opacity_slider.setFixedWidth(320)
-        opacity_slider.valueChanged.connect(lambda: self._auto_save())
-        self.widgets["overlay_opacity"] = opacity_slider
-
-        opacity_value = QLabel("85%")
-        opacity_value.setStyleSheet(f"color: {COLORS['label_secondary']};")
-        opacity_value.setFixedWidth(50)
-        self.widgets["overlay_opacity_label"] = opacity_value
-        opacity_slider.valueChanged.connect(lambda v: opacity_value.setText(f"{v}%"))
-
-        opacity_layout.addWidget(opacity_slider)
-        opacity_layout.addWidget(opacity_value)
-
-        opacity_row = self._create_row("Opacity", opacity_container)
-        content_layout.addWidget(opacity_row)
-
-        card_layout.addWidget(content)
-        layout.addWidget(card)
-        layout.addStretch()
-
-        return section
-
-    def _build_post(self) -> QWidget:
-        """Build Post-Processing settings section."""
-        section = QWidget()
-        layout = QVBoxLayout(section)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-
-        card = self._build_card(section, "AI Post-Processing")
-        card_layout = card.layout()
-
-        content = QFrame()
-        content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(ROW_SPACING)
-
-        # Enable AI
-        cb_pp = QCheckBox("Enable AI post-processing")
-        cb_pp.stateChanged.connect(lambda: self._auto_save())
-        self.widgets["pp_enabled"] = cb_pp
-        content_layout.addWidget(cb_pp)
-
-        # API Key
-        api_entry = QLineEdit()
-        api_entry.setEchoMode(QLineEdit.EchoMode.Password)
-        api_entry.setFixedHeight(INPUT_HEIGHT)
-        api_entry.setMinimumWidth(420)
-        api_entry.textChanged.connect(lambda: self._auto_save())
-        self.widgets["pp_api_key"] = api_entry
-
-        api_row = self._create_row("API Key", api_entry)
-        content_layout.addWidget(api_row)
-
-        # Model label
-        model_label = QLabel("Model")
-        model_label.setStyleSheet("font-size: 15px; font-weight: bold; margin-top: 8px;")
-        content_layout.addWidget(model_label)
-
-        # Filter row
-        filter_row = QFrame()
-        filter_layout = QHBoxLayout(filter_row)
-        filter_layout.setContentsMargins(0, 0, 0, 0)
-        filter_layout.setSpacing(12)
-
-        search_entry = QLineEdit()
-        search_entry.setPlaceholderText("Filter models...")
-        search_entry.setFixedHeight(40)
-        search_entry.setFixedWidth(240)
-        search_entry.textChanged.connect(self._filter_models)
-        self.widgets["model_search"] = search_entry
-        filter_layout.addWidget(search_entry)
-
-        reset_btn = QPushButton("RESET")
-        reset_btn.setFixedSize(100, 40)
-        reset_btn.clicked.connect(self._reset_models)
-        filter_layout.addWidget(reset_btn)
-
-        refresh_btn = QPushButton("REFRESH")
-        refresh_btn.setFixedSize(100, 40)
-        refresh_btn.clicked.connect(self._refresh_models_async)
-        filter_layout.addWidget(refresh_btn)
-
-        filter_layout.addStretch()
-        content_layout.addWidget(filter_row)
-
-        # Model list scroll area
-        model_scroll = QScrollArea()
-        model_scroll.setWidgetResizable(True)
-        model_scroll.setFixedHeight(200)
-        model_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        model_scroll.setStyleSheet("QScrollArea { background-color: #0f0f0f; border-radius: 12px; border: 1px solid #262626; }")
-
-        model_list = QWidget()
-        model_list_layout = QVBoxLayout(model_list)
-        model_list_layout.setContentsMargins(4, 4, 4, 4)
-        model_list_layout.setSpacing(4)
-        model_list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        model_scroll.setWidget(model_list)
-        self.widgets["model_list_container"] = model_list
-
-        content_layout.addWidget(model_scroll)
-
-        # Status label
-        status_label = QLabel("Model list: default")
-        status_label.setStyleSheet(f"color: {COLORS['label_tertiary']}; font-size: 11px;")
-        self.widgets["model_status"] = status_label
-        content_layout.addWidget(status_label)
-
-        # Test connection row
-        test_row = QFrame()
-        test_layout = QHBoxLayout(test_row)
-        test_layout.setContentsMargins(0, 0, 0, 0)
-        test_layout.setSpacing(12)
-
-        test_btn = QPushButton("TEST CONNECTION")
-        test_btn.setFixedSize(160, 44)
-        test_btn.clicked.connect(self._test_llm_connection)
-        test_layout.addWidget(test_btn)
-
-        test_status = QLabel("")
-        test_status.setStyleSheet(f"color: {COLORS['label_secondary']}; font-size: 11px;")
-        self.widgets["test_status"] = test_status
-        test_layout.addWidget(test_status, 1)
-
-        content_layout.addWidget(test_row)
-
-        # Add model row
-        add_row = QFrame()
-        add_layout = QHBoxLayout(add_row)
-        add_layout.setContentsMargins(0, 0, 0, 0)
-        add_layout.setSpacing(12)
-
-        add_entry = QLineEdit()
-        add_entry.setPlaceholderText("vendor/model-name")
-        add_entry.setFixedHeight(44)
-        add_entry.setMinimumWidth(420)
-        self.widgets["add_model"] = add_entry
-        add_layout.addWidget(add_entry)
-
-        add_btn = QPushButton("+ ADD MODEL")
-        add_btn.setProperty("primary", True)
-        add_btn.setFixedSize(140, 44)
-        add_btn.clicked.connect(self._add_model)
-        add_layout.addWidget(add_btn)
-        add_layout.addStretch()
-
-        content_layout.addWidget(add_row)
-
-        card_layout.addWidget(content)
-        layout.addWidget(card)
-        layout.addStretch()
-
-        return section
-
-    def _build_history(self) -> QWidget:
-        """Build History section."""
-        section = QWidget()
-        layout = QVBoxLayout(section)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-
-        # Toolbar
-        toolbar = QFrame()
-        toolbar_layout = QHBoxLayout(toolbar)
-        toolbar_layout.setContentsMargins(0, 0, 0, 0)
-        toolbar_layout.setSpacing(12)
-
-        title = QLabel("RECENT TRANSCRIPTIONS")
-        title.setStyleSheet("font-size: 20px; font-weight: bold;")
-        toolbar_layout.addWidget(title)
-        toolbar_layout.addStretch()
-
-        open_btn = QPushButton("OPEN FOLDER")
-        open_btn.setFixedSize(140, 44)
-        open_btn.clicked.connect(self._open_recordings_folder)
-        toolbar_layout.addWidget(open_btn)
-
-        refresh_btn = QPushButton("REFRESH")
-        refresh_btn.setProperty("primary", True)
-        refresh_btn.setFixedSize(140, 44)
-        refresh_btn.clicked.connect(self._refresh_history)
-        toolbar_layout.addWidget(refresh_btn)
-
-        layout.addWidget(toolbar)
-
-        # History scroll area
-        history_scroll = QScrollArea()
-        history_scroll.setWidgetResizable(True)
-        history_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-
-        history_widget = QWidget()
-        history_layout = QVBoxLayout(history_widget)
-        history_layout.setContentsMargins(0, 0, 0, 0)
-        history_layout.setSpacing(12)
-        history_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        history_scroll.setWidget(history_widget)
-        self.widgets["history_container"] = history_widget
-
-        layout.addWidget(history_scroll, 1)
-
-        return section
-
-    def _build_about(self) -> QWidget:
-        """Build About section."""
-        section = QWidget()
-        layout = QVBoxLayout(section)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(20)
-
-        card = self._build_card(section, "About")
-        card_layout = card.layout()
-
-        content = QFrame()
-        content_layout = QVBoxLayout(content)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(12)
-
-        # Title
-        title = QLabel("Whisper Cheap")
-        title.setStyleSheet(f"color: {COLORS['accent_primary']}; font-size: 28px; font-weight: bold;")
-        content_layout.addWidget(title)
-
-        # Version
-        version = QLabel("Version 1.0.0")
-        version.setStyleSheet(f"color: {COLORS['label_secondary']};")
-        content_layout.addWidget(version)
-
-        # Description
-        desc = QLabel("Local voice transcription powered by Parakeet V3")
-        desc.setStyleSheet(f"color: {COLORS['label_tertiary']};")
-        content_layout.addWidget(desc)
-
-        content_layout.addSpacing(20)
-
-        # Action buttons
-        btn_row = QFrame()
-        btn_layout = QHBoxLayout(btn_row)
-        btn_layout.setContentsMargins(0, 0, 0, 0)
-        btn_layout.setSpacing(16)
-
-        data_btn = QPushButton("OPEN DATA FOLDER")
-        data_btn.setProperty("primary", True)
-        data_btn.setFixedSize(220, INPUT_HEIGHT)
-        data_btn.clicked.connect(self._open_app_data_folder)
-        btn_layout.addWidget(data_btn)
-
-        rec_btn = QPushButton("OPEN RECORDINGS")
-        rec_btn.setProperty("primary", True)
-        rec_btn.setFixedSize(220, INPUT_HEIGHT)
-        rec_btn.clicked.connect(self._open_recordings_folder)
-        btn_layout.addWidget(rec_btn)
-        btn_layout.addStretch()
-
-        content_layout.addWidget(btn_row)
-
-        card_layout.addWidget(content)
-        layout.addWidget(card)
-        layout.addStretch()
-
-        return section
 
     # =========================================================================
     # DATA METHODS
@@ -1480,7 +491,7 @@ class SettingsWindow(QMainWindow):
             pp["prompt_template"] = "Transcript:\n${output}"
             pp["custom_models"] = list(self.user_models)
 
-            _save_config(self.config_path, d)
+            save_config(self.config_path, d)
 
         except Exception as e:
             print(f"[settings] Error saving config: {e}")
@@ -1965,20 +976,31 @@ class SettingsWindow(QMainWindow):
     # =========================================================================
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        """Handle window close."""
+        """Handle window close - fully destroy to prevent timer leaks."""
+        global _settings_window
         try:
             self._save_config_silent()
 
-            if self._save_timer and self._save_timer.isActive():
-                self._save_timer.stop()
+            # Stop any active timers
+            if self._save_timer:
+                if self._save_timer.isActive():
+                    self._save_timer.stop()
+                self._save_timer.deleteLater()
+                self._save_timer = None
 
+            # Clear widget references
             self.widgets.clear()
             self.hidden_vars.clear()
+
+            # Clear global reference
+            _settings_window = None
 
         except Exception as e:
             print(f"[settings] Cleanup error: {e}")
         finally:
             event.accept()
+            # Schedule destruction of the window
+            self.deleteLater()
 
 
 # =============================================================================

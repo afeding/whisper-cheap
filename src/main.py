@@ -11,11 +11,15 @@ from __future__ import annotations
 import json
 import logging
 import os
+import queue
 import time
 from pathlib import Path
 import threading
 import sys
 from typing import Optional
+
+# Queue for executing functions on the main thread (required for Qt)
+_main_thread_queue: queue.SimpleQueue = queue.SimpleQueue()
 
 # Set Windows AppUserModelID for proper taskbar icon display
 if os.name == 'nt':
@@ -429,10 +433,13 @@ Fail-safe:
         recording_state["recording"] = False
 
     def open_settings():
-        try:
-            open_modern_settings(config_path, history_manager=history_manager)
-        except Exception as e:
-            print(f"No se pudo abrir la ventana de Settings ({e}). Abre config.json manualmente: {config_path}")
+        # Schedule on main thread (Qt requires widgets to be created on main thread)
+        def _open():
+            try:
+                open_modern_settings(config_path, history_manager=history_manager)
+            except Exception as e:
+                print(f"No se pudo abrir la ventana de Settings ({e}). Abre config.json manualmente: {config_path}")
+        _main_thread_queue.put(_open)
 
     tray = TrayManager(
         on_settings=open_settings,
@@ -690,11 +697,22 @@ Fail-safe:
     print("Whisper Cheap en ejecucion. Pulsa Ctrl+C para salir.")
     try:
         while not stop_event.is_set():
+            # Process Qt events
             if overlay_app:
                 try:
                     overlay_app.processEvents()
                 except Exception:
                     pass
+            # Process main thread queue (for callbacks from other threads like tray)
+            try:
+                while True:
+                    fn = _main_thread_queue.get_nowait()
+                    try:
+                        fn()
+                    except Exception as e:
+                        print(f"[main] Error in queued function: {e}")
+            except queue.Empty:
+                pass
             stop_event.wait(0.05 if overlay_app else 0.2)
     except KeyboardInterrupt:
         pass
