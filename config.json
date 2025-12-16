@@ -1,0 +1,35 @@
+{
+  "hotkey": "ctrl+shift+space",
+  "mode": {
+    "activation_mode": "toggle",
+    "unload_timeout": "never"
+  },
+  "audio": {
+    "device_id": null,
+    "chunk_size": 4096,
+    "use_vad": false,
+    "mute_while_recording": false,
+    "sample_rate": 16000,
+    "channels": 1,
+    "vad_threshold": 0.5
+  },
+  "clipboard": {
+    "paste_method": "ctrl_v",
+    "policy": "copy_to_clipboard"
+  },
+  "overlay": {
+    "enabled": true,
+    "position": "bottom",
+    "opacity": 0.5732142857142857
+  },
+  "post_processing": {
+    "enabled": true,
+    "openrouter_api_key": "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",
+    "model": "openai/gpt-oss-20b",
+    "prompt_template": "Transcript:\\n${output}",
+    "custom_models": []
+  },
+  "general": {
+    "start_on_boot": true
+  }
+}

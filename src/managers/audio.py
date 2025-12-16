@@ -1,0 +1,278 @@
+"""
+Audio recording and VAD management for Whisper Cheap.
+
+Implements:
+- AudioRecordingManager: handles stream lifecycle, voice-gated buffering,
+  and start/stop/cancel semantics with hotkey bindings.
+- Silero VAD helper: lazy download/load of ONNX model and inference wrapper.
+
+Notes:
+- Sounddevice is optional at import time; stream opening will fail gracefully
+  with a clear error if the library is unavailable.
+- For testing, a mock feed path is available via `feed_samples` without an
+  actual audio stream.
+"""
+
+from __future__ import annotations
+
+import threading
+from collections import deque
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Callable, Deque, Optional
+
+import numpy as np
+
+try:
+    import sounddevice as sd
+except ImportError:  # pragma: no cover - handled at runtime
+    sd = None
+
+try:
+    import onnxruntime as ort
+except ImportError:  # pragma: no cover - VAD is optional
+    ort = None
+
+try:
+    import requests
+except ImportError:  # pragma: no cover
+    requests = None
+
+
+# Constants
+DEFAULT_SAMPLE_RATE = 16_000
+DEFAULT_CHANNELS = 1
+DEFAULT_CHUNK_SIZE = 512  # 32ms @16k
+DEFAULT_VAD_THRESHOLD = 0.5
+# Pin to tags that still host the ONNX file; upstream removed it from the default branch.
+SILERO_VAD_URLS = [
+    "https://raw.githubusercontent.com/snakers4/silero-vad/v4.0/files/silero_vad.onnx",
+    "https://raw.githubusercontent.com/snakers4/silero-vad/v3.1/files/silero_vad.onnx",
+]
+SILERO_VAD_FILENAME = "silero_vad_v4.onnx"
+
+
+class VADNotAvailable(RuntimeError):
+    """Raised when VAD is requested but cannot be used."""
+
+
+@dataclass
+class RecordingConfig:
+    sample_rate: int = DEFAULT_SAMPLE_RATE
+    channels: int = DEFAULT_CHANNELS
+    chunk_size: int = DEFAULT_CHUNK_SIZE
+    vad_threshold: float = DEFAULT_VAD_THRESHOLD
+    always_on_stream: bool = True
+    use_vad: bool = True  # if False, record everything
+    mute_while_recording: bool = False  # placeholder; to be implemented with pycaw
+
+
+class SileroVAD:
+    """
+    Minimal Silero VAD wrapper.
+
+    Falls back to RMS threshold if ONNX runtime or model file is unavailable.
+    """
+
+    def __init__(self, model_dir: Path) -> None:
+        self.model_dir = model_dir
+        self.model_path = self.model_dir / SILERO_VAD_FILENAME
+        self._session = None
+        self._session_lock = threading.Lock()
+
+    @property
+    def available(self) -> bool:
+        return bool(ort) and self.model_path.exists()
+
+    def ensure_downloaded(self) -> None:
+        if self.model_path.exists():
+            return
+        if requests is None:
+            raise VADNotAvailable("requests is required to download VAD model")
+        self.model_dir.mkdir(parents=True, exist_ok=True)
+        errors = []
+        for url in SILERO_VAD_URLS:
+            try:
+                with requests.get(url, stream=True, timeout=30) as resp:
+                    resp.raise_for_status()
+                    with open(self.model_path, "wb") as f:
+                        for chunk in resp.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                return
+            except Exception as e:
+                errors.append((url, str(e)))
+                continue
+        raise VADNotAvailable(f"Failed to download VAD model from all URLs: {errors}")
+
+    def _load_session(self):
+        if not ort:
+            raise VADNotAvailable("onnxruntime is not installed")
+        if not self.model_path.exists():
+            raise VADNotAvailable("VAD model file is missing")
+        return ort.InferenceSession(str(self.model_path))
+
+    def _get_session(self):
+        with self._session_lock:
+            if self._session is None:
+                self._session = self._load_session()
+            return self._session
+
+    def is_speech(self, chunk: np.ndarray, threshold: float) -> bool:
+        """
+        Return True if chunk is considered speech.
+        Uses Silero VAD if available, otherwise simple RMS threshold.
+        """
+        if self.available:
+            try:
+                session = self._get_session()
+                # Silero expects shape (batch, 1, samples)
+                input_chunk = chunk.astype(np.float32)[np.newaxis, np.newaxis, :]
+                outputs = session.run(None, {"input": input_chunk})
+                prob = float(outputs[0].squeeze())
+                return prob >= threshold
+            except Exception:
+                # Fall back to RMS on any inference issue
+                pass
+        rms = float(np.sqrt(np.mean(np.square(chunk.astype(np.float32)))))
+        # When Silero isn't available, interpret `threshold` (0..1) as a sensitivity
+        # knob rather than a direct RMS threshold (float32 audio RMS is typically << 0.5).
+        t = max(0.0, min(float(threshold), 1.0))
+        rms_threshold = 0.005 + (0.05 * t)  # ~[0.005..0.055]
+        return rms >= rms_threshold
+
+
+class AudioRecordingManager:
+    """
+    Manages audio capture and voice-activated recording.
+    """
+
+    def __init__(
+        self,
+        config: Optional[RecordingConfig] = None,
+        model_dir: Path | str = Path("src/resources/models"),
+        on_rms: Optional[Callable[[float], None]] = None,
+        on_event: Optional[Callable[[str], None]] = None,
+    ) -> None:
+        self.config = config or RecordingConfig()
+        self.on_rms = on_rms
+        self.on_event = on_event
+        self.model_dir = Path(model_dir)
+        self.vad = SileroVAD(self.model_dir)
+        if sd is None:
+            self._emit_event("backend-missing:sounddevice")
+
+        self._buffer: Deque[np.ndarray] = deque()
+        self._recording_lock = threading.Lock()
+        self._is_recording = False
+        self._binding_id = None
+        self._stream: Optional["sd.InputStream"] = None
+        self._stream_lock = threading.Lock()
+
+    # --------- Public API ---------
+    def list_input_devices(self):
+        if sd is None:
+            raise RuntimeError("sounddevice is not installed")
+        return sd.query_devices()
+
+    def open_stream(self, device_id: Optional[int] = None):
+        if sd is None:
+            raise RuntimeError("sounddevice is not installed")
+        with self._stream_lock:
+            if self._stream is not None:
+                return
+            self._stream = sd.InputStream(
+                samplerate=self.config.sample_rate,
+                channels=self.config.channels,
+                dtype="float32",
+                blocksize=self.config.chunk_size,
+                callback=self._audio_callback,
+                device=device_id,
+            )
+            self._stream.start()
+            self._emit_event("stream-opened")
+
+    def close_stream(self):
+        with self._stream_lock:
+            if self._stream is not None:
+                self._stream.stop()
+                self._stream.close()
+                self._stream = None
+                self._emit_event("stream-closed")
+
+    def start_recording(self, binding_id: str, device_id: Optional[int] = None):
+        with self._recording_lock:
+            self._buffer.clear()
+            self._is_recording = True
+            self._binding_id = binding_id
+        # Always ensure the stream is open at recording time.
+        if self._stream is None:
+            try:
+                self.open_stream(device_id=device_id)
+            except Exception as e:
+                # Keep going so feed_samples-based tests still work.
+                self._emit_event(f"stream-open-failed:{e}")
+        self._emit_event("recording-started")
+
+    def stop_recording(self, binding_id: str) -> np.ndarray:
+        with self._recording_lock:
+            if not self._is_recording or binding_id != self._binding_id:
+                self._emit_event("recording-stop-ignored")
+                return np.array([], dtype=np.float32)
+            self._is_recording = False
+            self._binding_id = None
+            data = np.concatenate(list(self._buffer)) if self._buffer else np.array([], dtype=np.float32)
+            self._buffer.clear()
+        if not self.config.always_on_stream:
+            self.close_stream()
+        self._emit_event("recording-stopped")
+        return data
+
+    def cancel(self):
+        with self._recording_lock:
+            self._is_recording = False
+            self._binding_id = None
+            self._buffer.clear()
+        if not self.config.always_on_stream:
+            self.close_stream()
+        self._emit_event("recording-cancelled")
+
+    def feed_samples(self, samples: np.ndarray):
+        """
+        Test/helper path: feed samples directly (no audio device needed).
+        """
+        self._process_chunk(samples.astype(np.float32))
+
+    def ensure_vad_model(self):
+        self.vad.ensure_downloaded()
+
+    # --------- Internal helpers ---------
+    def _emit_event(self, name: str):
+        if self.on_event:
+            try:
+                self.on_event(name)
+            except Exception:
+                pass
+
+    def _audio_callback(self, indata, frames, time, status):  # pragma: no cover - relies on sounddevice
+        if status:
+            self._emit_event(f"stream-status:{status}")
+        chunk = np.copy(indata[:, 0]) if indata.ndim > 1 else np.copy(indata)
+        self._process_chunk(chunk.astype(np.float32))
+
+    def _process_chunk(self, chunk: np.ndarray):
+        rms = float(np.sqrt(np.mean(np.square(chunk)))) if chunk.size else 0.0
+        if self.on_rms:
+            try:
+                self.on_rms(rms)
+            except Exception:
+                pass
+        with self._recording_lock:
+            if not self._is_recording:
+                return
+        if not self.config.use_vad:
+            self._buffer.append(chunk.copy())
+            return
+        is_speech = self.vad.is_speech(chunk, self.config.vad_threshold)
+        if is_speech:
+            self._buffer.append(chunk.copy())

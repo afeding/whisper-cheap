@@ -1,0 +1,18 @@
+sounddevice>=0.4.6
+numpy>=1.24.0
+onnxruntime>=1.20.0
+keyboard>=0.13.5
+pystray>=0.19.5
+Pillow>=10.0.0
+pyperclip>=1.8.2
+pywin32>=306
+requests>=2.31.0
+httpx>=0.25.0
+openai>=1.66.0
+PyQt6==6.7.0
+PyQt6-Qt6==6.7.0
+PyQt6-sip==13.6.0
+customtkinter>=5.2.2
+librosa>=0.10.0
+# openrouter SDK eliminado: usamos cliente OpenAI apuntando a OpenRouter
+# sqlite3 is included in the Python standard library on Windows
