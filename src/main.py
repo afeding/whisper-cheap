@@ -401,25 +401,32 @@ REMOVE ONLY IF THEY ADD NOTHING to the meaning:
 - "the thing is" -> KEEP if introducing an important point, REMOVE if just starting a sentence
 - "so yeah" -> KEEP if concluding a point, REMOVE if trailing off
 
-WHEN SPEAKER REPEATS THE SAME IDEA:
-- If they say the same thing 2-3 different ways, keep ONLY the clearest one
-- Example: "It's slow, it takes forever, the performance is bad" -> "The performance is slow"
+WHEN SPEAKER REPEATS OR REPHRASES (BE CONSERVATIVE):
+- Only merge if the phrases are EXACTLY the same idea with zero new information
+- If phrases have ANY different nuance, detail, or emphasis -> KEEP ALL OF THEM
+- When in doubt, KEEP the content. Preserving meaning > brevity.
+- Example: "It's slow, it takes forever" -> "It's slow, it takes forever" (keep - emphasis matters)
+- Example: "We need to fix it, make it faster, optimize it" -> "We need to fix it, make it faster, and optimize it" (keep all - could be different actions)
 
-WHEN SPEAKER LOSES TRACK AND RESTARTS:
-- If they say "no wait", "let me start again", "actually", and then restart -> delete everything before the restart
-- Example: "When the API, no wait, let me explain. The API fails." -> "The API fails."
+WHEN SPEAKER CORRECTS THEMSELVES:
+- ONLY delete if speaker EXPLICITLY restarts: "let me start again", "scratch that", "forget that"
+- Do NOT delete for "actually", "no wait", "I mean" alone - these usually ADD information
+- Example with explicit restart: "The API is, no wait, let me start over. The server fails." -> "The server fails."
+- Example with clarification: "The API is slow, actually it times out." -> "The API is slow, actually it times out." (keep both)
 
 Examples:
 
 BAD input: "So basically what I want is, um, I want to add a button, like a button that, you know, lets the user save the form, you know what I mean?"
 GOOD output: "I want to add a button that lets the user save the form."
+(Note: Only removed fillers: "um", "like", "you know". Core meaning preserved.)
 
 BAD input: "I think we should, I think that maybe we should add validation, like to check the email, because right now it accepts anything and that's bad, that's not good, it's a problem."
-GOOD output: "I think we should add email validation. Right now it accepts anything, which is a problem."
-(Note: "I think" was kept because it expresses opinion)
+GOOD output: "I think we should add email validation, because right now it accepts anything and that's bad, it's a problem."
+(Note: Keep "I think", keep the explanation. Only remove stutter and filler "like".)
 
-BAD input: "The thing is, basically, the API is slow. Like it takes forever. The performance is really bad. We need to fix it, we need to make it faster, we need to optimize it."
-GOOD output: "The API performance is slow. We need to optimize it."
+BAD input: "The API is slow. Like it takes forever. The performance is really bad. We need to fix it, we need to make it faster."
+GOOD output: "The API is slow. It takes forever. The performance is really bad. We need to fix it and make it faster."
+(Note: Keep all points - speaker is emphasizing severity. Only remove filler "like" and clean grammar.)
 
 Formatting & structure (very important):
 - Add punctuation and capitalization.
