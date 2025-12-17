@@ -214,17 +214,26 @@ class SettingsAPI:
                 model_id = model.get("id")
                 pricing = model.get("pricing", {})
 
-                # Pricing is in $/1k tokens in OpenRouter, convert to $/1M tokens
+                # Pricing is in $/token in OpenRouter, convert to $/1M tokens for readability
                 input_price = pricing.get("prompt")
                 output_price = pricing.get("completion")
 
                 if input_price is not None and output_price is not None:
                     try:
-                        input_per_m = float(input_price) * 1000  # Convert $/1k to $/1M
-                        output_per_m = float(output_price) * 1000
+                        input_float = float(input_price)
+                        output_float = float(output_price)
+
+                        # Convert $/token to $/1M tokens
+                        input_per_m = input_float * 1_000_000
+                        output_per_m = output_float * 1_000_000
+
+                        # Format: show value with up to 2 decimals, but handle very small values
+                        input_formatted = round(input_per_m, 2) if input_per_m >= 0.01 else f"{input_per_m:.2e}"
+                        output_formatted = round(output_per_m, 2) if output_per_m >= 0.01 else f"{output_per_m:.2e}"
+
                         pricing_dict[model_id] = {
-                            "input": round(input_per_m, 2),
-                            "output": round(output_per_m, 2)
+                            "input": input_formatted,
+                            "output": output_formatted
                         }
                     except (ValueError, TypeError):
                         pass

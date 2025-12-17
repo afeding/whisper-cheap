@@ -382,13 +382,13 @@ function renderModelList() {
         const pricing = modelsPricing[model];
         const priceStr = pricing
             ? `$${pricing.input} / $${pricing.output}`
-            : 'N/A';
+            : 'Loading...';
 
         return `
             <div class="flex items-center justify-between gap-2 p-3 rounded-lg ${isSelected ? 'bg-accent/20 border border-accent/50' : 'bg-bg-input border border-transparent hover:border-border-subtle'}">
                 <div class="flex-1 min-w-0">
                     <div class="text-sm ${isSelected ? 'text-white' : 'text-gray-400'} truncate">${model}</div>
-                    <div class="text-xs text-text-dim mt-0.5">Input/Output per 1M tokens: ${priceStr}</div>
+                    <div class="text-xs text-text-dim mt-0.5">Input / Output (per 1M tokens): ${priceStr}</div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
                     ${isCustom ? `<button onclick="deleteModel('${model}')" class="text-red-400 hover:text-red-300 text-xs px-2">Delete</button>` : ''}
