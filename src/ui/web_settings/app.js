@@ -36,6 +36,12 @@ window.addEventListener('pywebviewready', async () => {
     await loadHistory();
     populateUI();
     showSection('general');
+
+    // Auto-fetch pricing in background if cache is empty
+    if (Object.keys(modelsPricing).length === 0) {
+        console.log('[Settings] Pricing cache empty, fetching from OpenRouter...');
+        await fetchOpenrouterPricing();
+    }
 });
 
 async function loadConfig() {
