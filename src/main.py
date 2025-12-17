@@ -59,6 +59,14 @@ try:
     import winreg  # type: ignore
 except Exception:
     winreg = None
+try:
+    import win32event  # type: ignore
+    import win32api  # type: ignore
+    import winerror  # type: ignore
+except Exception:
+    win32event = None
+    win32api = None
+    winerror = None
 
 
 def get_default_config(is_frozen: bool) -> dict:
@@ -223,6 +231,24 @@ def setup_logging(app_data: Path) -> Path:
 
 
 def main():
+    # CRITICAL: Single instance lock - prevent multiple instances from running
+    mutex = None
+    if os.name == 'nt' and win32event is not None:
+        try:
+            mutex_name = "Global\\WhisperCheap_SingleInstance_Mutex"
+            mutex = win32event.CreateMutex(None, False, mutex_name)
+            last_error = win32api.GetLastError()
+
+            if last_error == winerror.ERROR_ALREADY_EXISTS:
+                print("ADVERTENCIA: Whisper Cheap ya está ejecutándose.")
+                print("Solo se permite una instancia a la vez.")
+                print("Si ves múltiples ventanas, cierra todas y vuelve a ejecutar.")
+                input("\nPresiona Enter para salir...")
+                sys.exit(1)
+        except Exception as e:
+            print(f"Advertencia: No se pudo crear mutex de instancia única: {e}")
+            print("Continuando de todos modos...")
+
     # Detect if running as compiled executable
     is_frozen = getattr(sys, 'frozen', False)
 
@@ -513,6 +539,7 @@ Fail-safe:
         _main_thread_queue.put(_open)
 
     tray = TrayManager(
+        icons_dir=resources_dir / "icons",
         on_settings=open_settings,
         on_cancel=on_cancel_action,
         on_quit=quit_app,
@@ -678,7 +705,11 @@ Fail-safe:
                 win_bar.hide()
 
         # Reload config (fast operation) so UI changes take effect
-        fresh_cfg = load_config(config_path, is_frozen)
+        try:
+            fresh_cfg = load_config(config_path, is_frozen)
+        except Exception as e:
+            logging.warning(f"[config] Failed to reload config, using previous: {e}")
+            fresh_cfg = cfg  # fallback to original config
         fresh_pp_cfg = fresh_cfg.get("post_processing", {})
         fresh_clip_cfg = fresh_cfg.get("clipboard", {})
         fresh_model_cfg = fresh_cfg.get("model", {})
@@ -798,7 +829,8 @@ Fail-safe:
         print(f"No se pudo registrar hotkey ({hotkey_combo}): {e}")
 
     # Mostrar ajustes al arrancar (no bloquea el programa)
-    open_settings()
+    # DESHABILITADO: no abrir settings automáticamente para evitar confusión
+    # open_settings()
 
     # Hilo de mantenimiento para descargar el modelo por inactividad (si se configura)
     # y para detectar cambios en el hotkey
@@ -964,6 +996,14 @@ Fail-safe:
             logging.error(f"[shutdown] Error cleaning history: {e}")
 
         logging.info("[main] Shutdown complete")
+
+        # Release single instance mutex
+        if mutex and os.name == 'nt' and win32api is not None:
+            try:
+                win32api.CloseHandle(mutex)
+                logging.debug("[shutdown] Mutex released")
+            except Exception as e:
+                logging.error(f"[shutdown] Error releasing mutex: {e}")
 
 
 if __name__ == "__main__":

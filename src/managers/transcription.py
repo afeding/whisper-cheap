@@ -355,15 +355,26 @@ class TranscriptionManager:
         entries = []
         max_idx = -1
         blank = None
-        for line in path.read_text(encoding="utf-8").splitlines():
+        for line_num, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if not line.strip():
                 continue
-            tok, idx = line.rstrip().split(" ")
-            idx = int(idx)
+            # Split by any whitespace, expect at least 2 parts (token, index)
+            parts = line.strip().split()
+            if len(parts) < 2:
+                logging.warning(f"[vocab] Skipping malformed line {line_num}: '{line[:50]}'")
+                continue
+            tok = parts[0]
+            try:
+                idx = int(parts[-1])  # Use last part as index (more robust)
+            except ValueError:
+                logging.warning(f"[vocab] Invalid index on line {line_num}: '{line[:50]}'")
+                continue
             entries.append((idx, tok))
             if tok == BLANK_TOKEN:
                 blank = idx
             max_idx = max(max_idx, idx)
+        if not entries:
+            raise ValueError(f"Vocab file is empty or has no valid entries: {path}")
         vocab = [""] * (max_idx + 1)
         for idx, tok in entries:
             vocab[idx] = tok

@@ -15,6 +15,7 @@ Notes:
 
 from __future__ import annotations
 
+import logging
 import threading
 from collections import deque
 from dataclasses import dataclass
@@ -22,6 +23,8 @@ from pathlib import Path
 from typing import Callable, Deque, Optional
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 try:
     import sounddevice as sd
@@ -181,7 +184,7 @@ class AudioRecordingManager:
         with self._stream_lock:
             if self._stream is not None:
                 return
-            self._stream = sd.InputStream(
+            stream = sd.InputStream(
                 samplerate=self.config.sample_rate,
                 channels=self.config.channels,
                 dtype="float32",
@@ -189,7 +192,17 @@ class AudioRecordingManager:
                 callback=self._audio_callback,
                 device=device_id,
             )
-            self._stream.start()
+            try:
+                stream.start()
+            except Exception as e:
+                # Cleanup stream if start() fails to avoid blocking audio device
+                try:
+                    stream.close()
+                except Exception:
+                    pass
+                self._emit_event(f"stream-start-failed:{e}")
+                raise
+            self._stream = stream
             self._emit_event("stream-opened")
 
     def close_stream(self):
@@ -251,8 +264,8 @@ class AudioRecordingManager:
         if self.on_event:
             try:
                 self.on_event(name)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"[audio] Error in event callback '{name}': {e}")
 
     def _audio_callback(self, indata, frames, time, status):  # pragma: no cover - relies on sounddevice
         if status:

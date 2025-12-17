@@ -8,8 +8,33 @@ a = Analysis(
     binaries=[],
     datas=[
         ('src/resources', 'resources'),
+        # NO incluir config.json - contiene API keys del desarrollador
+        # El programa crea uno vacío automáticamente si no existe
     ],
-    hiddenimports=['onnxruntime', 'sounddevice', 'keyboard', 'pystray', 'PIL', 'win32api', 'win32con'],
+    hiddenimports=[
+        # ONNX and ML
+        'onnxruntime',
+        'librosa',
+        'numpy',
+        # Audio
+        'sounddevice',
+        # UI and system
+        'keyboard',
+        'pystray',
+        'PIL',
+        'PIL.Image',
+        # Windows APIs
+        'win32api',
+        'win32con',
+        'win32gui',
+        'win32event',
+        'winerror',
+        # Web settings
+        'webview',
+        # HTTP
+        'httpx',
+        'openai',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

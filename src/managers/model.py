@@ -11,10 +11,14 @@ Responsibilities:
 
 from __future__ import annotations
 
+import hashlib
+import logging
 import os
 import tarfile
 from pathlib import Path
 from typing import Callable, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import requests
@@ -30,6 +34,8 @@ MODELS: Dict[str, Dict[str, object]] = {
         "size_mb": 478,
         "is_directory": True,
         "extract_to": "parakeet-tdt-0.6b-v3-int8",
+        # SHA256 of the .tar.gz archive (None = skip validation)
+        "sha256": None,
     }
 }
 
@@ -40,6 +46,15 @@ def _default_base_dir() -> Path:
     if appdata:
         return Path(appdata) / "whisper-cheap" / "models"
     return Path.home() / ".whisper-cheap" / "models"
+
+
+def _compute_sha256(file_path: Path, chunk_size: int = 8192) -> str:
+    """Compute SHA256 hash of a file."""
+    sha256 = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        while chunk := f.read(chunk_size):
+            sha256.update(chunk)
+    return sha256.hexdigest()
 
 
 class ModelManager:
@@ -121,6 +136,22 @@ class ModelManager:
         if total is not None and downloaded != total:
             raise IOError(f"Incomplete download: expected {total} bytes, got {downloaded}")
         partial_path.rename(archive_path)
+
+        # Validate checksum if available
+        expected_sha256 = meta.get("sha256")
+        if expected_sha256:
+            self._emit("checksum-validating")
+            actual_sha256 = _compute_sha256(archive_path)
+            if actual_sha256 != expected_sha256:
+                archive_path.unlink(missing_ok=True)
+                raise IOError(
+                    f"Checksum mismatch for {model_id}: "
+                    f"expected {expected_sha256[:16]}..., got {actual_sha256[:16]}..."
+                )
+            logger.info(f"[model] Checksum verified for {model_id}")
+        else:
+            logger.warning(f"[model] No checksum available for {model_id}, skipping validation")
+
         self._emit("download-completed")
         return archive_path
 

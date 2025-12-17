@@ -46,6 +46,7 @@ class _Update:
     level: Optional[float] = None
     visible: Optional[bool] = None
     mode: Optional[str] = None
+    opacity: Optional[float] = None
 
 
 class WinOverlayBar:
@@ -117,6 +118,12 @@ class WinOverlayBar:
         if normalized not in ("bars", "loader"):
             normalized = "bars"
         self._q.put(_Update(kind="mode", mode=normalized))
+
+    def set_opacity(self, opacity: float) -> None:
+        if not self._ready.is_set():
+            return
+        self.opacity = float(opacity)
+        self._q.put(_Update(kind="opacity", opacity=float(opacity)))
 
     @staticmethod
     def _clamp(value: float, min_value: float = 0.0, max_value: float = 1.0) -> float:
@@ -320,6 +327,14 @@ class WinOverlayBar:
                         except Exception:
                             pass
                     dirty = True
+
+                if upd.opacity is not None:
+                    try:
+                        assert win32gui is not None and win32con is not None and win32api is not None
+                        alpha = max(40, min(int(float(upd.opacity) * 255), 255))
+                        win32gui.SetLayeredWindowAttributes(hwnd, 0, alpha, win32con.LWA_ALPHA)
+                    except Exception:
+                        pass
         except queue.Empty:
             pass
         except Exception:

@@ -31,6 +31,9 @@ class HotkeyManager:
     # Minimum time combo must be held before triggering (ms)
     COMBO_HOLD_TIME_MS = 50
 
+    # How often to check for stale keys (every N events)
+    STALE_CHECK_INTERVAL = 50
+
     def __init__(self, keyboard_module=None) -> None:
         self._kb = keyboard_module or kb
         self._bindings: Dict[str, dict] = {}
@@ -39,6 +42,7 @@ class HotkeyManager:
 
         # Track currently pressed keys (normalized names)
         self._pressed_keys: Set[str] = set()
+        self._event_counter = 0
 
     def _normalize_key(self, key: str) -> str:
         """Normalize key names for consistent comparison."""
@@ -64,6 +68,29 @@ class HotkeyManager:
         parts = combo.lower().replace(" ", "").split("+")
         return {self._normalize_key(p) for p in parts if p}
 
+    def _cleanup_stale_keys(self) -> None:
+        """Remove keys from pressed_keys that are no longer actually pressed."""
+        if self._kb is None:
+            return
+        with self._lock:
+            if not self._pressed_keys:
+                return
+            stale = set()
+            for key in list(self._pressed_keys):
+                try:
+                    if not self._kb.is_pressed(key):
+                        stale.add(key)
+                except Exception:
+                    pass
+            if stale:
+                self._pressed_keys -= stale
+                # Also deactivate any bindings that depended on stale keys
+                for combo, binding in self._bindings.items():
+                    if binding.get("active") and not binding["keys"].issubset(self._pressed_keys):
+                        binding["active"] = False
+                        binding["press_fired"] = False
+                logger.debug(f"[hotkey] Cleaned up stale keys: {stale}")
+
     def _on_key_event(self, event) -> None:
         """
         Handle all keyboard events.
@@ -75,6 +102,12 @@ class HotkeyManager:
             raw_name = event.name
             key_name = self._normalize_key(raw_name)
             is_down = event.event_type == "down"
+
+            # Periodically check for stale keys (handles lost release events)
+            self._event_counter += 1
+            if self._event_counter >= self.STALE_CHECK_INTERVAL:
+                self._event_counter = 0
+                self._cleanup_stale_keys()
 
             # Debug: log key events for registered combo keys
             with self._lock:

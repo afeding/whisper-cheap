@@ -1,5 +1,5 @@
 {
-  "hotkey": "ctrl+space",
+  "hotkey": "alt+space",
   "mode": {
     "activation_mode": "toggle",
     "unload_timeout": "never"
@@ -30,6 +30,6 @@
     "custom_models": []
   },
   "general": {
-    "start_on_boot": true
+    "start_on_boot": false
   }
 }

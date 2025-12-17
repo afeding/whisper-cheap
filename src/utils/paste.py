@@ -17,9 +17,12 @@ events in automated runs.
 
 from __future__ import annotations
 
+import logging
 import time
 from enum import Enum
 from typing import Callable, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import keyboard  # type: ignore
@@ -34,6 +37,21 @@ except ImportError:  # pragma: no cover - optional at runtime
     win32con = None
 
 from src.utils.clipboard import ClipboardManager
+
+
+def _set_and_verify_clipboard(cb: ClipboardManager, text: str, max_retries: int = 2) -> bool:
+    """
+    Set clipboard and verify content matches. Retry if another app modified it.
+    Returns True if clipboard contains expected text, False otherwise.
+    """
+    for attempt in range(max_retries):
+        cb.set_text(text)
+        time.sleep(0.01)  # Small delay for clipboard to settle
+        current = cb.get_text()
+        if current == text:
+            return True
+        logger.debug(f"[paste] Clipboard mismatch on attempt {attempt + 1}, retrying...")
+    return False
 
 
 class PasteMethod(str, Enum):
@@ -88,13 +106,15 @@ def paste_text(
 
     if policy == ClipboardPolicy.DONT_MODIFY:
         cb.save_current()
-        cb.set_text(text)
+        if not _set_and_verify_clipboard(cb, text, max_retries=2):
+            logger.warning("[paste] Clipboard verification failed, pasting anyway")
         time.sleep(delay_seconds)
         _perform_paste_action(text, method, sender, kb, delay_seconds)
         time.sleep(delay_seconds)
         cb.restore()
     elif policy == ClipboardPolicy.COPY_TO_CLIPBOARD:
-        cb.set_text(text)
+        if not _set_and_verify_clipboard(cb, text, max_retries=2):
+            logger.warning("[paste] Clipboard verification failed, pasting anyway")
         time.sleep(delay_seconds)
         _perform_paste_action(text, method, sender, kb, delay_seconds)
     else:

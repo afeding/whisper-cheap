@@ -176,7 +176,11 @@ class HistoryManager:
                     conn.execute("DELETE FROM transcription_history WHERE id = ?", (rid,))
             conn.commit()
 
-        valid_files = {row[1] for row in rows}
+            # Re-query after commit to get current valid files (avoids race condition)
+            valid_files = {
+                row[0] for row in conn.execute("SELECT file_name FROM transcription_history").fetchall()
+            }
+
         for wav in self.recordings_dir.glob("*.wav"):
             if wav.name not in valid_files:
                 try:

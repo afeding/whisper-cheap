@@ -157,10 +157,7 @@ def stop(
                 except Exception as clip_err:
                     print(f"Advertencia: no se pudo copiar al portapapeles ({clip_err}).")
         else:
-            tokens = res.get("tokens") if isinstance(res, dict) else None
             print("Transcripcion vacia o fallida.")
-            if tokens is not None:
-                print(f"Tokens devueltos (len={len(tokens)}): {tokens[:30]}")
 
     if on_state:
         on_state("idle")

@@ -32,6 +32,15 @@ class ClipboardManager:
             raise RuntimeError("pyperclip is not available")
         self.backend.copy(text)
 
+    def get_text(self) -> Optional[str]:
+        """Get current clipboard content. Returns None on error."""
+        if self.backend is None:
+            return None
+        try:
+            return self.backend.paste()
+        except Exception:
+            return None
+
     def restore(self):
         if self._saved is None:
             return
