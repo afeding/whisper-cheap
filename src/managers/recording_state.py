@@ -100,15 +100,33 @@ class RecordingStateMachine:
         logger.info("[state] Worker thread started")
 
     def stop_worker(self) -> None:
-        """Stop the background worker thread."""
+        """
+        Stop the background worker thread with extended timeout.
+
+        The worker may be processing a transcription + LLM post-processing job,
+        which can take up to 30s (typical: 5-20s for transcription, 10-20s for LLM).
+        We give it 10s to finish gracefully before giving up.
+        """
         logger.info("[state] Stopping worker thread...")
+
+        # Signal worker to stop and wake it up with sentinel
         self._stop_worker.set()
-        self._job_queue.put(None)  # Sentinel to wake up worker
+        self._job_queue.put(None)
+
         if self._worker_thread and self._worker_thread.is_alive():
-            self._worker_thread.join(timeout=5.0)
+            logger.debug(f"[state] Worker thread is alive, waiting for it to join (timeout=10.0s)...")
+            self._worker_thread.join(timeout=10.0)
+
             if self._worker_thread.is_alive():
-                logger.warning("[state] Worker thread did not stop cleanly")
-        logger.info("[state] Worker thread stopped")
+                logger.warning("[state] Worker thread did not stop within 10s timeout")
+                logger.warning("[state] Worker may be stuck in transcription or LLM call")
+                logger.warning("[state] Note: if this is a daemon thread, it will be killed by sys.exit() at the end")
+            else:
+                logger.debug("[state] Worker thread joined successfully")
+        else:
+            logger.debug("[state] Worker thread is not alive or None")
+
+        logger.info("[state] Worker thread stop sequence completed")
 
     def set_on_state_change(self, callback: Callable[[State, State], None]) -> None:
         """Set callback for state changes. Called with (old_state, new_state)."""

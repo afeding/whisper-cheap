@@ -12,9 +12,12 @@ Icons:
 
 from __future__ import annotations
 
+import logging
 import threading
 from pathlib import Path
 from typing import Callable, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import pystray
@@ -59,20 +62,59 @@ class TrayManager:
         if self._pystray is None:
             raise RuntimeError("pystray is not available")
         if self._icon is not None:
+            logger.warning("[tray] start() called but icon already exists")
             return
+
+        logger.info("[tray] Starting tray icon...")
         image = self._load_icon_for_state(self._state)
         menu = self._build_menu()
         self._icon = self._pystray.Icon("WhisperCheap", image, "Whisper Cheap", menu)
-        # run in background
+
+        # run in background - creates an internal NON-DAEMON thread
+        logger.debug("[tray] Calling Icon.run_detached()...")
         self._icon.run_detached()
+        logger.info("[tray] Tray icon started successfully")
 
     def stop(self):
-        if self._icon:
-            try:
-                self._icon.stop()
-            except Exception:
-                pass
+        """
+        Stop the tray icon with robust error handling.
+
+        CRITICAL ISSUE: pystray.Icon.run_detached() creates an internal NON-DAEMON
+        thread that may not terminate if Icon.stop() fails or doesn't respond.
+        This causes the entire application to hang at shutdown.
+
+        Strategy:
+        1. Call Icon.stop() to signal graceful shutdown
+        2. Log any exceptions
+        3. Release the icon reference to avoid keeping resources alive
+        4. Return immediately - don't wait indefinitely
+        """
+        if not self._icon:
+            logger.debug("[tray] stop() called but icon is None, nothing to stop")
+            return
+
+        logger.info("[tray] Stopping tray icon...")
+        old_icon = self._icon
+
+        try:
+            # pystray.Icon.run_detached() creates an internal NON-DAEMON thread.
+            # Calling stop() sends a signal to that thread to exit.
+            logger.debug("[tray] Calling Icon.stop()...")
+            old_icon.stop()
+            logger.info("[tray] Icon.stop() call succeeded")
+
+        except Exception as e:
+            logger.error(f"[tray] Exception during Icon.stop(): {type(e).__name__}: {e}")
+            logger.warning("[tray] Attempting to continue despite exception")
+
+        finally:
+            # ALWAYS clear the reference, even if stop() failed
             self._icon = None
+            logger.debug("[tray] Icon reference cleared (triggering GC)")
+
+            # IMPORTANT: Don't wait here or try to verify if the thread died.
+            # If pystray's internal thread doesn't respond to stop(), the only solution
+            # is the global shutdown timeout in main.py that forces sys.exit().
 
     def set_state(self, state: str):
         self._state = state

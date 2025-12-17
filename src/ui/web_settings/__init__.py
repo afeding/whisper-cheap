@@ -147,3 +147,46 @@ def open_web_settings(config_path: Path, history_manager=None) -> None:
         daemon=False  # Changed to False so we have more control
     )
     _process.start()
+
+
+def cleanup_web_settings() -> None:
+    """
+    Terminate the web_settings process if it's running.
+
+    Called during application shutdown to ensure the process doesn't become a zombie.
+    This is important because web_settings uses daemon=False, so Python will wait
+    for it to exit before allowing sys.exit().
+    """
+    global _process
+
+    if _process is None:
+        return
+
+    try:
+        if _process.is_alive():
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info("[web_settings] Terminating settings process...")
+
+            # First try graceful termination
+            _process.terminate()
+            _process.join(timeout=2.0)
+
+            if _process.is_alive():
+                logger.warning("[web_settings] Process did not terminate, force killing...")
+                _process.kill()
+                _process.join(timeout=1.0)
+
+            logger.info("[web_settings] Settings process terminated")
+        else:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug("[web_settings] Settings process already dead")
+
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"[web_settings] Error during cleanup: {e}")
+
+    finally:
+        _process = None

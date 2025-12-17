@@ -34,8 +34,8 @@ class SettingsAPI:
     """API class exposed to JavaScript via pywebview."""
 
     def __init__(self, config_path: str | Path, history_manager=None):
-        # Convert string to Path if needed (for multiprocessing serialization)
-        self.config_path = Path(config_path) if isinstance(config_path, str) else config_path
+        # Store as string (private) to avoid pywebview serialization issues with Path objects
+        self._config_path_str = str(config_path)
         self.history_manager = history_manager
         self._default_models: Optional[List[str]] = None
 
@@ -46,7 +46,7 @@ class SettingsAPI:
     def get_config(self) -> Dict[str, Any]:
         """Load and return config.json."""
         try:
-            with open(self.config_path, 'r', encoding='utf-8') as f:
+            with open(self._config_path_str, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception:
             return {}
@@ -54,7 +54,7 @@ class SettingsAPI:
     def save_config(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Save config to JSON file."""
         try:
-            with open(self.config_path, 'w', encoding='utf-8') as f:
+            with open(self._config_path_str, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             return {"success": True}
         except Exception as e:

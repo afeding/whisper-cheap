@@ -52,7 +52,7 @@ try:
     from src.ui.win_overlay import WinOverlayBar
 except Exception:
     WinOverlayBar = None
-from src.ui.web_settings import open_web_settings
+from src.ui.web_settings import open_web_settings, cleanup_web_settings
 from src.utils.llm_client import LLMClient
 from src.utils.paste import PasteMethod, ClipboardPolicy
 try:
@@ -798,6 +798,23 @@ Fail-safe:
     finally:
         logging.info("[main] Shutting down...")
 
+        # CRITICAL: Global shutdown timeout (fallback)
+        # If any step below takes too long, we force exit to prevent hanging.
+        # This is the last line of defense against zombie threads.
+        SHUTDOWN_TIMEOUT_SECONDS = 15.0
+        shutdown_start_time = time.time()
+
+        def _force_exit_if_timeout():
+            """Check if shutdown timeout expired, force exit if so."""
+            elapsed = time.time() - shutdown_start_time
+            if elapsed > SHUTDOWN_TIMEOUT_SECONDS:
+                logging.critical(
+                    f"[shutdown] TIMEOUT! Shutdown took >{SHUTDOWN_TIMEOUT_SECONDS}s. "
+                    "Forcing sys.exit(0) to prevent hanging."
+                )
+                # Force exit - don't wait for threads
+                sys.exit(0)
+
         # 1. Signal all threads to stop
         try:
             stop_event.set()
@@ -812,6 +829,7 @@ Fail-safe:
             logging.debug("[shutdown] State machine worker stopped")
         except Exception as e:
             logging.error(f"[shutdown] Error stopping state machine: {e}")
+        _force_exit_if_timeout()
 
         # 3. Unregister hotkeys (must be before keyboard unhook)
         try:
@@ -820,6 +838,7 @@ Fail-safe:
             logging.debug("[shutdown] Hotkeys unregistered")
         except Exception as e:
             logging.error(f"[shutdown] Error unregistering hotkeys: {e}")
+        _force_exit_if_timeout()
 
         # 4. Stop tray icon
         try:
@@ -828,6 +847,16 @@ Fail-safe:
             logging.debug("[shutdown] Tray stopped")
         except Exception as e:
             logging.error(f"[shutdown] Error stopping tray: {e}")
+        _force_exit_if_timeout()
+
+        # 4b. Stop web_settings process (important: daemon=False so Python waits for it)
+        try:
+            logging.debug("[shutdown] Cleaning up web_settings process...")
+            cleanup_web_settings()
+            logging.debug("[shutdown] Web_settings process cleaned up")
+        except Exception as e:
+            logging.error(f"[shutdown] Error cleaning up web_settings: {e}")
+        _force_exit_if_timeout()
 
         # 5. Stop overlay
         try:
