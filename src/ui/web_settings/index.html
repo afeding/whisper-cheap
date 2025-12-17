@@ -3,72 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whisper Cheap Settings</title>
+    <title>Whisper Cheap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
                     colors: {
+                        // Terminal Pro - Clean green accent
                         accent: '#00ff88',
-                        'accent-hover': '#00cc6a',
+                        'accent-hover': '#00dd77',
+                        'accent-dim': '#00aa55',
+
+                        // Backgrounds - pure dark
                         'bg-primary': '#0a0a0a',
-                        'bg-secondary': '#141414',
-                        'bg-elevated': '#1a1a1a',
-                        'bg-input': '#0d0d0d',
-                        'border-subtle': 'rgba(255,255,255,0.08)',
-                        'border-focus': 'rgba(0,255,136,0.5)',
+                        'bg-secondary': '#111111',
+                        'bg-card': '#161616',
+                        'bg-input': '#0e0e0e',
+
+                        // Borders - simple
+                        'border-default': '#222222',
+                        'border-hover': '#333333',
+
+                        // Text
+                        'text-primary': '#e5e5e5',
+                        'text-secondary': '#888888',
+                        'text-dim': '#555555',
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-feature-settings: 'cv05' on, 'cv08' on; /* Inter font features for better readability */
+        }
 
-        /* Smooth transitions */
-        * { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+        /* Scrollbar - more rounded */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #111111; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
 
-        /* Focus ring */
+        /* No transitions for cleaner feel */
         input:focus, select:focus, button:focus { outline: none; }
 
-        /* Range slider custom */
+        /* Range slider - better visibility */
         input[type="range"] {
             -webkit-appearance: none;
             background: transparent;
+            height: 20px;
         }
         input[type="range"]::-webkit-slider-track {
             height: 6px;
-            background: #1a1a1a;
+            background: #333;
             border-radius: 3px;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             background: #00ff88;
             border-radius: 50%;
-            margin-top: -6px;
+            margin-top: -5px;
             cursor: pointer;
         }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #00dd77;
+        }
 
-        /* Radio/Checkbox custom */
+        /* Radio/Checkbox - iOS style */
         input[type="radio"], input[type="checkbox"] {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            background: #0d0d0d;
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid #444;
+            background: #0e0e0e;
             cursor: pointer;
+            transition: all 0.15s ease;
         }
         input[type="radio"] { border-radius: 50%; }
-        input[type="checkbox"] { border-radius: 4px; }
+        input[type="checkbox"] { border-radius: 5px; }
         input[type="radio"]:checked, input[type="checkbox"]:checked {
             border-color: #00ff88;
             background: #00ff88;
@@ -76,8 +100,8 @@
         input[type="radio"]:checked::after {
             content: '';
             display: block;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: #0a0a0a;
             border-radius: 50%;
             margin: 4px;
@@ -85,135 +109,161 @@
         input[type="checkbox"]:checked::after {
             content: '';
             display: block;
-            width: 6px;
-            height: 10px;
+            width: 4px;
+            height: 8px;
             border: solid #0a0a0a;
             border-width: 0 2px 2px 0;
             transform: rotate(45deg);
-            margin: 2px 0 0 5px;
+            margin: 1px 0 0 5px;
+        }
+
+        /* Nav button - iOS style transitions */
+        .nav-btn {
+            transition: all 0.2s ease;
+        }
+        .nav-btn.active {
+            background: #00ff88;
+            color: #0a0a0a;
+            font-weight: 600;
+        }
+        .nav-btn.active svg { color: #0a0a0a; }
+
+        /* Button transitions */
+        button {
+            transition: all 0.15s ease;
+        }
+
+        /* Select/input focus */
+        select:focus, input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #00ff88;
+            transition: border-color 0.15s ease;
         }
     </style>
 </head>
-<body class="bg-bg-primary text-white min-h-screen font-sans antialiased select-none">
+<body class="bg-bg-primary text-text-primary min-h-screen antialiased select-none">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside class="w-64 bg-bg-secondary flex flex-col border-r border-border-subtle">
-            <!-- Header -->
-            <div class="p-6 pb-4">
-                <div class="flex items-center gap-3 mb-1">
-                    <div class="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-accent" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                        </svg>
-                    </div>
+        <aside class="w-56 bg-bg-secondary flex flex-col border-r border-border-default">
+            <!-- Logo -->
+            <div class="p-5 border-b border-border-default">
+                <div class="flex items-center gap-3">
+                    <svg class="w-7 h-7 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
                     <div>
-                        <h1 class="text-accent font-bold text-lg tracking-wide">WHISPER</h1>
-                        <p class="text-gray-500 text-sm font-medium -mt-1">CHEAP</p>
+                        <div class="text-text-primary font-semibold text-sm">Whisper Cheap</div>
+                        <div class="text-text-dim text-xs">v1.0.0</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Divider -->
-            <div class="h-px bg-border-subtle mx-4"></div>
-
             <!-- Navigation -->
-            <nav class="flex-1 p-4 space-y-1">
-                <button onclick="showSection('general')" data-nav="general" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
-                    <span class="text-lg">&#9881;</span>
+            <nav class="flex-1 p-3 flex flex-col gap-1">
+                <button onclick="showSection('general')" data-nav="general" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     <span>General</span>
                 </button>
-                <button onclick="showSection('audio')" data-nav="audio" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
-                    <span class="text-lg">&#127908;</span>
+                <button onclick="showSection('audio')" data-nav="audio" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
                     <span>Audio</span>
                 </button>
-                <button onclick="showSection('overlay')" data-nav="overlay" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
-                    <span class="text-lg">&#128065;</span>
-                    <span>Overlay</span>
-                </button>
-                <button onclick="showSection('ai')" data-nav="ai" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
-                    <span class="text-lg">&#129302;</span>
+                <button onclick="showSection('ai')" data-nav="ai" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <span>AI Processing</span>
                 </button>
-                <button onclick="showSection('history')" data-nav="history" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
-                    <span class="text-lg">&#128218;</span>
+                <button onclick="showSection('history')" data-nav="history" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>History</span>
                 </button>
-                <button onclick="showSection('about')" data-nav="about" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
-                    <span class="text-lg">&#9432;</span>
+                <button onclick="showSection('about')" data-nav="about" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>About</span>
                 </button>
             </nav>
-
-            <!-- Footer -->
-            <div class="p-4 border-t border-border-subtle">
-                <p class="text-gray-600 text-xs text-center">v1.0.0</p>
-            </div>
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto p-8">
+        <main class="flex-1 overflow-y-auto p-6">
             <!-- General Section -->
-            <section id="section-general" class="section space-y-6">
-                <h2 class="text-2xl font-bold mb-6">General Settings</h2>
+            <section id="section-general" class="section">
+                <h2 class="text-lg font-semibold mb-5">General</h2>
 
-                <!-- Hotkey Card -->
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-1 h-6 bg-accent rounded-full"></div>
-                        <h3 class="text-lg font-semibold">HOTKEY</h3>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <label class="w-40 text-gray-400">Activation Key</label>
+                <!-- Hotkey -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5 mb-4">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Hotkey</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-text-dim w-28 flex-shrink-0">Activation Key</span>
                         <input type="text" id="hotkey-input" readonly
-                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent cursor-pointer"
-                            placeholder="Click to set hotkey">
+                            class="flex-1 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary focus:border-accent cursor-pointer"
+                            placeholder="Click to set">
                         <button onclick="startHotkeyCapture()" id="hotkey-btn"
-                            class="px-5 py-3 bg-accent text-black font-semibold rounded-lg hover:bg-accent-hover">
-                            RECORD
+                            class="px-4 py-2.5 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover flex-shrink-0">
+                            Record
                         </button>
                     </div>
                 </div>
 
-                <!-- Mode Card -->
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-1 h-6 bg-accent rounded-full"></div>
-                        <h3 class="text-lg font-semibold">MODE</h3>
-                    </div>
-                    <div class="flex items-center gap-4 mb-4">
-                        <label class="w-40 text-gray-400">Activation Mode</label>
-                        <div class="flex gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer">
+                <!-- Mode -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5 mb-4">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Mode</h3>
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-sm text-text-dim w-28">Activation</span>
+                        <div class="flex gap-5">
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
                                 <input type="radio" name="mode" value="ptt" onchange="updateConfig()">
-                                <span>Push-to-Talk</span>
+                                <span class="text-text-primary">Push-to-Talk</span>
                             </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
                                 <input type="radio" name="mode" value="toggle" onchange="updateConfig()">
-                                <span>Toggle</span>
+                                <span class="text-text-primary">Toggle</span>
                             </label>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <label class="w-40 text-gray-400">Start on Boot</label>
-                        <label class="flex items-center gap-2 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-text-dim w-28">Startup</span>
+                        <label class="flex items-center gap-2 cursor-pointer text-sm">
                             <input type="checkbox" id="start-on-boot" onchange="updateConfig()">
-                            <span class="text-gray-300">Launch app when Windows starts</span>
+                            <span class="text-text-primary">Launch on Windows start</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Clipboard Card -->
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-1 h-6 bg-accent rounded-full"></div>
-                        <h3 class="text-lg font-semibold">CLIPBOARD</h3>
+                <!-- Overlay -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5 mb-4">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Recording Overlay</h3>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-text-dim w-28">Show</span>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
+                                <input type="checkbox" id="overlay-enabled" onchange="updateConfig()">
+                                <span class="text-text-primary">Display while recording</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-text-dim w-28">Position</span>
+                            <select id="overlay-position" onchange="updateConfig()"
+                                class="w-32 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm text-text-primary focus:border-accent">
+                                <option value="bottom">Bottom</option>
+                                <option value="top">Top</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-text-dim w-28">Opacity</span>
+                            <input type="range" id="overlay-opacity" min="10" max="100" value="85" class="flex-1 max-w-xs" oninput="updateOpacityLabel(); updateConfig()">
+                            <span id="opacity-label" class="text-sm text-text-dim w-10 text-right font-mono">85%</span>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <label class="w-40 text-gray-400">Policy</label>
+                </div>
+
+                <!-- Clipboard -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Clipboard</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-text-dim w-28 flex-shrink-0">Policy</span>
                         <select id="clipboard-policy" onchange="updateConfig()"
-                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent">
-                            <option value="dont_modify">Don't modify clipboard</option>
+                            class="flex-1 min-w-0 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm text-text-primary focus:border-accent">
+                            <option value="dont_modify">Don't modify</option>
                             <option value="copy_to_clipboard">Copy to clipboard</option>
                         </select>
                     </div>
@@ -221,175 +271,106 @@
             </section>
 
             <!-- Audio Section -->
-            <section id="section-audio" class="section hidden space-y-6">
-                <h2 class="text-2xl font-bold mb-6">Audio Settings</h2>
-
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-1 h-6 bg-accent rounded-full"></div>
-                        <h3 class="text-lg font-semibold">INPUT DEVICE</h3>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <label class="w-40 text-gray-400">Microphone</label>
+            <section id="section-audio" class="section hidden">
+                <h2 class="text-lg font-semibold mb-5">Audio</h2>
+                <div class="bg-bg-card rounded-xl border border-border-default p-5">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Input Device</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm text-text-dim w-28 flex-shrink-0">Microphone</span>
                         <select id="audio-device" onchange="updateConfig()"
-                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent">
-                            <option value="">Loading devices...</option>
+                            class="flex-1 min-w-0 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm text-text-primary focus:border-accent truncate">
+                            <option value="">Loading...</option>
                         </select>
                         <button onclick="refreshDevices()"
-                            class="px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20">
+                            class="px-4 py-2.5 bg-bg-input border border-border-default text-sm text-text-secondary rounded-lg hover:border-border-hover hover:text-text-primary flex-shrink-0">
                             Refresh
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- Overlay Section -->
-            <section id="section-overlay" class="section hidden space-y-6">
-                <h2 class="text-2xl font-bold mb-6">Overlay Settings</h2>
+            <!-- AI Section -->
+            <section id="section-ai" class="section hidden">
+                <h2 class="text-lg font-semibold mb-5">AI Processing</h2>
 
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-1 h-6 bg-accent rounded-full"></div>
-                        <h3 class="text-lg font-semibold">VISUAL OVERLAY</h3>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4">
-                            <label class="w-40 text-gray-400">Show Overlay</label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="overlay-enabled" onchange="updateConfig()">
-                                <span class="text-gray-300">Display recording indicator</span>
-                            </label>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <label class="w-40 text-gray-400">Position</label>
-                            <select id="overlay-position" onchange="updateConfig()"
-                                class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent">
-                                <option value="bottom">Bottom</option>
-                                <option value="top">Top</option>
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <label class="w-40 text-gray-400">Opacity</label>
-                            <input type="range" id="overlay-opacity" min="50" max="100" value="85"
-                                class="flex-1" oninput="updateOpacityLabel(); updateConfig()">
-                            <span id="opacity-label" class="w-12 text-right text-gray-400">85%</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- AI Processing Section -->
-            <section id="section-ai" class="section hidden space-y-6">
-                <h2 class="text-2xl font-bold mb-6">AI Post-Processing</h2>
-
-                <!-- Enable Card -->
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-1 h-6 bg-accent rounded-full"></div>
-                        <h3 class="text-lg font-semibold">SETTINGS</h3>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-4">
-                            <label class="w-40 text-gray-400">Enable AI</label>
-                            <label class="flex items-center gap-2 cursor-pointer">
+                <div class="bg-bg-card rounded-xl border border-border-default p-5 mb-4">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Configuration</h3>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-text-dim w-28">Enable</span>
+                            <label class="flex items-center gap-2 cursor-pointer text-sm">
                                 <input type="checkbox" id="ai-enabled" onchange="updateConfig()">
-                                <span class="text-gray-300">Process transcriptions with LLM</span>
+                                <span class="text-text-primary">Process with LLM</span>
                             </label>
                         </div>
-                        <div class="flex items-center gap-4">
-                            <label class="w-40 text-gray-400">API Key</label>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-text-dim w-28 flex-shrink-0">API Key</span>
                             <input type="password" id="api-key" onchange="updateConfig()"
-                                class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent"
+                                class="flex-1 min-w-0 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary focus:border-accent"
                                 placeholder="sk-or-...">
                         </div>
                     </div>
                 </div>
 
-                <!-- Models Card -->
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
-                    <div class="flex items-center justify-between mb-5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-1 h-6 bg-accent rounded-full"></div>
-                            <h3 class="text-lg font-semibold">MODELS</h3>
-                        </div>
+                <div class="bg-bg-card rounded-xl border border-border-default p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-text-secondary">Models</h3>
                         <div class="flex gap-2">
-                            <button onclick="resetModels()" class="px-3 py-1.5 text-sm bg-white/10 text-white rounded hover:bg-white/20">Reset</button>
-                            <button onclick="testConnection()" id="test-btn" class="px-3 py-1.5 text-sm bg-accent text-black font-medium rounded hover:bg-accent-hover">Test</button>
+                            <button onclick="resetModels()" class="px-3 py-1.5 text-xs bg-bg-input border border-border-default text-text-secondary rounded-md hover:text-text-primary hover:border-border-hover">Reset</button>
+                            <button onclick="testConnection()" id="test-btn" class="px-3 py-1.5 text-xs bg-accent text-black font-semibold rounded-md hover:bg-accent-hover">Test</button>
                         </div>
                     </div>
-
-                    <!-- Search -->
-                    <div class="mb-4">
-                        <input type="text" id="model-search" oninput="filterModels()"
-                            class="w-full bg-bg-input border border-border-subtle rounded-lg px-4 py-2 text-white focus:border-accent"
-                            placeholder="Search models...">
-                    </div>
-
-                    <!-- Model List -->
-                    <div id="model-list" class="space-y-2 max-h-64 overflow-y-auto mb-4">
-                        <!-- Models will be rendered here -->
-                    </div>
-
-                    <!-- Add Custom Model -->
-                    <div class="flex gap-2 pt-4 border-t border-border-subtle">
+                    <input type="text" id="model-search" oninput="filterModels()"
+                        class="w-full bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm text-text-primary focus:border-accent mb-3"
+                        placeholder="Search models...">
+                    <div id="model-list" class="flex flex-col gap-1 max-h-48 overflow-y-auto mb-3"></div>
+                    <div class="flex gap-2 pt-3 border-t border-border-default">
                         <input type="text" id="new-model"
-                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-2 text-white focus:border-accent"
+                            class="flex-1 min-w-0 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary focus:border-accent"
                             placeholder="vendor/model-name">
-                        <button onclick="addModel()" class="px-4 py-2 bg-accent text-black font-medium rounded-lg hover:bg-accent-hover">
-                            Add
-                        </button>
+                        <button onclick="addModel()" class="px-4 py-2.5 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover flex-shrink-0">Add</button>
                     </div>
-
-                    <!-- Test Result -->
-                    <div id="test-result" class="mt-4 hidden">
-                        <div class="p-3 rounded-lg text-sm"></div>
+                    <div id="test-result" class="mt-3 hidden">
+                        <div class="p-3 rounded-lg text-xs"></div>
                     </div>
                 </div>
             </section>
 
             <!-- History Section -->
-            <section id="section-history" class="section hidden space-y-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold">Recent Transcriptions</h2>
+            <section id="section-history" class="section hidden">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-lg font-semibold">History</h2>
                     <div class="flex gap-2">
-                        <button onclick="openFolder('recordings')" class="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20">
-                            Open Folder
-                        </button>
-                        <button onclick="refreshHistory()" class="px-4 py-2 bg-accent text-black font-medium rounded-lg hover:bg-accent-hover">
-                            Refresh
-                        </button>
+                        <button onclick="openFolder('recordings')" class="px-4 py-2 bg-bg-input border border-border-default text-sm text-text-secondary rounded-lg hover:text-text-primary hover:border-border-hover">Open Folder</button>
+                        <button onclick="refreshHistory()" class="px-4 py-2 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover">Refresh</button>
                     </div>
                 </div>
-
-                <div id="history-list" class="space-y-3">
-                    <p class="text-gray-500 text-center py-8">Loading history...</p>
+                <div id="history-list" class="flex flex-col gap-2">
+                    <p class="text-text-dim text-sm text-center py-6">Loading...</p>
                 </div>
             </section>
 
             <!-- About Section -->
-            <section id="section-about" class="section hidden space-y-6">
-                <h2 class="text-2xl font-bold mb-6">About</h2>
-
-                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-8 text-center">
-                    <div class="w-20 h-20 bg-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <section id="section-about" class="section hidden">
+                <h2 class="text-lg font-semibold mb-5">About</h2>
+                <div class="bg-bg-card rounded-xl border border-border-default p-6">
+                    <div class="flex items-center gap-4 mb-4">
                         <svg class="w-10 h-10 text-accent" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                         </svg>
+                        <div>
+                            <div class="text-text-primary font-semibold text-base">Whisper Cheap</div>
+                            <div class="text-text-dim text-sm">Version 1.0.0</div>
+                        </div>
                     </div>
-                    <h3 class="text-accent text-2xl font-bold mb-1">Whisper Cheap</h3>
-                    <p class="text-gray-500 mb-4">Version 1.0.0</p>
-                    <p class="text-gray-400 max-w-md mx-auto mb-6">
-                        Local voice transcription powered by Parakeet V3.
+                    <p class="text-text-secondary text-sm mb-5 leading-relaxed">
+                        Local voice transcription powered by Parakeet V3.<br>
                         Fast, private, and efficient speech-to-text for Windows.
                     </p>
-                    <div class="flex gap-3 justify-center">
-                        <button onclick="openFolder('data')" class="px-5 py-2.5 bg-accent text-black font-medium rounded-lg hover:bg-accent-hover">
-                            Open Data Folder
-                        </button>
-                        <button onclick="openFolder('recordings')" class="px-5 py-2.5 bg-white/10 text-white rounded-lg hover:bg-white/20">
-                            Open Recordings
-                        </button>
+                    <div class="flex gap-2">
+                        <button onclick="openFolder('data')" class="px-4 py-2.5 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover">Open Data Folder</button>
+                        <button onclick="openFolder('recordings')" class="px-4 py-2.5 bg-bg-input border border-border-default text-sm text-text-secondary rounded-lg hover:text-text-primary hover:border-border-hover">Open Recordings</button>
                     </div>
                 </div>
             </section>

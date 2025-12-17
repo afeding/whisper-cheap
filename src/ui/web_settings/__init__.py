@@ -196,15 +196,76 @@ def _run_webview_process(config_path_str: str, html_path_str: str):
     api = SettingsAPI(config_path_str)
 
     window = webview.create_window(
-        'Whisper Cheap Settings',
+        'Whisper Cheap',
         html_path_str,
         js_api=api,
-        width=950,
-        height=700,
-        min_size=(850, 600),
+        width=900,
+        height=650,
+        min_size=(800, 550),
         background_color='#0a0a0a'
     )
 
+    # Find icon path
+    config_dir = Path(config_path_str).parent
+    icon_path = config_dir / "src" / "resources" / "icons" / "app.ico"
+    icon_str = str(icon_path.absolute()) if icon_path.exists() else None
+
+    def set_window_icon_windows(window_title: str, icon_path: str):
+        """Set window icon using Windows API (ctypes).
+        pywebview's icon parameter only works on GTK/QT, not Windows."""
+        if sys.platform != "win32" or not icon_path:
+            return
+
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            user32 = ctypes.windll.user32
+
+            # Constants
+            IMAGE_ICON = 1
+            LR_LOADFROMFILE = 0x00000010
+            LR_DEFAULTSIZE = 0x00000040
+            WM_SETICON = 0x0080
+            ICON_SMALL = 0
+            ICON_BIG = 1
+
+            # Load icon from file
+            icon_handle = user32.LoadImageW(
+                None,                           # hInstance
+                icon_path,                      # path to .ico file
+                IMAGE_ICON,                     # type
+                0, 0,                           # cx, cy (0 = use default)
+                LR_LOADFROMFILE | LR_DEFAULTSIZE
+            )
+
+            if not icon_handle:
+                print(f"[Settings] Failed to load icon: {icon_path}")
+                return
+
+            # Find window by title
+            hwnd = user32.FindWindowW(None, window_title)
+            if not hwnd:
+                print(f"[Settings] Window not found: {window_title}")
+                return
+
+            # Set both small and big icons
+            user32.SendMessageW(hwnd, WM_SETICON, ICON_SMALL, icon_handle)
+            user32.SendMessageW(hwnd, WM_SETICON, ICON_BIG, icon_handle)
+            print(f"[Settings] Icon set successfully: {icon_path}")
+
+        except Exception as e:
+            print(f"[Settings] Error setting icon: {e}")
+
+    def on_shown():
+        """Called when window is shown. Set icon using Windows API."""
+        import time
+        time.sleep(0.1)  # Small delay to ensure window is fully created
+        if icon_str:
+            set_window_icon_windows('Whisper Cheap', icon_str)
+
+    # Register event and start
+    window.events.shown += on_shown
     webview.start()
 
 

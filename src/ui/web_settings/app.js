@@ -132,13 +132,11 @@ function showSection(name) {
     const section = document.getElementById('section-' + name);
     if (section) section.classList.remove('hidden');
 
-    // Update nav buttons
+    // Update nav buttons - clean active state
     document.querySelectorAll('.nav-btn').forEach(btn => {
         const isActive = btn.dataset.nav === name;
-        btn.classList.toggle('bg-accent', isActive);
-        btn.classList.toggle('text-black', isActive);
-        btn.classList.toggle('text-gray-400', !isActive);
-        btn.classList.toggle('hover:bg-white/10', !isActive);
+        btn.classList.toggle('active', isActive);
+        btn.classList.toggle('text-text-secondary', !isActive);
     });
 
     // Refresh history when switching to that tab
