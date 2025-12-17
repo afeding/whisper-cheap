@@ -360,9 +360,40 @@ Technical safety (critical):
 - Never change casing inside identifiers (camelCase/snake_case/PascalCase/kebab-case).
 - If unsure whether a substring is technical, assume it IS technical and keep it unchanged.
 
-Speech cleanup:
-- Remove fillers and speech artifacts (um/uh/like/you know), stutters, false starts, and obvious repetitions when removal does not change meaning.
-- Keep intentional emphasis.
+Speech cleanup rules:
+
+ALWAYS REMOVE (these never add meaning):
+- Sounds: um, uh, eh, ah, mm
+- Stutters: "I I I want" -> "I want"
+- False starts: "The pro- the problem is" -> "The problem is"
+- Empty fillers at start: "So," "Well," "OK so," "Right," when they start a sentence and add nothing
+- Verbal tics: "you know", "you know what I mean", "like" (when used as filler, not comparison), "I mean" (when not clarifying)
+
+REMOVE ONLY IF THEY ADD NOTHING to the meaning:
+- "basically" -> KEEP if it introduces a summary, REMOVE if it's just filler
+- "I think that" -> KEEP if expressing uncertainty/opinion, REMOVE if just a speech habit
+- "the thing is" -> KEEP if introducing an important point, REMOVE if just starting a sentence
+- "so yeah" -> KEEP if concluding a point, REMOVE if trailing off
+
+WHEN SPEAKER REPEATS THE SAME IDEA:
+- If they say the same thing 2-3 different ways, keep ONLY the clearest one
+- Example: "It's slow, it takes forever, the performance is bad" -> "The performance is slow"
+
+WHEN SPEAKER LOSES TRACK AND RESTARTS:
+- If they say "no wait", "let me start again", "actually", and then restart -> delete everything before the restart
+- Example: "When the API, no wait, let me explain. The API fails." -> "The API fails."
+
+Examples:
+
+BAD input: "So basically what I want is, um, I want to add a button, like a button that, you know, lets the user save the form, you know what I mean?"
+GOOD output: "I want to add a button that lets the user save the form."
+
+BAD input: "I think we should, I think that maybe we should add validation, like to check the email, because right now it accepts anything and that's bad, that's not good, it's a problem."
+GOOD output: "I think we should add email validation. Right now it accepts anything, which is a problem."
+(Note: "I think" was kept because it expresses opinion)
+
+BAD input: "The thing is, basically, the API is slow. Like it takes forever. The performance is really bad. We need to fix it, we need to make it faster, we need to optimize it."
+GOOD output: "The API performance is slow. We need to optimize it."
 
 Formatting & structure (very important):
 - Add punctuation and capitalization.
