@@ -47,7 +47,7 @@ try:
     from src.ui.win_overlay import WinOverlayBar
 except Exception:
     WinOverlayBar = None
-from src.ui.settings_pyqt6 import open_modern_settings
+from src.ui.web_settings import open_web_settings
 from src.utils.llm_client import LLMClient
 from src.utils.paste import PasteMethod, ClipboardPolicy
 try:
@@ -436,7 +436,7 @@ Fail-safe:
         # Schedule on main thread (Qt requires widgets to be created on main thread)
         def _open():
             try:
-                open_modern_settings(config_path, history_manager=history_manager)
+                open_web_settings(config_path, history_manager=history_manager)
             except Exception as e:
                 print(f"No se pudo abrir la ventana de Settings ({e}). Abre config.json manualmente: {config_path}")
         _main_thread_queue.put(_open)

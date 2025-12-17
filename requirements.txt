@@ -14,5 +14,6 @@ PyQt6-Qt6==6.7.0
 PyQt6-sip==13.6.0
 customtkinter>=5.2.2
 librosa>=0.10.0
+pywebview>=5.0
 # openrouter SDK eliminado: usamos cliente OpenAI apuntando a OpenRouter
 # sqlite3 is included in the Python standard library on Windows

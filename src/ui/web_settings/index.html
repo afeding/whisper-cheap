@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whisper Cheap Settings</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#00ff88',
+                        'accent-hover': '#00cc6a',
+                        'bg-primary': '#0a0a0a',
+                        'bg-secondary': '#141414',
+                        'bg-elevated': '#1a1a1a',
+                        'bg-input': '#0d0d0d',
+                        'border-subtle': 'rgba(255,255,255,0.08)',
+                        'border-focus': 'rgba(0,255,136,0.5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+        /* Smooth transitions */
+        * { transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+
+        /* Focus ring */
+        input:focus, select:focus, button:focus { outline: none; }
+
+        /* Range slider custom */
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-track {
+            height: 6px;
+            background: #1a1a1a;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-top: -6px;
+            cursor: pointer;
+        }
+
+        /* Radio/Checkbox custom */
+        input[type="radio"], input[type="checkbox"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: #0d0d0d;
+            cursor: pointer;
+        }
+        input[type="radio"] { border-radius: 50%; }
+        input[type="checkbox"] { border-radius: 4px; }
+        input[type="radio"]:checked, input[type="checkbox"]:checked {
+            border-color: #00ff88;
+            background: #00ff88;
+        }
+        input[type="radio"]:checked::after {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            background: #0a0a0a;
+            border-radius: 50%;
+            margin: 4px;
+        }
+        input[type="checkbox"]:checked::after {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 10px;
+            border: solid #0a0a0a;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin: 2px 0 0 5px;
+        }
+    </style>
+</head>
+<body class="bg-bg-primary text-white min-h-screen font-sans antialiased select-none">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-bg-secondary flex flex-col border-r border-border-subtle">
+            <!-- Header -->
+            <div class="p-6 pb-4">
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-accent font-bold text-lg tracking-wide">WHISPER</h1>
+                        <p class="text-gray-500 text-sm font-medium -mt-1">CHEAP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="h-px bg-border-subtle mx-4"></div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1">
+                <button onclick="showSection('general')" data-nav="general" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
+                    <span class="text-lg">&#9881;</span>
+                    <span>General</span>
+                </button>
+                <button onclick="showSection('audio')" data-nav="audio" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
+                    <span class="text-lg">&#127908;</span>
+                    <span>Audio</span>
+                </button>
+                <button onclick="showSection('overlay')" data-nav="overlay" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
+                    <span class="text-lg">&#128065;</span>
+                    <span>Overlay</span>
+                </button>
+                <button onclick="showSection('ai')" data-nav="ai" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
+                    <span class="text-lg">&#129302;</span>
+                    <span>AI Processing</span>
+                </button>
+                <button onclick="showSection('history')" data-nav="history" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
+                    <span class="text-lg">&#128218;</span>
+                    <span>History</span>
+                </button>
+                <button onclick="showSection('about')" data-nav="about" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left">
+                    <span class="text-lg">&#9432;</span>
+                    <span>About</span>
+                </button>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-border-subtle">
+                <p class="text-gray-600 text-xs text-center">v1.0.0</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- General Section -->
+            <section id="section-general" class="section space-y-6">
+                <h2 class="text-2xl font-bold mb-6">General Settings</h2>
+
+                <!-- Hotkey Card -->
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-semibold">HOTKEY</h3>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="w-40 text-gray-400">Activation Key</label>
+                        <input type="text" id="hotkey-input" readonly
+                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent cursor-pointer"
+                            placeholder="Click to set hotkey">
+                        <button onclick="startHotkeyCapture()" id="hotkey-btn"
+                            class="px-5 py-3 bg-accent text-black font-semibold rounded-lg hover:bg-accent-hover">
+                            RECORD
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mode Card -->
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-semibold">MODE</h3>
+                    </div>
+                    <div class="flex items-center gap-4 mb-4">
+                        <label class="w-40 text-gray-400">Activation Mode</label>
+                        <div class="flex gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="mode" value="ptt" onchange="updateConfig()">
+                                <span>Push-to-Talk</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="mode" value="toggle" onchange="updateConfig()">
+                                <span>Toggle</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="w-40 text-gray-400">Start on Boot</label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="start-on-boot" onchange="updateConfig()">
+                            <span class="text-gray-300">Launch app when Windows starts</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Clipboard Card -->
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-semibold">CLIPBOARD</h3>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="w-40 text-gray-400">Policy</label>
+                        <select id="clipboard-policy" onchange="updateConfig()"
+                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent">
+                            <option value="dont_modify">Don't modify clipboard</option>
+                            <option value="copy_to_clipboard">Copy to clipboard</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Audio Section -->
+            <section id="section-audio" class="section hidden space-y-6">
+                <h2 class="text-2xl font-bold mb-6">Audio Settings</h2>
+
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-semibold">INPUT DEVICE</h3>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <label class="w-40 text-gray-400">Microphone</label>
+                        <select id="audio-device" onchange="updateConfig()"
+                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent">
+                            <option value="">Loading devices...</option>
+                        </select>
+                        <button onclick="refreshDevices()"
+                            class="px-4 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Overlay Section -->
+            <section id="section-overlay" class="section hidden space-y-6">
+                <h2 class="text-2xl font-bold mb-6">Overlay Settings</h2>
+
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-semibold">VISUAL OVERLAY</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <label class="w-40 text-gray-400">Show Overlay</label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="overlay-enabled" onchange="updateConfig()">
+                                <span class="text-gray-300">Display recording indicator</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <label class="w-40 text-gray-400">Position</label>
+                            <select id="overlay-position" onchange="updateConfig()"
+                                class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent">
+                                <option value="bottom">Bottom</option>
+                                <option value="top">Top</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <label class="w-40 text-gray-400">Opacity</label>
+                            <input type="range" id="overlay-opacity" min="50" max="100" value="85"
+                                class="flex-1" oninput="updateOpacityLabel(); updateConfig()">
+                            <span id="opacity-label" class="w-12 text-right text-gray-400">85%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AI Processing Section -->
+            <section id="section-ai" class="section hidden space-y-6">
+                <h2 class="text-2xl font-bold mb-6">AI Post-Processing</h2>
+
+                <!-- Enable Card -->
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-1 h-6 bg-accent rounded-full"></div>
+                        <h3 class="text-lg font-semibold">SETTINGS</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <label class="w-40 text-gray-400">Enable AI</label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="ai-enabled" onchange="updateConfig()">
+                                <span class="text-gray-300">Process transcriptions with LLM</span>
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <label class="w-40 text-gray-400">API Key</label>
+                            <input type="password" id="api-key" onchange="updateConfig()"
+                                class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-3 text-white focus:border-accent"
+                                placeholder="sk-or-...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Models Card -->
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-1 h-6 bg-accent rounded-full"></div>
+                            <h3 class="text-lg font-semibold">MODELS</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="resetModels()" class="px-3 py-1.5 text-sm bg-white/10 text-white rounded hover:bg-white/20">Reset</button>
+                            <button onclick="testConnection()" id="test-btn" class="px-3 py-1.5 text-sm bg-accent text-black font-medium rounded hover:bg-accent-hover">Test</button>
+                        </div>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="mb-4">
+                        <input type="text" id="model-search" oninput="filterModels()"
+                            class="w-full bg-bg-input border border-border-subtle rounded-lg px-4 py-2 text-white focus:border-accent"
+                            placeholder="Search models...">
+                    </div>
+
+                    <!-- Model List -->
+                    <div id="model-list" class="space-y-2 max-h-64 overflow-y-auto mb-4">
+                        <!-- Models will be rendered here -->
+                    </div>
+
+                    <!-- Add Custom Model -->
+                    <div class="flex gap-2 pt-4 border-t border-border-subtle">
+                        <input type="text" id="new-model"
+                            class="flex-1 bg-bg-input border border-border-subtle rounded-lg px-4 py-2 text-white focus:border-accent"
+                            placeholder="vendor/model-name">
+                        <button onclick="addModel()" class="px-4 py-2 bg-accent text-black font-medium rounded-lg hover:bg-accent-hover">
+                            Add
+                        </button>
+                    </div>
+
+                    <!-- Test Result -->
+                    <div id="test-result" class="mt-4 hidden">
+                        <div class="p-3 rounded-lg text-sm"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="section-history" class="section hidden space-y-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold">Recent Transcriptions</h2>
+                    <div class="flex gap-2">
+                        <button onclick="openFolder('recordings')" class="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20">
+                            Open Folder
+                        </button>
+                        <button onclick="refreshHistory()" class="px-4 py-2 bg-accent text-black font-medium rounded-lg hover:bg-accent-hover">
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div id="history-list" class="space-y-3">
+                    <p class="text-gray-500 text-center py-8">Loading history...</p>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="section-about" class="section hidden space-y-6">
+                <h2 class="text-2xl font-bold mb-6">About</h2>
+
+                <div class="bg-bg-elevated rounded-xl border border-border-subtle p-8 text-center">
+                    <div class="w-20 h-20 bg-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-10 h-10 text-accent" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-accent text-2xl font-bold mb-1">Whisper Cheap</h3>
+                    <p class="text-gray-500 mb-4">Version 1.0.0</p>
+                    <p class="text-gray-400 max-w-md mx-auto mb-6">
+                        Local voice transcription powered by Parakeet V3.
+                        Fast, private, and efficient speech-to-text for Windows.
+                    </p>
+                    <div class="flex gap-3 justify-center">
+                        <button onclick="openFolder('data')" class="px-5 py-2.5 bg-accent text-black font-medium rounded-lg hover:bg-accent-hover">
+                            Open Data Folder
+                        </button>
+                        <button onclick="openFolder('recordings')" class="px-5 py-2.5 bg-white/10 text-white rounded-lg hover:bg-white/20">
+                            Open Recordings
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
