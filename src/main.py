@@ -829,8 +829,7 @@ Fail-safe:
         print(f"No se pudo registrar hotkey ({hotkey_combo}): {e}")
 
     # Mostrar ajustes al arrancar (no bloquea el programa)
-    # DESHABILITADO: no abrir settings automáticamente para evitar confusión
-    # open_settings()
+    open_settings()
 
     # Hilo de mantenimiento para descargar el modelo por inactividad (si se configura)
     # y para detectar cambios en el hotkey
