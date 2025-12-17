@@ -1,5 +1,5 @@
 {
-  "hotkey": "ctrl+shift+space",
+  "hotkey": "ctrl+space",
   "mode": {
     "activation_mode": "toggle",
     "unload_timeout": "never"
@@ -20,13 +20,13 @@
   "overlay": {
     "enabled": true,
     "position": "bottom",
-    "opacity": 0.5732142857142857
+    "opacity": 0.5
   },
   "post_processing": {
     "enabled": true,
     "openrouter_api_key": "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",
     "model": "openai/gpt-oss-20b",
-    "prompt_template": "Transcript:\\n${output}",
+    "prompt_template": "Transcript:\n${output}",
     "custom_models": []
   },
   "general": {

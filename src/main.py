@@ -41,6 +41,11 @@ from src.managers.history import HistoryManager
 from src.managers.hotkey import HotkeyManager
 from src.managers.model import ModelManager
 from src.managers.transcription import TranscriptionManager
+from src.managers.recording_state import (
+    RecordingStateMachine,
+    ProcessingJob,
+    State,
+)
 from src.ui.tray import TrayManager
 from src.ui.overlay import RecordingOverlay, StatusOverlay, ensure_app
 try:
@@ -179,20 +184,41 @@ def apply_autostart(start_on_boot: bool, is_frozen: bool, base_dir: Path, exe_na
 
 def setup_logging(app_data: Path) -> Path:
     """
-    Configure basic logging to file + stdout.
+    Configure detailed logging to file + stdout.
+
+    Console shows INFO+, file shows DEBUG+.
     """
     logs_dir = app_data / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     log_file = logs_dir / "app.log"
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        handlers=[
-            logging.FileHandler(log_file, encoding="utf-8"),
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
-    logging.info("Logging to %s", log_file)
+
+    # Root logger at DEBUG level
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+
+    # Clear any existing handlers
+    root.handlers.clear()
+
+    # Console handler: INFO+ with concise format
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(logging.Formatter(
+        "%(asctime)s.%(msecs)03d [%(levelname)s] %(message)s",
+        datefmt="%H:%M:%S"
+    ))
+    root.addHandler(console_handler)
+
+    # File handler: DEBUG+ with detailed format
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(
+        "%(asctime)s.%(msecs)03d [%(levelname)s] [%(threadName)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    ))
+    root.addHandler(file_handler)
+
+    logging.info("Logging initialized: console=INFO, file=DEBUG")
+    logging.info(f"Log file: {log_file}")
     return log_file
 
 
@@ -418,19 +444,33 @@ Fail-safe:
     except Exception as e:
         print(f"No se pudo precargar modelo: {e}")
 
+    # Preload sound cues to avoid delay on first hotkey press
+    try:
+        print("Precargando sonidos...")
+        sound_player.preload()
+        print("Sonidos precargados.")
+    except Exception as e:
+        print(f"No se pudo precargar sonidos: {e}")
+
     stop_event = threading.Event()
 
     def quit_app():
         stop_event.set()
 
     def on_cancel_action():
-        actions.cancel(audio_manager=audio_manager, on_state=lambda s: tray.set_state("idle"))
+        logging.info("[cancel] Cancel action triggered")
+        if state_machine.try_cancel():
+            actions.cancel(audio_manager=audio_manager, on_state=lambda s: None)
+            logging.info("[cancel] Recording cancelled")
+        else:
+            logging.debug("[cancel] Nothing to cancel")
         if rec_overlay:
             rec_overlay.hide()
         if status_overlay:
             status_overlay.hide()
+        if win_bar:
+            win_bar.hide()
         tray.set_state("idle")
-        recording_state["recording"] = False
 
     def open_settings():
         # Schedule on main thread (Qt requires widgets to be created on main thread)
@@ -454,7 +494,11 @@ Fail-safe:
     hotkey_combo = cfg.get("hotkey", "ctrl+shift+space")
     activation_mode = mode_cfg.get("activation_mode", "toggle")
     hotkeys = HotkeyManager()
-    recording_state = {"recording": False, "show_level": False}
+
+    # Thread-safe state machine (replaces old recording_state dict)
+    state_machine = RecordingStateMachine()
+    state_machine.start_worker()
+    logging.info(f"[main] State machine initialized, mode={activation_mode}")
 
     # Overlays / status UI
     rec_overlay = None
@@ -489,15 +533,14 @@ Fail-safe:
                     win_bar.set_mode("bars")
                     win_bar.show("")
                 except Exception as e:
-                    print(f"[overlay] ERROR al mostrar recording: {e}")
+                    logging.error(f"[overlay] ERROR en win_bar: {e}")
             elif rec_overlay:
                 try:
                     sync_overlay_settings()
                     rec_overlay.set_text("Grabando...")
                     rec_overlay.show()
-                    print("[overlay] show: recording OK (PyQt6)")
                 except Exception as e:
-                    print(f"[overlay] ERROR al mostrar recording (PyQt6): {e}")
+                    logging.error(f"[overlay] ERROR en rec_overlay: {e}")
 
     def show_status_overlay(phase: str):
         if not overlay_cfg.get("enabled", True):
@@ -534,7 +577,7 @@ Fail-safe:
         # Avoid doing too much work from the audio callback path.
         if not overlay_cfg.get("enabled", True):
             return
-        if not recording_state.get("show_level", False):
+        if not state_machine.show_level:
             return
         now = time.time()
         if now - last_rms_ui["t"] < 0.03:
@@ -548,23 +591,44 @@ Fail-safe:
     audio_manager.on_rms = handle_rms
 
     def on_press():
-        recording_state["recording"] = True
-        recording_state["show_level"] = True
-        show_recording_overlay()
-        actions.start(
-            binding_id="main",
-            audio_manager=audio_manager,
-            transcription_manager=transcription_manager,
-            sound_player=sound_player,
-            on_state=lambda s: tray.set_state("recording") if s == "recording" else tray.set_state("idle"),
-            model_manager=model_manager,
-            model_id=cfg.get("model", {}).get("default_model", "parakeet-v3-int8"),
-            device_id=audio_cfg.get("device_id"),
-        )
+        try:
+            logging.info("[hotkey] on_press triggered")
+
+            if not state_machine.try_start_recording():
+                logging.warning("[hotkey] on_press ignored (state machine rejected)")
+                return
+
+            logging.info("[hotkey] Recording started")
+            show_recording_overlay()
+            tray.set_state("recording")
+
+            # Start audio capture and preload model
+            actions.start(
+                binding_id="main",
+                audio_manager=audio_manager,
+                transcription_manager=transcription_manager,
+                sound_player=sound_player,
+                on_state=lambda s: None,  # State managed by state_machine now
+                model_manager=model_manager,
+                model_id=cfg.get("model", {}).get("default_model", "parakeet-v3-int8"),
+                device_id=audio_cfg.get("device_id"),
+            )
+            logging.info("[hotkey] on_press completed")
+        except Exception as e:
+            logging.exception(f"[hotkey] ERROR in on_press: {e}")
 
     def on_release():
+        """
+        Handle hotkey release - queue processing job to worker thread.
+
+        CRITICAL: This function must return FAST to not block the hotkey thread.
+        All heavy processing (transcription, LLM, paste) happens in the worker.
+        """
         nonlocal llm_client, pp_cfg, clip_cfg, overlay_cfg, audio_cfg
-        recording_state["show_level"] = False
+
+        logging.info("[hotkey] on_release triggered")
+
+        # Hide recording overlay, show loader
         if rec_overlay:
             rec_overlay.hide()
         if win_bar:
@@ -574,7 +638,7 @@ Fail-safe:
             except Exception:
                 win_bar.hide()
 
-        # Reload config on each stop so UI changes (model/api key/clip) take effect.
+        # Reload config (fast operation) so UI changes take effect
         fresh_cfg = load_config(config_path, is_frozen)
         fresh_pp_cfg = fresh_cfg.get("post_processing", {})
         fresh_clip_cfg = fresh_cfg.get("clipboard", {})
@@ -595,11 +659,13 @@ Fail-safe:
         if target_model in special:
             llm_providers = special[target_model]
 
-        # Recreate LLM client if settings changed
+        # Update config refs
         pp_cfg = fresh_pp_cfg
         clip_cfg = fresh_clip_cfg
         overlay_cfg = fresh_overlay_cfg or {}
         audio_cfg = fresh_audio_cfg
+
+        # Update sound player settings
         try:
             new_gain = float(fresh_audio_cfg.get("cue_gain", sound_player.volume_boost))
         except Exception:
@@ -608,24 +674,21 @@ Fail-safe:
             volume_boost=new_gain,
             enabled=fresh_audio_cfg.get("enable_cues", True),
         )
+
+        # Create LLM client if enabled
         llm_client = None
         if pp_cfg.get("enabled") and pp_cfg.get("openrouter_api_key") and pp_cfg.get("model"):
             try:
                 llm_client = LLMClient(api_key=pp_cfg["openrouter_api_key"], default_model=pp_cfg["model"])
-                print(f"[llm] Cliente actualizado con modelo {pp_cfg['model']}")
+                logging.info(f"[llm] Client ready: {pp_cfg['model']}")
             except Exception as exc:
-                print(f"No se pudo reconfigurar OpenRouter: {exc}")
+                logging.error(f"[llm] Failed to create client: {exc}")
 
-        if not overlay_cfg.get("enabled", True):
-            if rec_overlay:
-                rec_overlay.hide()
-            if status_overlay:
-                status_overlay.hide()
-            if win_bar:
-                win_bar.hide()
         sync_overlay_settings()
 
+        # Progress callback (runs from worker thread, updates UI)
         def on_progress(phase: str):
+            logging.debug(f"[progress] {phase}")
             if phase == "transcribing":
                 tray.set_state("transcribing")
             elif phase == "formatting":
@@ -634,18 +697,23 @@ Fail-safe:
                 tray.set_state("formatting")
             elif phase == "done":
                 tray.set_state("idle")
+                if win_bar:
+                    threading.Timer(0.4, win_bar.hide).start()
             show_status_overlay(phase)
 
-        on_progress("transcribing")
+        def on_complete(result: dict):
+            text = result.get("text")
+            if text:
+                logging.info(f"[complete] Transcribed {len(text)} chars")
+            else:
+                logging.warning("[complete] No text transcribed")
 
-        res = actions.stop(
+        # Create processing job
+        job = ProcessingJob(
             binding_id="main",
             audio_manager=audio_manager,
             transcription_manager=transcription_manager,
             sound_player=sound_player,
-            on_state=lambda s: tray.set_state("idle"),
-            on_progress=on_progress,
-            model_manager=model_manager,
             model_id=active_model_id,
             history_manager=history_manager,
             llm_client=llm_client,
@@ -656,25 +724,36 @@ Fail-safe:
             system_prompt=LLM_SYSTEM_PROMPT,
             paste_method=clip_cfg.get("paste_method", PasteMethod.CTRL_V.value),
             clipboard_policy=clip_cfg.get("policy", ClipboardPolicy.DONT_MODIFY.value),
+            on_progress=on_progress,
+            on_complete=on_complete,
         )
-        text = res.get("text") if isinstance(res, dict) else None
-        if not res.get("model_ready", True):
-            print("Modelo no listo; no se transcribio.")
-        if text:
-            print(f"Transcribed: {text}")
-        recording_state["recording"] = False
+
+        # Queue job to worker thread (returns immediately!)
+        if not state_machine.try_stop_recording(job):
+            logging.warning("[hotkey] on_release ignored (state machine rejected)")
+            return
+
+        logging.info("[hotkey] Processing job queued")
 
     try:
         if activation_mode == "ptt":
+            logging.info(f"[hotkey] Registering PTT hotkey: {hotkey_combo}")
             hotkeys.register_hotkey(hotkey_combo, on_press_callback=on_press, on_release_callback=on_release)
         else:
             # toggle: press to start/stop
             def toggle():
-                if not recording_state["recording"]:
-                    on_press()
-                else:
-                    on_release()
+                logging.info("[hotkey] toggle triggered")
+                current_state = state_machine.state
+                logging.debug(f"[hotkey] Current state: {current_state.name}")
 
+                if current_state == State.IDLE:
+                    on_press()
+                elif current_state == State.RECORDING:
+                    on_release()
+                else:
+                    logging.warning(f"[hotkey] Toggle ignored: state is {current_state.name}")
+
+            logging.info(f"[hotkey] Registering toggle hotkey: {hotkey_combo}")
             hotkeys.register_hotkey(hotkey_combo, on_press_callback=toggle)
     except Exception as e:
         print(f"No se pudo registrar hotkey ({hotkey_combo}): {e}")
@@ -717,36 +796,74 @@ Fail-safe:
     except KeyboardInterrupt:
         pass
     finally:
+        logging.info("[main] Shutting down...")
+
+        # 1. Signal all threads to stop
         try:
             stop_event.set()
-        except Exception:
-            pass
+            logging.debug("[shutdown] stop_event set")
+        except Exception as e:
+            logging.error(f"[shutdown] Error setting stop_event: {e}")
+
+        # 2. Stop worker thread (may be processing a job)
         try:
+            logging.debug("[shutdown] Stopping state machine worker...")
+            state_machine.stop_worker()
+            logging.debug("[shutdown] State machine worker stopped")
+        except Exception as e:
+            logging.error(f"[shutdown] Error stopping state machine: {e}")
+
+        # 3. Unregister hotkeys (must be before keyboard unhook)
+        try:
+            logging.debug("[shutdown] Unregistering hotkeys...")
             hotkeys.unregister_all()
-        except Exception:
-            pass
+            logging.debug("[shutdown] Hotkeys unregistered")
+        except Exception as e:
+            logging.error(f"[shutdown] Error unregistering hotkeys: {e}")
+
+        # 4. Stop tray icon
         try:
+            logging.debug("[shutdown] Stopping tray...")
             tray.stop()
-        except Exception:
-            pass
+            logging.debug("[shutdown] Tray stopped")
+        except Exception as e:
+            logging.error(f"[shutdown] Error stopping tray: {e}")
+
+        # 5. Stop overlay
         try:
             if win_bar:
+                logging.debug("[shutdown] Stopping win_bar...")
                 win_bar.stop()
-        except Exception:
-            pass
+                logging.debug("[shutdown] win_bar stopped")
+        except Exception as e:
+            logging.error(f"[shutdown] Error stopping win_bar: {e}")
+
+        # 6. Close audio stream
         try:
+            logging.debug("[shutdown] Closing audio stream...")
             audio_manager.close_stream()
-        except Exception:
-            pass
+            logging.debug("[shutdown] Audio stream closed")
+        except Exception as e:
+            logging.error(f"[shutdown] Error closing audio: {e}")
+
+        # 7. Unload transcription model
         try:
             if hasattr(transcription_manager, "unload_model"):
+                logging.debug("[shutdown] Unloading model...")
                 transcription_manager.unload_model()
-        except Exception:
-            pass
+                logging.debug("[shutdown] Model unloaded")
+        except Exception as e:
+            logging.error(f"[shutdown] Error unloading model: {e}")
+
+        # 8. Cleanup history
         try:
+            logging.debug("[shutdown] Cleaning up history...")
             history_manager.cleanup_orphans()
-        except Exception:
-            pass
+            logging.debug("[shutdown] History cleanup done")
+        except Exception as e:
+            logging.error(f"[shutdown] Error cleaning history: {e}")
+
+        logging.info("[main] Shutdown complete")
 
 
 if __name__ == "__main__":

@@ -46,6 +46,17 @@ class SoundPlayer:
         self._cache: Dict[Path, Tuple[np.ndarray, int]] = {}
         self._lock = threading.Lock()
 
+    def preload(self) -> None:
+        """
+        Preload sound files into cache to avoid delay on first playback.
+        Call this at app startup.
+        """
+        if not librosa:
+            return
+        for path in (self.start_path, self.end_path):
+            if path and path.exists():
+                self._get_cached_audio(path)
+
     def configure(
         self,
         *,
