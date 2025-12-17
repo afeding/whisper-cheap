@@ -491,14 +491,22 @@ async function testConnection() {
 }
 
 async function fetchOpenrouterPricing(apiKey = null) {
-    if (pricingFetchInProgress) return;
+    if (pricingFetchInProgress) {
+        console.log('[Settings] Pricing fetch already in progress, skipping');
+        return;
+    }
     pricingFetchInProgress = true;
 
     try {
+        console.log('[Settings] Calling fetch_openrouter_pricing...');
         const response = await pywebview.api.fetch_openrouter_pricing(apiKey);
+        console.log('[Settings] Fetch response:', response);
+
         if (response.success) {
+            console.log('[Settings] Fetch successful, reloading pricing cache...');
             // Reload pricing cache
             modelsPricing = await pywebview.api.get_all_models_pricing();
+            console.log('[Settings] Loaded pricing for', Object.keys(modelsPricing).length, 'models');
             renderModelList();
             console.log(`[Settings] Pricing updated: ${response.models_count} models`);
         } else {

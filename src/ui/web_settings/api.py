@@ -363,7 +363,7 @@ class SettingsAPI:
 
             # Resolve relative paths
             if not os.path.isabs(app_data):
-                app_data = str(self.config_path.parent / app_data)
+                app_data = str(Path(self._config_path_str).parent / app_data)
 
             if folder_type == "recordings":
                 folder = os.path.join(app_data, "recordings")
