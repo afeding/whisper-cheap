@@ -1,0 +1,17 @@
+{
+  "models": {
+    "openai/gpt-oss-20b": {
+      "input": 0.4,
+      "output": 1.6
+    },
+    "google/gemini-2.5-flash-lite": {
+      "input": 0.075,
+      "output": 0.3
+    },
+    "mistralai/mistral-small-3.2-24b-instruct": {
+      "input": 0.14,
+      "output": 0.42
+    }
+  },
+  "last_updated": "2025-12-17T10:00:00"
+}

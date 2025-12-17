@@ -13,6 +13,7 @@ let defaultModels = [];
 let userModels = [];
 let currentModel = '';
 let currentSection = 'general';
+let modelsPricing = {}; // {model_id: {input: float, output: float}}
 
 // Hotkey capture state
 let capturingHotkey = false;
@@ -21,6 +22,7 @@ let originalHotkey = '';
 
 // Auto-save debounce
 let saveTimer = null;
+let pricingFetchInProgress = false;
 
 // =============================================================================
 // INITIALIZATION
@@ -51,6 +53,10 @@ async function loadModels() {
         defaultModels = await pywebview.api.get_default_models();
         userModels = config.post_processing?.custom_models || [];
         currentModel = config.post_processing?.model || defaultModels[0] || '';
+
+        // Load cached pricing
+        modelsPricing = await pywebview.api.get_all_models_pricing();
+
         renderModelList();
     } catch (e) {
         console.error('[Settings] Failed to load models:', e);
@@ -355,15 +361,24 @@ function renderModelList() {
     container.innerHTML = display.map(model => {
         const isSelected = model === currentModel;
         const isCustom = userModels.includes(model) && !defaultModels.includes(model);
+        const pricing = modelsPricing[model];
+        const priceStr = pricing
+            ? `$${pricing.input} / $${pricing.output}`
+            : 'N/A';
 
         return `
-            <div class="flex items-center gap-2 p-3 rounded-lg ${isSelected ? 'bg-accent/20 border border-accent/50' : 'bg-bg-input border border-transparent hover:border-border-subtle'}">
-                <span class="flex-1 text-sm ${isSelected ? 'text-white' : 'text-gray-400'}">${model}</span>
-                ${isCustom ? `<button onclick="deleteModel('${model}')" class="text-red-400 hover:text-red-300 text-xs px-2">Delete</button>` : ''}
-                <button onclick="selectModel('${model}')"
-                    class="px-3 py-1 text-xs rounded ${isSelected ? 'bg-accent text-black' : 'bg-white/10 text-white hover:bg-white/20'}">
-                    ${isSelected ? 'Selected' : 'Select'}
-                </button>
+            <div class="flex items-center justify-between gap-2 p-3 rounded-lg ${isSelected ? 'bg-accent/20 border border-accent/50' : 'bg-bg-input border border-transparent hover:border-border-subtle'}">
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm ${isSelected ? 'text-white' : 'text-gray-400'} truncate">${model}</div>
+                    <div class="text-xs text-text-dim mt-0.5">Input/Output per 1M tokens: ${priceStr}</div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    ${isCustom ? `<button onclick="deleteModel('${model}')" class="text-red-400 hover:text-red-300 text-xs px-2">Delete</button>` : ''}
+                    <button onclick="selectModel('${model}')"
+                        class="px-3 py-1 text-xs rounded whitespace-nowrap ${isSelected ? 'bg-accent text-black' : 'bg-white/10 text-white hover:bg-white/20'}">
+                        ${isSelected ? 'Selected' : 'Select'}
+                    </button>
+                </div>
             </div>
         `;
     }).join('');
@@ -383,7 +398,7 @@ function selectModel(model) {
     updateConfig();
 }
 
-function addModel() {
+async function addModel() {
     const input = document.getElementById('new-model');
     const model = input.value.trim();
 
@@ -396,6 +411,12 @@ function addModel() {
     userModels.push(model);
     currentModel = model;
     input.value = '';
+
+    // Try to fetch pricing for the new model if not cached
+    if (!modelsPricing[model]) {
+        await fetchOpenrouterPricing();
+    }
+
     renderModelList();
     updateConfig();
 }
@@ -438,6 +459,8 @@ async function testConnection() {
         const response = await pywebview.api.test_llm_connection(apiKey, currentModel);
         if (response.success) {
             showTestResult(true, `OK (${response.chars} chars): ${response.response}`);
+            // Fetch pricing when API key is validated
+            await fetchOpenrouterPricing(apiKey);
         } else {
             showTestResult(false, response.error);
         }
@@ -447,6 +470,27 @@ async function testConnection() {
 
     btn.textContent = 'Test';
     btn.disabled = false;
+}
+
+async function fetchOpenrouterPricing(apiKey = null) {
+    if (pricingFetchInProgress) return;
+    pricingFetchInProgress = true;
+
+    try {
+        const response = await pywebview.api.fetch_openrouter_pricing(apiKey);
+        if (response.success) {
+            // Reload pricing cache
+            modelsPricing = await pywebview.api.get_all_models_pricing();
+            renderModelList();
+            console.log(`[Settings] Pricing updated: ${response.models_count} models`);
+        } else {
+            console.warn('[Settings] Failed to fetch pricing:', response.error);
+        }
+    } catch (e) {
+        console.error('[Settings] Error fetching pricing:', e);
+    } finally {
+        pricingFetchInProgress = false;
+    }
 }
 
 function showTestResult(success, message) {

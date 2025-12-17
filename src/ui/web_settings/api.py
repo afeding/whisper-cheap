@@ -11,6 +11,7 @@ import os
 import subprocess
 import sys
 import threading
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -26,6 +27,7 @@ LLM_SYSTEM_PROMPT = (
 )
 
 DEFAULT_MODELS_PATH = Path(__file__).resolve().parent.parent.parent / "resources" / "models_default.json"
+PRICING_CACHE_PATH = Path(__file__).resolve().parent.parent.parent / "resources" / "models_pricing.json"
 
 
 class SettingsAPI:
@@ -157,6 +159,112 @@ class SettingsAPI:
             return {"success": False, "error": "Connection timeout (15s)"}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    # =========================================================================
+    # PRICING
+    # =========================================================================
+
+    def get_model_pricing(self, model: str) -> Optional[Dict[str, float]]:
+        """Get pricing for a specific model from cache. Returns {input: float, output: float} or None."""
+        pricing_data = self._load_pricing_cache()
+        if not pricing_data:
+            return None
+
+        model_info = pricing_data.get("models", {}).get(model)
+        if model_info:
+            return {
+                "input": model_info.get("input", 0),
+                "output": model_info.get("output", 0)
+            }
+        return None
+
+    def get_all_models_pricing(self) -> Dict[str, Dict[str, float]]:
+        """Get pricing for all cached models."""
+        pricing_data = self._load_pricing_cache()
+        return pricing_data.get("models", {}) if pricing_data else {}
+
+    def fetch_openrouter_pricing(self, api_key: Optional[str] = None) -> Dict[str, Any]:
+        """Fetch all models and pricing from OpenRouter API and cache locally."""
+        try:
+            import requests
+
+            headers = {
+                "HTTP-Referer": "https://github.com/whisper-cheap",
+                "X-Title": "Whisper Cheap",
+            }
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
+
+            response = requests.get(
+                "https://openrouter.ai/api/v1/models",
+                headers=headers,
+                timeout=15
+            )
+
+            if response.status_code != 200:
+                return {"success": False, "error": f"HTTP {response.status_code}"}
+
+            data = response.json()
+            models = data.get("data", [])
+
+            # Extract pricing info
+            pricing_dict = {}
+            for model in models:
+                model_id = model.get("id")
+                pricing = model.get("pricing", {})
+
+                # Pricing is in $/1k tokens in OpenRouter, convert to $/1M tokens
+                input_price = pricing.get("prompt")
+                output_price = pricing.get("completion")
+
+                if input_price is not None and output_price is not None:
+                    try:
+                        input_per_m = float(input_price) * 1000  # Convert $/1k to $/1M
+                        output_per_m = float(output_price) * 1000
+                        pricing_dict[model_id] = {
+                            "input": round(input_per_m, 2),
+                            "output": round(output_per_m, 2)
+                        }
+                    except (ValueError, TypeError):
+                        pass
+
+            # Save to cache
+            cache_data = {
+                "models": pricing_dict,
+                "last_updated": datetime.utcnow().isoformat()
+            }
+            self._save_pricing_cache(cache_data)
+
+            return {
+                "success": True,
+                "models_count": len(pricing_dict),
+                "last_updated": cache_data["last_updated"]
+            }
+
+        except requests.Timeout:
+            return {"success": False, "error": "Connection timeout (15s)"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def _load_pricing_cache(self) -> Optional[Dict[str, Any]]:
+        """Load pricing cache from file."""
+        try:
+            if PRICING_CACHE_PATH.exists():
+                with open(PRICING_CACHE_PATH, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return None
+
+    def _save_pricing_cache(self, data: Dict[str, Any]) -> bool:
+        """Save pricing cache to file."""
+        try:
+            PRICING_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+            with open(PRICING_CACHE_PATH, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception:
+            return False
 
     # =========================================================================
     # HISTORY

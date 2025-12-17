@@ -20,7 +20,7 @@
   "overlay": {
     "enabled": true,
     "position": "bottom",
-    "opacity": 0.5
+    "opacity": 0.3
   },
   "post_processing": {
     "enabled": true,
