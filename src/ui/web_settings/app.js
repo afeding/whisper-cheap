@@ -60,8 +60,13 @@ async function loadModels() {
         userModels = config.post_processing?.custom_models || [];
         currentModel = config.post_processing?.model || defaultModels[0] || '';
 
+        console.log('[Settings] Default models:', defaultModels);
+        console.log('[Settings] User models:', userModels);
+        console.log('[Settings] Current model:', currentModel);
+
         // Load cached pricing
         modelsPricing = await pywebview.api.get_all_models_pricing();
+        console.log('[Settings] Pricing cache:', Object.keys(modelsPricing).length, 'models');
 
         renderModelList();
     } catch (e) {
@@ -351,10 +356,16 @@ function resetHotkeyCapture() {
 
 function renderModelList() {
     const container = document.getElementById('model-list');
-    const searchQuery = document.getElementById('model-search').value.toLowerCase();
+    if (!container) {
+        console.error('[Settings] model-list container not found!');
+        return;
+    }
+
+    const searchQuery = document.getElementById('model-search')?.value.toLowerCase() || '';
 
     // Combine models
     const allModels = [...new Set([...userModels, ...defaultModels])];
+    console.log('[Settings] renderModelList - allModels:', allModels);
 
     // Filter
     const filtered = searchQuery
@@ -363,6 +374,7 @@ function renderModelList() {
 
     // Limit display
     const display = filtered.slice(0, 50);
+    console.log('[Settings] renderModelList - display:', display);
 
     container.innerHTML = display.map(model => {
         const isSelected = model === currentModel;
