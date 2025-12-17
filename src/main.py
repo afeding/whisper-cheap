@@ -495,6 +495,9 @@ Fail-safe:
     activation_mode = mode_cfg.get("activation_mode", "toggle")
     hotkeys = HotkeyManager()
 
+    # Track current hotkey for live updates
+    current_hotkey_state = {"combo": hotkey_combo, "mode": activation_mode}
+
     # Thread-safe state machine (replaces old recording_state dict)
     state_machine = RecordingStateMachine()
     state_machine.start_worker()
@@ -525,6 +528,11 @@ Fail-safe:
         if status_overlay:
             status_overlay.set_position(overlay_cfg.get("position", "bottom"))
             status_overlay.set_opacity(overlay_cfg.get("opacity", 0.85))
+        if win_bar:
+            try:
+                win_bar.set_opacity(overlay_cfg.get("opacity", 0.5))
+            except Exception:
+                pass
 
     def show_recording_overlay():
         if overlay_cfg.get("enabled", True):
@@ -735,24 +743,24 @@ Fail-safe:
 
         logging.info("[hotkey] Processing job queued")
 
+    # Define toggle function (needed for both initial registration and live updates)
+    def toggle():
+        logging.info("[hotkey] toggle triggered")
+        current_state = state_machine.state
+        logging.debug(f"[hotkey] Current state: {current_state.name}")
+
+        if current_state == State.IDLE:
+            on_press()
+        elif current_state == State.RECORDING:
+            on_release()
+        else:
+            logging.warning(f"[hotkey] Toggle ignored: state is {current_state.name}")
+
     try:
         if activation_mode == "ptt":
             logging.info(f"[hotkey] Registering PTT hotkey: {hotkey_combo}")
             hotkeys.register_hotkey(hotkey_combo, on_press_callback=on_press, on_release_callback=on_release)
         else:
-            # toggle: press to start/stop
-            def toggle():
-                logging.info("[hotkey] toggle triggered")
-                current_state = state_machine.state
-                logging.debug(f"[hotkey] Current state: {current_state.name}")
-
-                if current_state == State.IDLE:
-                    on_press()
-                elif current_state == State.RECORDING:
-                    on_release()
-                else:
-                    logging.warning(f"[hotkey] Toggle ignored: state is {current_state.name}")
-
             logging.info(f"[hotkey] Registering toggle hotkey: {hotkey_combo}")
             hotkeys.register_hotkey(hotkey_combo, on_press_callback=toggle)
     except Exception as e:
@@ -762,14 +770,46 @@ Fail-safe:
     open_settings()
 
     # Hilo de mantenimiento para descargar el modelo por inactividad (si se configura)
+    # y para detectar cambios en el hotkey
     def _maintenance():
+        nonlocal current_hotkey_state
+
         while not stop_event.is_set():
             try:
                 if transcription_manager.should_unload():
                     transcription_manager.unload_model()
             except Exception:
                 pass
-            stop_event.wait(15)
+
+            # Check for hotkey changes
+            try:
+                fresh_cfg = load_config(config_path, is_frozen)
+                new_combo = fresh_cfg.get("hotkey", "ctrl+shift+space")
+                new_mode = fresh_cfg.get("mode", {}).get("activation_mode", "toggle")
+
+                old_combo = current_hotkey_state["combo"]
+                old_mode = current_hotkey_state["mode"]
+
+                if new_combo != old_combo or new_mode != old_mode:
+                    logging.info(f"[hotkey] Config changed: '{old_combo}' ({old_mode}) -> '{new_combo}' ({new_mode})")
+
+                    # Unregister old hotkey
+                    hotkeys.unregister_hotkey(old_combo)
+
+                    # Register new hotkey with appropriate callbacks
+                    if new_mode == "ptt":
+                        hotkeys.register_hotkey(new_combo, on_press_callback=on_press, on_release_callback=on_release)
+                    else:
+                        hotkeys.register_hotkey(new_combo, on_press_callback=toggle)
+
+                    # Update state
+                    current_hotkey_state["combo"] = new_combo
+                    current_hotkey_state["mode"] = new_mode
+                    logging.info(f"[hotkey] Updated successfully to '{new_combo}' ({new_mode})")
+            except Exception as e:
+                logging.debug(f"[hotkey] Error checking config: {e}")
+
+            stop_event.wait(2)  # Check every 2 seconds for responsive updates
 
     threading.Thread(target=_maintenance, daemon=True).start()
 

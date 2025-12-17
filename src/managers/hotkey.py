@@ -224,8 +224,53 @@ class HotkeyManager:
         """Unregister a hotkey."""
         with self._lock:
             if combo in self._bindings:
+                # Cancel any pending timer
+                timer = self._bindings[combo].get("timer")
+                if timer:
+                    timer.cancel()
                 del self._bindings[combo]
                 logger.debug(f"[hotkey] Unregistered: '{combo}'")
+
+    def update_hotkey(
+        self,
+        old_combo: str,
+        new_combo: str,
+        on_press_callback: Optional[Callable[[], None]] = None,
+        on_release_callback: Optional[Callable[[], None]] = None,
+    ) -> bool:
+        """
+        Update an existing hotkey to a new combination.
+
+        If callbacks are None, keeps the existing callbacks.
+        Returns True if successful, False if old_combo wasn't registered.
+        """
+        with self._lock:
+            if old_combo not in self._bindings:
+                logger.warning(f"[hotkey] Cannot update: '{old_combo}' not registered")
+                return False
+
+            # Get existing callbacks if new ones not provided
+            old_binding = self._bindings[old_combo]
+            press_cb = on_press_callback or old_binding.get("on_press")
+            release_cb = on_release_callback or old_binding.get("on_release")
+
+            # Cancel any pending timer on old binding
+            timer = old_binding.get("timer")
+            if timer:
+                timer.cancel()
+
+            # Remove old binding
+            del self._bindings[old_combo]
+
+        # Register new binding (outside lock to avoid deadlock with _ensure_hook)
+        self.register_hotkey(new_combo, press_cb, release_cb)
+        logger.info(f"[hotkey] Updated: '{old_combo}' -> '{new_combo}'")
+        return True
+
+    def get_registered_combos(self) -> list:
+        """Return list of currently registered hotkey combos."""
+        with self._lock:
+            return list(self._bindings.keys())
 
     def unregister_all(self) -> None:
         """Unregister all hotkeys and remove the hook."""
