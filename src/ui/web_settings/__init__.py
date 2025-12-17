@@ -30,8 +30,8 @@ def _run_webview_process(config_path_str: str, html_path_str: str):
     sys.path.insert(0, str(Path(__file__).parent))
     from api import SettingsAPI
 
-    # Create and run webview
-    api = SettingsAPI(Path(config_path_str))
+    # Create and run webview - pass as string to avoid multiprocessing serialization issues
+    api = SettingsAPI(config_path_str)
 
     window = webview.create_window(
         'Whisper Cheap',

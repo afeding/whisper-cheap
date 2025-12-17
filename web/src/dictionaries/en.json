@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "title": "Whisper Cheap - Free Local Speech-to-Text for Windows",
+    "description": "Transform your voice into text instantly. 100% local, no internet required. Fast, private, and completely free speech recognition powered by AI.",
+    "keywords": "speech to text, voice recognition, transcription, Windows, offline, local, free, STT, voice to text, dictation"
+  },
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "download": "Download"
+  },
+  "hero": {
+    "badge": "100% Local & Private",
+    "title": "Your voice,",
+    "titleHighlight": "instantly typed.",
+    "subtitle": "Stop typing. Start talking. Whisper Cheap transcribes your voice in real-time, directly on your computer. No cloud. No subscriptions. No limits.",
+    "cta": "Download for Windows",
+    "ctaSecondary": "See how it works",
+    "free": "Free forever"
+  },
+  "features": {
+    "title": "Why Whisper Cheap?",
+    "subtitle": "Built for people who value their time and privacy.",
+    "local": {
+      "title": "100% Offline",
+      "description": "Everything runs on your PC. Your voice never leaves your device. No internet connection needed after download."
+    },
+    "fast": {
+      "title": "Blazing Fast",
+      "description": "Powered by Parakeet V3, an optimized neural network. Transcribes in milliseconds, not seconds."
+    },
+    "free": {
+      "title": "Actually Free",
+      "description": "No trials. No subscriptions. No hidden costs. Download, install, use forever."
+    },
+    "hotkey": {
+      "title": "One Hotkey Away",
+      "description": "Press your shortcut, speak, release. Text appears wherever your cursor is. That simple."
+    },
+    "vad": {
+      "title": "Smart Voice Detection",
+      "description": "Silero VAD filters background noise. Only your voice gets transcribed."
+    },
+    "llm": {
+      "title": "AI Enhancement (Optional)",
+      "description": "Connect to OpenRouter for grammar fixes and formatting. Entirely optional."
+    }
+  },
+  "howItWorks": {
+    "title": "How it works",
+    "subtitle": "Three steps. Zero friction.",
+    "step1": {
+      "number": "1",
+      "title": "Press",
+      "description": "Hit your hotkey (Ctrl+Space by default)"
+    },
+    "step2": {
+      "number": "2",
+      "title": "Speak",
+      "description": "Talk naturally. A subtle overlay shows you're recording."
+    },
+    "step3": {
+      "number": "3",
+      "title": "Done",
+      "description": "Release the key. Text appears at your cursor instantly."
+    }
+  },
+  "useCases": {
+    "title": "Perfect for",
+    "items": [
+      "Writing emails 10x faster",
+      "Taking meeting notes hands-free",
+      "Coding with voice commands",
+      "Journaling and brainstorming",
+      "Accessibility and RSI relief",
+      "Anyone tired of typing"
+    ]
+  },
+  "cta": {
+    "title": "Ready to stop typing?",
+    "subtitle": "Join thousands who've already made the switch.",
+    "button": "Download Whisper Cheap",
+    "note": "Windows 10/11 required. ~200MB download."
+  },
+  "footer": {
+    "madeWith": "Built with",
+    "by": "for fast typists who hate typing",
+    "github": "GitHub",
+    "releases": "Releases"
+  }
+}

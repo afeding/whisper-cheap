@@ -33,8 +33,9 @@ PRICING_CACHE_PATH = Path(__file__).resolve().parent.parent.parent / "resources"
 class SettingsAPI:
     """API class exposed to JavaScript via pywebview."""
 
-    def __init__(self, config_path: Path, history_manager=None):
-        self.config_path = config_path
+    def __init__(self, config_path: str | Path, history_manager=None):
+        # Convert string to Path if needed (for multiprocessing serialization)
+        self.config_path = Path(config_path) if isinstance(config_path, str) else config_path
         self.history_manager = history_manager
         self._default_models: Optional[List[str]] = None
 

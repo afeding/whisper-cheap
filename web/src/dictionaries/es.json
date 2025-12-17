@@ -1,0 +1,91 @@
+{
+  "meta": {
+    "title": "Whisper Cheap - Dictado por Voz Gratuito y Local para Windows",
+    "description": "Transforma tu voz en texto al instante. 100% local, sin internet. Reconocimiento de voz rápido, privado y completamente gratis con IA.",
+    "keywords": "voz a texto, reconocimiento de voz, transcripción, Windows, sin conexión, local, gratis, STT, dictado"
+  },
+  "nav": {
+    "features": "Características",
+    "howItWorks": "Cómo funciona",
+    "download": "Descargar"
+  },
+  "hero": {
+    "badge": "100% Local y Privado",
+    "title": "Tu voz,",
+    "titleHighlight": "escrita al instante.",
+    "subtitle": "Deja de teclear. Empieza a hablar. Whisper Cheap transcribe tu voz en tiempo real, directamente en tu ordenador. Sin nube. Sin suscripciones. Sin límites.",
+    "cta": "Descargar para Windows",
+    "ctaSecondary": "Ver cómo funciona",
+    "free": "Gratis para siempre"
+  },
+  "features": {
+    "title": "¿Por qué Whisper Cheap?",
+    "subtitle": "Creado para quienes valoran su tiempo y privacidad.",
+    "local": {
+      "title": "100% Sin Conexión",
+      "description": "Todo se ejecuta en tu PC. Tu voz nunca sale de tu dispositivo. No necesitas internet tras la descarga."
+    },
+    "fast": {
+      "title": "Ultrarrápido",
+      "description": "Potenciado por Parakeet V3, una red neuronal optimizada. Transcribe en milisegundos, no segundos."
+    },
+    "free": {
+      "title": "Realmente Gratis",
+      "description": "Sin pruebas. Sin suscripciones. Sin costes ocultos. Descarga, instala, usa para siempre."
+    },
+    "hotkey": {
+      "title": "A un Atajo de Distancia",
+      "description": "Pulsa tu atajo, habla, suelta. El texto aparece donde esté tu cursor. Así de simple."
+    },
+    "vad": {
+      "title": "Detección Inteligente",
+      "description": "Silero VAD filtra el ruido de fondo. Solo tu voz se transcribe."
+    },
+    "llm": {
+      "title": "Mejora con IA (Opcional)",
+      "description": "Conecta con OpenRouter para correcciones gramaticales y formato. Completamente opcional."
+    }
+  },
+  "howItWorks": {
+    "title": "Cómo funciona",
+    "subtitle": "Tres pasos. Cero fricción.",
+    "step1": {
+      "number": "1",
+      "title": "Pulsa",
+      "description": "Presiona tu atajo (Ctrl+Espacio por defecto)"
+    },
+    "step2": {
+      "number": "2",
+      "title": "Habla",
+      "description": "Habla con naturalidad. Un indicador sutil muestra que estás grabando."
+    },
+    "step3": {
+      "number": "3",
+      "title": "Listo",
+      "description": "Suelta la tecla. El texto aparece en tu cursor al instante."
+    }
+  },
+  "useCases": {
+    "title": "Perfecto para",
+    "items": [
+      "Escribir emails 10 veces más rápido",
+      "Tomar notas en reuniones sin manos",
+      "Programar con comandos de voz",
+      "Escribir diarios y hacer brainstorming",
+      "Accesibilidad y alivio del RSI",
+      "Cualquiera cansado de teclear"
+    ]
+  },
+  "cta": {
+    "title": "¿Listo para dejar de teclear?",
+    "subtitle": "Únete a miles que ya han hecho el cambio.",
+    "button": "Descargar Whisper Cheap",
+    "note": "Requiere Windows 10/11. ~200MB de descarga."
+  },
+  "footer": {
+    "madeWith": "Hecho con",
+    "by": "para mecanógrafos rápidos que odian teclear",
+    "github": "GitHub",
+    "releases": "Releases"
+  }
+}
