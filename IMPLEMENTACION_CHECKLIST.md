@@ -479,7 +479,7 @@
 - [x] Fix: config.json se busca junto al .exe (no en carpeta temporal de PyInstaller)
 - [x] Fix: crear config.json por defecto si no existe
 - [ ] Verificar que el `.exe` funciona standalone (sin Python instalado) - **EN PROGRESO**
-- [ ] Probar en máquina limpia (VM Windows)
+- [ ] Probar en máquina limpia (VM Windows) - **PENDIENTE: Fase 12.1**
 
 ### 11.3 Instalador con Inno Setup
 - [ ] Crear script `.iss` para Inno Setup:
@@ -490,12 +490,12 @@
 - [ ] Generar instalador `WhisperCheap-Setup.exe`
 
 ### 11.4 Descarga de modelo en primer arranque
-- [ ] Al iniciar app por primera vez:
-  - [ ] Si no hay modelo descargado, mostrar diálogo:
+- [x] Al iniciar app por primera vez:
+  - [x] Si no hay modelo descargado, mostrar diálogo:
     - "WhisperCheap requires the Parakeet V3 model (~478 MB). Download now?"
-  - [ ] Si acepta, iniciar descarga en background
-  - [ ] Mostrar progreso en settings window
-- [ ] NO incluir modelo en instalador para mantener tamaño pequeño
+  - [x] Si acepta, iniciar descarga en background
+  - [x] Mostrar progreso en settings window
+- [x] NO incluir modelo en instalador para mantener tamaño pequeño
 
 ---
 
@@ -505,6 +505,7 @@
 - [ ] Probar flujo: hotkey down → grabación → hotkey up → transcripción → post-proceso → pegado
 - [ ] Validar todos los estados del tray cambian correctamente
 - [ ] Validar overlay se muestra y oculta en momentos correctos
+- [ ] **Probar en VM Windows limpia** (sin Python, solo .exe)
 
 ### 12.2 Casos edge
 - [ ] Presionar hotkey muy rápido (audio <1s) → debe acolchar
@@ -514,16 +515,16 @@
 - [ ] API OpenRouter falla → debe usar texto original sin error
 
 ### 12.3 Limpieza de recursos
-- [ ] Al cerrar app:
-  - [ ] Detener streams de audio
-  - [ ] Descargar modelo de memoria si es grande
-  - [ ] Cerrar conexión a DB
-  - [ ] Guardar config actual
+- [x] Al cerrar app:
+  - [x] Detener streams de audio
+  - [x] Descargar modelo de memoria si es grande
+  - [x] Cerrar conexión a DB
+  - [x] Guardar config actual
 
 ### 12.4 Logs y debugging
-- [ ] Configurar logging a archivo: `%APPDATA%/whisper-cheap/logs/app.log`
-- [ ] Niveles: INFO para eventos normales, ERROR para fallos
-- [ ] Rotación de logs (max 10 MB, mantener últimos 5)
+- [x] Configurar logging a archivo: `%APPDATA%/whisper-cheap/logs/app.log`
+- [x] Niveles: INFO para eventos normales, ERROR para fallos
+- [x] Rotación de logs (max 10 MB, mantener últimos 5)
 
 ---
 
@@ -543,21 +544,33 @@
 - [ ] Registrar en `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run`
 - [ ] Opción en settings para habilitar/deshabilitar
 
-### 13.4 Actualizaciones
-- [ ] Check for updates al arrancar (opcional):
-  - Consultar endpoint de GitHub releases
-  - Notificar al usuario si hay versión nueva
-  - Link para descargar instalador actualizado
+### 13.4 Actualizaciones con GitHub Releases
+- [ ] **UpdateManager**: Consultar GitHub API releases:
+  - [ ] Método `check_for_updates()` que compara versión local con latest release
+  - [ ] Si hay versión nueva, retornar info de descarga
+  - [ ] Timeout de 5s para no bloquear arranque
+- [ ] **UI**: Integración en settings:
+  - [ ] Tab "About": mostrar versión actual + botón "Check for Updates"
+  - [ ] Si hay update disponible: "New version X.X.X available"
+  - [ ] Botón "Download & Install"
+- [ ] **Descarga e instalación**:
+  - [ ] Descargar .zip en background
+  - [ ] Mostrar progreso en overlay
+  - [ ] Extraer a carpeta temporal
+  - [ ] Al cerrar app: reemplazar .exe viejo y reiniciar
+- [ ] **Validación**:
+  - [ ] Verificar checksum o GPG signature (opcional)
+  - [ ] Rollback si descarga falló
 
 ---
 
 ## 📚 Fase 14: Documentación
 
 ### 14.1 README.md
-- [ ] Descripción del proyecto
+- [x] Descripción del proyecto
 - [ ] Screenshot del tray + overlay
-- [ ] Instrucciones de instalación
-- [ ] Configuración básica (hotkey, modelo, OpenRouter)
+- [x] Instrucciones de instalación
+- [x] Configuración básica (hotkey, modelo, OpenRouter)
 - [ ] FAQ común
 
 ### 14.2 Documentación técnica
@@ -620,5 +633,5 @@ Antes de considerar el proyecto "feature-complete":
 
 - [ ] GitHub repo público - crear y configurar
 
-**Ultima actualizacion**: 2025-12-14
-**Estado**: Core + LLM + settings modernos completos; pendientes empaquetado final, pruebas end-to-end y documentacion
+**Última actualización**: 2025-12-18
+**Estado**: Core + LLM + settings modernos + descarga de modelo COMPLETOS. Pendientes: Inno Setup (11.3), testing end-to-end (12.1-12.2), actualizaciones automáticas (13.4), documentación completa (14.2-14.3)
