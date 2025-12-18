@@ -92,7 +92,7 @@ def get_default_config(is_frozen: bool) -> dict:
             "channels": 1,
             "vad_threshold": 0.5,
             "enable_cues": True,
-            "cue_gain": 1.6,
+            "cue_gain": 0.5,
         },
         "clipboard": {
             "paste_method": "ctrl_v",
@@ -304,9 +304,9 @@ def main():
     )
     sounds_dir = resources_dir / "sounds"
     try:
-        cue_gain = float(audio_cfg.get("cue_gain", 1.6))
+        cue_gain = float(audio_cfg.get("cue_gain", 0.5))
     except Exception:
-        cue_gain = 1.6
+        cue_gain = 0.5
     sound_player = SoundPlayer(
         start_path=sounds_dir / "start_sound.mp3",
         end_path=sounds_dir / "end_sound.mp3",
@@ -664,8 +664,22 @@ Fail-safe:
     audio_manager.on_rms = handle_rms
 
     def on_press():
+        nonlocal audio_cfg
         try:
             logging.info("[hotkey] on_press triggered")
+
+            # Reload config and update sound player for real-time changes
+            try:
+                fresh_cfg = load_config(config_path, is_frozen)
+                fresh_audio_cfg = fresh_cfg.get("audio", audio_cfg)
+                audio_cfg = fresh_audio_cfg
+                new_gain = float(fresh_audio_cfg.get("cue_gain", 0.5))
+                sound_player.configure(
+                    volume_boost=new_gain,
+                    enabled=fresh_audio_cfg.get("enable_cues", True),
+                )
+            except Exception as e:
+                logging.warning(f"[config] Failed to reload config in on_press: {e}")
 
             if not state_machine.try_start_recording():
                 logging.warning("[hotkey] on_press ignored (state machine rejected)")

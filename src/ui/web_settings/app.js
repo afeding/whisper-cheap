@@ -128,6 +128,9 @@ function populateUI() {
     // AI
     document.getElementById('ai-enabled').checked = config.post_processing?.enabled || false;
     document.getElementById('api-key').value = config.post_processing?.openrouter_api_key || '';
+
+    // Sound cues
+    document.getElementById('enable-cues').checked = config.audio?.enable_cues !== false;
 }
 
 function updateOpacityLabel() {
@@ -190,6 +193,7 @@ async function saveConfig() {
     config.audio = config.audio || {};
     const deviceVal = document.getElementById('audio-device').value;
     config.audio.device_id = deviceVal === '' ? null : parseInt(deviceVal);
+    config.audio.enable_cues = document.getElementById('enable-cues').checked;
 
     // Overlay
     config.overlay = config.overlay || {};

@@ -11,7 +11,9 @@
     "mute_while_recording": false,
     "sample_rate": 16000,
     "channels": 1,
-    "vad_threshold": 0.5
+    "vad_threshold": 0.5,
+    "enable_cues": true,
+    "cue_gain": 0
   },
   "clipboard": {
     "paste_method": "ctrl_v",
@@ -20,7 +22,7 @@
   "overlay": {
     "enabled": true,
     "position": "bottom",
-    "opacity": 0.3
+    "opacity": 0.4
   },
   "post_processing": {
     "enabled": true,
