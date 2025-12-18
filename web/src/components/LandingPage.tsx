@@ -1,40 +1,72 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { type Locale } from '@/dictionaries'
 
 interface LandingPageProps {
   dict: {
     meta: { title: string; description: string; keywords: string }
-    nav: { features: string; howItWorks: string; download: string }
+    nav: { features: string; download: string }
     hero: {
-      badge: string
-      title: string
-      titleHighlight: string
+      tagline: string
+      title1: string
+      title2: string
       subtitle: string
       cta: string
-      ctaSecondary: string
-      free: string
+      note: string
+    }
+    demo: {
+      press: string
+      recording: string
+      output: string
+    }
+    problem: {
+      title: string
+      stat1: string
+      stat1Label: string
+      stat2: string
+      stat2Label: string
+      description: string
+      solution: string
+    }
+    whyThis: {
+      title: string
+      reason1Title: string
+      reason1Desc: string
+      reason2Title: string
+      reason2Desc: string
+      reason3Title: string
+      reason3Desc: string
+      conclusion: string
     }
     features: {
-      title: string
-      subtitle: string
-      local: { title: string; description: string }
-      fast: { title: string; description: string }
-      free: { title: string; description: string }
-      hotkey: { title: string; description: string }
-      vad: { title: string; description: string }
-      llm: { title: string; description: string }
+      local: { title: string; desc: string }
+      fast: { title: string; desc: string }
+      simple: { title: string; desc: string }
     }
     howItWorks: {
       title: string
-      subtitle: string
-      step1: { number: string; title: string; description: string }
-      step2: { number: string; title: string; description: string }
-      step3: { number: string; title: string; description: string }
+      step1: string
+      step1Desc: string
+      step2: string
+      step2Desc: string
+      step3: string
+      step3Desc: string
     }
-    useCases: { title: string; items: string[] }
-    cta: { title: string; subtitle: string; button: string; note: string }
-    footer: { madeWith: string; by: string; github: string; releases: string }
+    founder: {
+      quote: string
+      name: string
+      role: string
+    }
+    faq: {
+      title: string
+      q1: string; a1: string
+      q2: string; a2: string
+      q3: string; a3: string
+      q4: string; a4: string
+    }
+    cta: { title: string; button: string }
+    footer: { tagline: string; github: string; releases: string }
   }
   lang: Locale
 }
@@ -44,30 +76,24 @@ export function LandingPage({ dict, lang }: LandingPageProps) {
   const otherLangLabel = lang === 'en' ? 'ES' : 'EN'
 
   return (
-    <div className="min-h-screen bg-gradient-dark">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-primary/80 backdrop-blur-md border-b border-border-default">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div className="min-h-screen bg-[#0a0a0a] text-[#e5e5e5]">
+      {/* Nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-sm">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MicIcon className="w-7 h-7 text-accent" />
-            <span className="font-semibold text-text-primary">Whisper Cheap</span>
+            <MicIcon className="w-7 h-7 text-[#00ff88]" />
+            <span className="font-semibold text-lg">Whisper Cheap</span>
           </div>
-          <div className="flex items-center gap-8">
-            <a href="#features" className="text-sm text-text-secondary hover:text-text-primary transition-colors animated-underline">
-              {dict.nav.features}
-            </a>
-            <a href="#how-it-works" className="text-sm text-text-secondary hover:text-text-primary transition-colors animated-underline">
-              {dict.nav.howItWorks}
-            </a>
+          <div className="flex items-center gap-5">
             <a
               href={`/${otherLang}`}
-              className="text-sm text-text-dim hover:text-text-secondary transition-colors px-2 py-1 rounded border border-border-default hover:border-border-hover"
+              className="text-base text-[#666] hover:text-[#999] transition-colors"
             >
               {otherLangLabel}
             </a>
             <a
               href="#download"
-              className="text-sm font-semibold bg-accent text-black px-4 py-2 rounded-lg hover:bg-accent-hover transition-colors"
+              className="text-base font-semibold bg-[#00ff88] text-black px-5 py-2.5 rounded-full hover:bg-[#00dd77] transition-colors"
             >
               {dict.nav.download}
             </a>
@@ -75,212 +101,248 @@ export function LandingPage({ dict, lang }: LandingPageProps) {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="animate-fade-in">
-            <span className="inline-flex items-center gap-2 text-xs font-medium text-accent bg-accent/10 px-3 py-1.5 rounded-full border border-accent/20 mb-8">
-              <span className="w-2 h-2 bg-accent rounded-full animate-pulse-accent" />
-              {dict.hero.badge}
-            </span>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold text-text-primary mb-6 animate-fade-in-delay-1">
-            {dict.hero.title}
+      {/* Hero - Big Statement */}
+      <section className="pt-36 pb-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[#00ff88] text-base font-mono mb-6 tracking-wide">
+            {dict.hero.tagline}
+          </p>
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[0.9] tracking-tight mb-8">
+            <span className="text-[#e5e5e5]">{dict.hero.title1}</span>
             <br />
-            <span className="text-accent">{dict.hero.titleHighlight}</span>
+            <span className="text-[#00ff88]">{dict.hero.title2}</span>
           </h1>
-
-          <p className="text-xl text-text-secondary max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in-delay-2">
+          <p className="text-xl sm:text-2xl text-[#888] max-w-xl leading-relaxed mb-12">
             {dict.hero.subtitle}
           </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-delay-3">
+          <div className="flex flex-col sm:flex-row items-start gap-4">
             <a
               href="#download"
-              className="flex items-center gap-3 bg-accent text-black font-semibold px-8 py-4 rounded-xl hover:bg-accent-hover transition-all glow-accent hover:glow-accent-strong"
+              className="inline-flex items-center gap-3 bg-[#00ff88] text-black font-semibold px-8 py-4 rounded-full hover:bg-[#00dd77] transition-all hover:scale-[1.02] text-lg"
             >
               <WindowsIcon className="w-5 h-5" />
               {dict.hero.cta}
             </a>
-            <a
-              href="#how-it-works"
-              className="flex items-center gap-2 text-text-secondary hover:text-text-primary px-6 py-4 rounded-xl border border-border-default hover:border-border-hover transition-all"
-            >
-              <PlayIcon className="w-5 h-5" />
-              {dict.hero.ctaSecondary}
-            </a>
+            <p className="text-sm text-[#555] pt-3">
+              {dict.hero.note}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Product Demo - Animated Waveform */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <ProductDemo dict={dict} />
+        </div>
+      </section>
+
+      {/* Problem - Speed Comparison */}
+      <section className="py-24 px-6 border-t border-[#1a1a1a]">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-16 text-center">
+            {dict.problem.title}
+          </h2>
+
+          <div className="flex justify-center items-end gap-8 sm:gap-16 mb-12">
+            <div className="text-center">
+              <div className="text-6xl sm:text-8xl font-bold text-[#444] mb-2">
+                {dict.problem.stat1}
+              </div>
+              <div className="text-sm sm:text-base text-[#555] uppercase tracking-wider">
+                {dict.problem.stat1Label}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-6xl sm:text-8xl font-bold text-[#00ff88] mb-2">
+                {dict.problem.stat2}
+              </div>
+              <div className="text-sm sm:text-base text-[#555] uppercase tracking-wider">
+                {dict.problem.stat2Label}
+              </div>
+            </div>
           </div>
 
-          <p className="text-sm text-text-dim mt-6 animate-fade-in-delay-3">
-            {dict.hero.free}
+          <p className="text-lg text-[#888] text-center max-w-xl mx-auto leading-relaxed mb-6">
+            {dict.problem.description}
+          </p>
+          <p className="text-[#00ff88] text-center font-medium text-xl">
+            {dict.problem.solution}
           </p>
         </div>
       </section>
 
-      {/* Demo Visual */}
-      <section className="py-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-bg-card rounded-2xl border border-border-default p-8 glow-accent">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500" />
-              <div className="w-3 h-3 rounded-full bg-green-500" />
-            </div>
-            <div className="font-mono text-sm">
-              <div className="flex items-center gap-3 text-text-dim mb-4">
-                <span className="text-accent">$</span>
-                <span className="text-text-secondary">Press</span>
-                <span className="bg-bg-input px-2 py-1 rounded text-accent border border-border-default">Ctrl</span>
-                <span className="text-text-secondary">+</span>
-                <span className="bg-bg-input px-2 py-1 rounded text-accent border border-border-default">Space</span>
-              </div>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-text-secondary">Recording...</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="text-accent">→</span>
-                <span className="text-text-primary">
-                  {lang === 'es'
-                    ? '"Escribe el correo a Juan diciéndole que la reunión es mañana a las 10."'
-                    : '"Write an email to John telling him the meeting is tomorrow at 10."'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              {dict.features.title}
-            </h2>
-            <p className="text-text-secondary text-lg">{dict.features.subtitle}</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={<ShieldIcon className="w-6 h-6" />}
-              title={dict.features.local.title}
-              description={dict.features.local.description}
-            />
-            <FeatureCard
-              icon={<BoltIcon className="w-6 h-6" />}
-              title={dict.features.fast.title}
-              description={dict.features.fast.description}
-            />
-            <FeatureCard
-              icon={<GiftIcon className="w-6 h-6" />}
-              title={dict.features.free.title}
-              description={dict.features.free.description}
-            />
-            <FeatureCard
-              icon={<KeyboardIcon className="w-6 h-6" />}
-              title={dict.features.hotkey.title}
-              description={dict.features.hotkey.description}
-            />
-            <FeatureCard
-              icon={<WaveIcon className="w-6 h-6" />}
-              title={dict.features.vad.title}
-              description={dict.features.vad.description}
-            />
-            <FeatureCard
-              icon={<SparklesIcon className="w-6 h-6" />}
-              title={dict.features.llm.title}
-              description={dict.features.llm.description}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 px-6 bg-bg-secondary">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              {dict.howItWorks.title}
-            </h2>
-            <p className="text-text-secondary text-lg">{dict.howItWorks.subtitle}</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <StepCard
-              number={dict.howItWorks.step1.number}
-              title={dict.howItWorks.step1.title}
-              description={dict.howItWorks.step1.description}
-            />
-            <StepCard
-              number={dict.howItWorks.step2.number}
-              title={dict.howItWorks.step2.title}
-              description={dict.howItWorks.step2.description}
-            />
-            <StepCard
-              number={dict.howItWorks.step3.number}
-              title={dict.howItWorks.step3.title}
-              description={dict.howItWorks.step3.description}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Use Cases Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-12 text-center">
-            {dict.useCases.title}
+      {/* Why This Exists */}
+      <section className="py-24 px-6 bg-[#0d0d0d]">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-16">
+            {dict.whyThis.title}
           </h2>
 
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {dict.useCases.items.map((item, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 bg-bg-card rounded-xl border border-border-default p-4 card-hover"
-              >
-                <CheckIcon className="w-5 h-5 text-accent flex-shrink-0" />
-                <span className="text-text-primary text-sm">{item}</span>
-              </div>
-            ))}
+          <div className="space-y-12">
+            <div className="border-l-2 border-[#ff4444] pl-6">
+              <h3 className="font-semibold text-lg mb-2">{dict.whyThis.reason1Title}</h3>
+              <p className="text-[#888] text-base leading-relaxed">{dict.whyThis.reason1Desc}</p>
+            </div>
+            <div className="border-l-2 border-[#ff8844] pl-6">
+              <h3 className="font-semibold text-lg mb-2">{dict.whyThis.reason2Title}</h3>
+              <p className="text-[#888] text-base leading-relaxed">{dict.whyThis.reason2Desc}</p>
+            </div>
+            <div className="border-l-2 border-[#ffaa44] pl-6">
+              <h3 className="font-semibold text-lg mb-2">{dict.whyThis.reason3Title}</h3>
+              <p className="text-[#888] text-base leading-relaxed">{dict.whyThis.reason3Desc}</p>
+            </div>
+          </div>
+
+          <div className="mt-16 p-8 bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a]">
+            <p className="text-[#e5e5e5] text-lg leading-relaxed">
+              {dict.whyThis.conclusion}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section id="download" className="py-20 px-6 bg-bg-secondary">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
+      {/* Features - Minimal */}
+      <section id="features" className="py-24 px-6 border-t border-[#1a1a1a]">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-12">
+            <div>
+              <div className="w-12 h-12 rounded-full bg-[#00ff88]/10 flex items-center justify-center mb-5">
+                <ShieldIcon className="w-6 h-6 text-[#00ff88]" />
+              </div>
+              <h3 className="font-semibold text-xl mb-3">{dict.features.local.title}</h3>
+              <p className="text-base text-[#888] leading-relaxed">{dict.features.local.desc}</p>
+            </div>
+            <div>
+              <div className="w-12 h-12 rounded-full bg-[#00ff88]/10 flex items-center justify-center mb-5">
+                <BoltIcon className="w-6 h-6 text-[#00ff88]" />
+              </div>
+              <h3 className="font-semibold text-xl mb-3">{dict.features.fast.title}</h3>
+              <p className="text-base text-[#888] leading-relaxed">{dict.features.fast.desc}</p>
+            </div>
+            <div>
+              <div className="w-12 h-12 rounded-full bg-[#00ff88]/10 flex items-center justify-center mb-5">
+                <KeyIcon className="w-6 h-6 text-[#00ff88]" />
+              </div>
+              <h3 className="font-semibold text-xl mb-3">{dict.features.simple.title}</h3>
+              <p className="text-base text-[#888] leading-relaxed">{dict.features.simple.desc}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works - Visual Steps */}
+      <section className="py-24 px-6 bg-[#0d0d0d]">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-16 text-center">
+            {dict.howItWorks.title}
+          </h2>
+
+          <div className="space-y-10">
+            <div className="flex gap-6 items-start">
+              <div className="w-10 h-10 rounded-full bg-[#00ff88] text-black font-bold text-base flex items-center justify-center flex-shrink-0">
+                1
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">{dict.howItWorks.step1}</h3>
+                <p className="text-base text-[#888]">{dict.howItWorks.step1Desc}</p>
+              </div>
+            </div>
+            <div className="flex gap-6 items-start">
+              <div className="w-10 h-10 rounded-full bg-[#00ff88] text-black font-bold text-base flex items-center justify-center flex-shrink-0">
+                2
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">{dict.howItWorks.step2}</h3>
+                <p className="text-base text-[#888]">{dict.howItWorks.step2Desc}</p>
+              </div>
+            </div>
+            <div className="flex gap-6 items-start">
+              <div className="w-10 h-10 rounded-full bg-[#00ff88] text-black font-bold text-base flex items-center justify-center flex-shrink-0">
+                3
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-1">{dict.howItWorks.step3}</h3>
+                <p className="text-base text-[#888]">{dict.howItWorks.step3Desc}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Founder Quote */}
+      <section className="py-24 px-6 border-t border-[#1a1a1a]">
+        <div className="max-w-3xl mx-auto">
+          <blockquote className="text-xl sm:text-2xl leading-relaxed text-[#ccc] mb-10">
+            "{dict.founder.quote}"
+          </blockquote>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00ff88] to-[#00aa55] flex items-center justify-center text-black font-bold text-xl">
+              A
+            </div>
+            <div>
+              <div className="font-semibold text-lg">{dict.founder.name}</div>
+              <div className="text-base text-[#888]">{dict.founder.role}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ - Minimal */}
+      <section className="py-24 px-6 bg-[#0d0d0d]">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-12 text-center">
+            {dict.faq.title}
+          </h2>
+
+          <div className="space-y-10">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">{dict.faq.q1}</h3>
+              <p className="text-base text-[#888]">{dict.faq.a1}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">{dict.faq.q2}</h3>
+              <p className="text-base text-[#888]">{dict.faq.a2}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">{dict.faq.q3}</h3>
+              <p className="text-base text-[#888]">{dict.faq.a3}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">{dict.faq.q4}</h3>
+              <p className="text-base text-[#888]">{dict.faq.a4}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section id="download" className="py-32 px-6 border-t border-[#1a1a1a]">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-8">
             {dict.cta.title}
           </h2>
-          <p className="text-text-secondary text-lg mb-10">{dict.cta.subtitle}</p>
-
           <a
             href="https://github.com/user/whisper-cheap/releases/latest"
-            className="inline-flex items-center gap-3 bg-accent text-black font-semibold px-10 py-5 rounded-xl hover:bg-accent-hover transition-all text-lg glow-accent hover:glow-accent-strong"
+            className="inline-flex items-center gap-3 bg-[#00ff88] text-black font-semibold px-8 py-4 rounded-full hover:bg-[#00dd77] transition-all hover:scale-[1.02] text-lg"
           >
-            <WindowsIcon className="w-6 h-6" />
+            <WindowsIcon className="w-5 h-5" />
             {dict.cta.button}
           </a>
-
-          <p className="text-sm text-text-dim mt-6">{dict.cta.note}</p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-border-default">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <MicIcon className="w-5 h-5 text-accent" />
-            <span className="text-text-secondary text-sm">
-              {dict.footer.madeWith} <span className="text-accent">♥</span> {dict.footer.by}
-            </span>
+      <footer className="py-10 px-6 border-t border-[#1a1a1a]">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-base text-[#555]">
+            <MicIcon className="w-5 h-5 text-[#00ff88]" />
+            <span>{dict.footer.tagline}</span>
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 text-base">
             <a
               href="https://github.com/user/whisper-cheap"
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+              className="text-[#555] hover:text-[#888] transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -288,7 +350,7 @@ export function LandingPage({ dict, lang }: LandingPageProps) {
             </a>
             <a
               href="https://github.com/user/whisper-cheap/releases"
-              className="text-text-secondary hover:text-text-primary text-sm transition-colors"
+              className="text-[#555] hover:text-[#888] transition-colors"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -301,44 +363,112 @@ export function LandingPage({ dict, lang }: LandingPageProps) {
   )
 }
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode
-  title: string
-  description: string
-}) {
+// Animated Product Demo Component
+function ProductDemo({ dict }: { dict: LandingPageProps['dict'] }) {
+  const [phase, setPhase] = useState<'idle' | 'recording' | 'done'>('idle')
+  const [displayText, setDisplayText] = useState('')
+
+  useEffect(() => {
+    const sequence = async () => {
+      // Idle
+      setPhase('idle')
+      setDisplayText('')
+      await sleep(2000)
+
+      // Recording
+      setPhase('recording')
+      await sleep(3000)
+
+      // Done - typewriter effect
+      setPhase('done')
+      const text = dict.demo.output
+      for (let i = 0; i <= text.length; i++) {
+        setDisplayText(text.slice(0, i))
+        await sleep(30)
+      }
+      await sleep(3000)
+    }
+
+    sequence()
+    const interval = setInterval(sequence, 10000)
+    return () => clearInterval(interval)
+  }, [dict.demo.output])
+
   return (
-    <div className="bg-bg-card rounded-xl border border-border-default p-6 card-hover">
-      <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center text-accent mb-4">
-        {icon}
+    <div className="bg-[#111] rounded-2xl border border-[#222] overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-[#222]">
+        <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+        <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+        <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
       </div>
-      <h3 className="text-lg font-semibold text-text-primary mb-2">{title}</h3>
-      <p className="text-text-secondary text-sm leading-relaxed">{description}</p>
+
+      {/* Content */}
+      <div className="p-8 min-h-[220px] flex flex-col justify-center">
+        {phase === 'idle' && (
+          <div className="flex items-center gap-3 text-[#888]">
+            <span className="text-base">{dict.demo.press}</span>
+            <kbd className="px-3 py-1.5 bg-[#1a1a1a] rounded text-sm text-[#00ff88] border border-[#333]">
+              Ctrl
+            </kbd>
+            <span className="text-sm">+</span>
+            <kbd className="px-3 py-1.5 bg-[#1a1a1a] rounded text-sm text-[#00ff88] border border-[#333]">
+              Space
+            </kbd>
+          </div>
+        )}
+
+        {phase === 'recording' && (
+          <div className="flex flex-col gap-5">
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-base text-[#888]">{dict.demo.recording}</span>
+            </div>
+            <Waveform />
+          </div>
+        )}
+
+        {phase === 'done' && (
+          <div className="font-mono text-base">
+            <span className="text-[#00ff88]">→ </span>
+            <span className="text-[#e5e5e5]">{displayText}</span>
+            <span className="animate-blink">|</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
 
-function StepCard({
-  number,
-  title,
-  description,
-}: {
-  number: string
-  title: string
-  description: string
-}) {
+// Animated Waveform - matches the app's overlay
+function Waveform() {
+  const bars = 18
+
   return (
-    <div className="text-center">
-      <div className="w-16 h-16 rounded-full bg-accent text-black font-bold text-2xl flex items-center justify-center mx-auto mb-4">
-        {number}
-      </div>
-      <h3 className="text-xl font-semibold text-text-primary mb-2">{title}</h3>
-      <p className="text-text-secondary text-sm">{description}</p>
+    <div className="flex items-center justify-center gap-[3px] h-8">
+      {Array.from({ length: bars }).map((_, i) => {
+        const center = (bars - 1) / 2
+        const distance = Math.abs(i - center) / center
+        const baseHeight = 1 - distance * 0.7
+
+        return (
+          <div
+            key={i}
+            className="w-[3px] rounded-full bg-[#00ff88]"
+            style={{
+              height: `${baseHeight * 100}%`,
+              animation: `waveform 0.8s ease-in-out infinite`,
+              animationDelay: `${i * 0.05}s`,
+            }}
+          />
+        )
+      })}
     </div>
   )
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 // Icons
@@ -359,15 +489,6 @@ function WindowsIcon({ className }: { className?: string }) {
   )
 }
 
-function PlayIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )
-}
-
 function ShieldIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,42 +505,10 @@ function BoltIcon({ className }: { className?: string }) {
   )
 }
 
-function GiftIcon({ className }: { className?: string }) {
+function KeyIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-    </svg>
-  )
-}
-
-function KeyboardIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-    </svg>
-  )
-}
-
-function WaveIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-    </svg>
-  )
-}
-
-function SparklesIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-    </svg>
-  )
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
     </svg>
   )
 }
