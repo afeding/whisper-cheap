@@ -541,18 +541,23 @@ function showTestResult(success, message) {
 // HISTORY
 // =============================================================================
 
-async function loadHistory() {
+let historyOffset = 0;
+const HISTORY_PAGE_SIZE = 10;
+
+async function loadHistory(append = false) {
     const container = document.getElementById('history-list');
+    const controlsContainer = document.getElementById('history-controls');
+
+    if (!append) {
+        historyOffset = 0;
+    }
 
     try {
-        const history = await pywebview.api.get_history(20);
+        const response = await pywebview.api.get_history(HISTORY_PAGE_SIZE, historyOffset);
+        const { entries, has_more, total } = response;
 
-        if (history.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-center py-8">No transcriptions yet</p>';
-            return;
-        }
-
-        container.innerHTML = history.map(entry => {
+        // Build entries HTML
+        const entriesHtml = entries.map(entry => {
             const date = entry.timestamp ? formatDate(entry.timestamp) : 'Unknown date';
             const duration = entry.duration ? formatDuration(entry.duration) : '';
 
@@ -569,10 +574,37 @@ async function loadHistory() {
                 </div>
             `;
         }).join('');
+
+        if (append) {
+            container.insertAdjacentHTML('beforeend', entriesHtml);
+        } else {
+            if (entries.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No transcriptions yet</p>';
+            } else {
+                container.innerHTML = entriesHtml;
+            }
+        }
+
+        // Update controls
+        if (controlsContainer) {
+            const showingCount = historyOffset + entries.length;
+            controlsContainer.innerHTML = `
+                <div class="flex items-center justify-between text-sm text-gray-500">
+                    <span>${showingCount} of ${total}</span>
+                    ${has_more ? `<button onclick="loadMoreHistory()" class="px-3 py-1 bg-accent/80 text-black rounded hover:bg-accent">Load More</button>` : ''}
+                </div>
+            `;
+        }
+
     } catch (e) {
         console.error('[Settings] Failed to load history:', e);
         container.innerHTML = '<p class="text-red-400 text-center py-8">Failed to load history</p>';
     }
+}
+
+function loadMoreHistory() {
+    historyOffset += HISTORY_PAGE_SIZE;
+    loadHistory(true);
 }
 
 async function refreshHistory() {
@@ -581,7 +613,8 @@ async function refreshHistory() {
 
 function formatDate(timestamp) {
     try {
-        const date = new Date(timestamp);
+        // Timestamp from SQLite is in seconds, JS needs milliseconds
+        const date = new Date(timestamp * 1000);
         return date.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',

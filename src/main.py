@@ -360,12 +360,10 @@ def main():
     )
 
     history_manager = HistoryManager(db_path=db_path, recordings_dir=recordings_dir)
-    policy, arg = retention_policy_to_args(history_cfg.get("retention_policy", "preserve_limit"))
-    if policy == "preserve_limit":
-        history_manager.delete_old(policy="preserve_limit", limit_or_days=history_cfg.get("preserve_limit", 100))
-    elif policy == "days" and arg:
-        history_manager.delete_old(policy="days", limit_or_days=arg)
-    history_manager.cleanup_orphans()
+    # Clear all history on startup to prevent accumulation
+    print(f"Limpiando historial en: {recordings_dir}")
+    history_manager.clear_all()
+    print("Historial limpiado.")
 
     llm_client = None
     LLM_SYSTEM_PROMPT = """You are "Transcription 2.0": a real-time dictation post-editor.

@@ -169,6 +169,24 @@ class HistoryManager:
             wf.writeframes(samples_int16.tobytes())
         return fname
 
+    def clear_all(self):
+        """
+        Delete all history entries and their audio files.
+        Called at app startup to prevent accumulation.
+        """
+        with self._connect() as conn:
+            conn.execute("DELETE FROM transcription_history")
+            conn.commit()
+
+        # Delete all WAV files
+        for wav in self.recordings_dir.glob("*.wav"):
+            try:
+                wav.unlink()
+            except Exception:
+                pass
+
+        logger.info("[history] Cleared all history and recordings")
+
     def cleanup_orphans(self):
         """
         Remove WAVs without DB rows and DB rows whose files are missing.

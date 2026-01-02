@@ -1,5 +1,5 @@
 {
-  "hotkey": "alt+space",
+  "hotkey": "space+ctrl+shift",
   "mode": {
     "activation_mode": "toggle",
     "unload_timeout": "never"

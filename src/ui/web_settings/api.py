@@ -42,8 +42,27 @@ class SettingsAPI:
     def __init__(self, config_path: str | Path, history_manager=None):
         # Store as string (private) to avoid pywebview serialization issues with Path objects
         self._config_path_str = str(config_path)
-        self.history_manager = history_manager
         self._default_models: Optional[List[str]] = None
+
+        # Initialize history_manager from config if not provided
+        # (needed when running in subprocess where objects can't be passed)
+        # Use private attribute (_) to prevent pywebview from trying to serialize it
+        if history_manager is None:
+            self._history_manager = self._create_history_manager()
+        else:
+            self._history_manager = history_manager
+
+    def _create_history_manager(self):
+        """Create HistoryManager from config paths."""
+        try:
+            from src.managers.history import HistoryManager
+            app_data = self._get_app_data_dir()
+            db_path = app_data / "history.db"
+            recordings_dir = app_data / "recordings"
+            return HistoryManager(db_path, recordings_dir)
+        except Exception as e:
+            print(f"[SettingsAPI] Failed to create HistoryManager: {e}")
+            return None
 
     def _get_app_data_dir(self) -> Path:
         config = self.get_config()
@@ -51,7 +70,13 @@ class SettingsAPI:
         if config:
             app_data = config.get("paths", {}).get("app_data")
         if not app_data:
-            app_data = "%APPDATA%\\whisper-cheap"
+            # Match main.py fallback: .data in dev, %APPDATA% when frozen
+            is_frozen = getattr(sys, "frozen", False)
+            if is_frozen:
+                app_data = "%APPDATA%\\whisper-cheap"
+            else:
+                # Dev mode: .data relative to config.json
+                app_data = ".data"
         app_data = os.path.expandvars(str(app_data))
         if not os.path.isabs(app_data):
             app_data = str(Path(self._config_path_str).parent / app_data)
@@ -306,26 +331,51 @@ class SettingsAPI:
     # HISTORY
     # =========================================================================
 
-    def get_history(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """Get transcription history."""
-        if not self.history_manager:
-            return []
+    def get_history(self, limit: int = 20, offset: int = 0) -> Dict[str, Any]:
+        """Get transcription history with pagination.
+
+        Args:
+            limit: Max entries to return
+            offset: Skip first N entries
+
+        Returns:
+            {entries: [...], has_more: bool, total: int}
+        """
+        if not self._history_manager:
+            return {"entries": [], "has_more": False, "total": 0}
 
         try:
-            entries = self.history_manager.get_all(limit=limit)
+            # Get all entries for pagination
+            all_entries = self._history_manager.get_all()
+            total = len(all_entries)
+
+            # Apply pagination
+            paginated = all_entries[offset:offset + limit]
+
             result = []
-            for entry in entries:
+            for entry in paginated:
+                # Build full audio path from file_name
+                file_name = entry.get("file_name")
+                audio_path = None
+                if file_name:
+                    audio_path = str(self._history_manager.recordings_dir / file_name)
+
                 result.append({
                     "id": entry.get("id"),
                     "timestamp": entry.get("timestamp"),
                     "text": entry.get("transcription_text", ""),
-                    "audio_path": entry.get("audio_path"),
-                    "duration": self._get_audio_duration(entry.get("audio_path"))
+                    "audio_path": audio_path,
+                    "duration": self._get_audio_duration(audio_path)
                 })
-            return result
+
+            return {
+                "entries": result,
+                "has_more": offset + limit < total,
+                "total": total
+            }
         except Exception as e:
             print(f"[SettingsAPI] Error getting history: {e}")
-            return []
+            return {"entries": [], "has_more": False, "total": 0}
 
     def _get_audio_duration(self, audio_path: Optional[str]) -> Optional[float]:
         """Get duration of audio file in seconds."""
@@ -367,11 +417,11 @@ class SettingsAPI:
 
     def delete_history_entry(self, entry_id: int) -> Dict[str, Any]:
         """Delete a history entry."""
-        if not self.history_manager:
+        if not self._history_manager:
             return {"success": False, "error": "History manager not available"}
 
         try:
-            self.history_manager.delete(entry_id)
+            self._history_manager.delete(entry_id)
             return {"success": True}
         except Exception as e:
             return {"success": False, "error": str(e)}
