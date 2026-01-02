@@ -101,7 +101,10 @@ a = Analysis(
         'sounddevice',
         '_sounddevice_data',
         # UI and system
-        'keyboard',
+        'pynput',
+        'pynput.keyboard',
+        'pynput._util',
+        'pynput._util.win32',
         'pystray',
         'PIL',
         'PIL.Image',
