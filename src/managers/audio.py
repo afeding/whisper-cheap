@@ -33,7 +33,12 @@ except ImportError:  # pragma: no cover - handled at runtime
 
 try:
     import onnxruntime as ort
-except ImportError:  # pragma: no cover - VAD is optional
+    logger.debug(f"[audio] onnxruntime loaded: {ort.__version__}")
+except ImportError as e:  # pragma: no cover - VAD is optional
+    logger.error(f"[audio] Failed to import onnxruntime: {e}")
+    ort = None
+except Exception as e:
+    logger.error(f"[audio] Unexpected error importing onnxruntime: {type(e).__name__}: {e}")
     ort = None
 
 try:
@@ -184,6 +189,18 @@ class AudioRecordingManager:
         with self._stream_lock:
             if self._stream is not None:
                 return
+
+            # Log device info
+            try:
+                if device_id is not None:
+                    device_info = sd.query_devices(device_id)
+                    logger.info(f"[audio] Opening stream with device {device_id}: {device_info.get('name', 'unknown')}")
+                else:
+                    default_device = sd.query_devices(kind='input')
+                    logger.info(f"[audio] Opening stream with default device: {default_device.get('name', 'unknown')}")
+            except Exception as e:
+                logger.warning(f"[audio] Could not query device info: {e}")
+
             stream = sd.InputStream(
                 samplerate=self.config.sample_rate,
                 channels=self.config.channels,
@@ -194,8 +211,10 @@ class AudioRecordingManager:
             )
             try:
                 stream.start()
+                logger.info(f"[audio] Stream started: {self.config.sample_rate}Hz, {self.config.channels}ch, chunk={self.config.chunk_size}")
             except Exception as e:
                 # Cleanup stream if start() fails to avoid blocking audio device
+                logger.error(f"[audio] Stream start failed: {e}")
                 try:
                     stream.close()
                 except Exception:
@@ -231,11 +250,17 @@ class AudioRecordingManager:
         with self._recording_lock:
             if not self._is_recording or binding_id != self._binding_id:
                 self._emit_event("recording-stop-ignored")
+                logger.warning(f"[audio] Recording stop ignored (recording={self._is_recording}, binding={self._binding_id})")
                 return np.array([], dtype=np.float32)
             self._is_recording = False
             self._binding_id = None
+            chunk_count = len(self._buffer)
             data = np.concatenate(list(self._buffer)) if self._buffer else np.array([], dtype=np.float32)
             self._buffer.clear()
+
+        duration = len(data) / self.config.sample_rate if len(data) > 0 else 0
+        logger.info(f"[audio] Recording stopped: {chunk_count} chunks, {len(data)} samples, {duration:.2f}s")
+
         if not self.config.always_on_stream:
             self.close_stream()
         self._emit_event("recording-stopped")

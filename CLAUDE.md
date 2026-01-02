@@ -145,11 +145,34 @@ python -m src.main
 pytest tests/ -v
 ```
 
-### Build standalone .exe
-```bash
-# PyInstaller (TODO: revisar build_config.py)
+### Build standalone .exe + instalador
+```powershell
 pyinstaller build_config.spec
 ```
+- Genera `dist/WhisperCheap/WhisperCheap.exe` (modo onedir, portable).
+- El instalador real se genera con Inno Setup.
+
+```powershell
+ISCC installer/WhisperCheap.iss
+```
+Si `ISCC` no esta en PATH, usa la ruta completa:
+```powershell
+& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" ".\installer\WhisperCheap.iss"
+```
+- Instalador final: `dist/installer/WhisperCheapSetup.exe`.
+
+**Troubleshooting "archivo en uso" durante compilación:**
+El error común "El proceso no tiene acceso al archivo porque está siendo utilizado por otro proceso" ocurre cuando **Windows Defender** escanea archivos mientras Inno Setup intenta comprimirlos (condición de carrera con `MsMpEng.exe`).
+
+**Soluciones:**
+1. **Reintentar** - a veces funciona si Defender ya terminó el escaneo
+2. **Añadir exclusión temporal** (recomendado, requiere admin):
+   ```powershell
+   Add-MpPreference -ExclusionPath "D:\1.SASS\whisper-cheap\dist"
+   # Después de compilar:
+   Remove-MpPreference -ExclusionPath "D:\1.SASS\whisper-cheap\dist"
+   ```
+3. **Cerrar** procesos: app/tray y Exploradores en `dist/WhisperCheap`
 
 ### Modificar configuración
 Edita `config.json` manualmente o usa la ventana de settings (abre automáticamente al iniciar).
@@ -235,7 +258,7 @@ Con VAD activado, solo se bufferean chunks donde `silero_vad.process()` > `vad_t
 
 **Default:** `.data/` en raíz del proyecto (para desarrollo).
 
-**Producción:** `%APPDATA%\whisper-cheap\` (PyInstaller debe copiar config.json y adaptarlo).
+**Produccion:** `%APPDATA%\whisper-cheap\` (config.json se crea ahi si no existe; no se empaqueta junto al .exe).
 
 ### Hotkeys: solo Windows
 `keyboard` lib usa hooks de bajo nivel de Windows. **No portable a Linux/macOS**.
@@ -263,7 +286,9 @@ Con VAD activado, solo se bufferean chunks donde `silero_vad.process()` > `vad_t
 - `sounddevice` + PortAudio DLL
 - `PyQt6` Qt libs
 
-Ver `build_config.spec` para `hiddenimports` y `binaries`.
+**Versión de onnxruntime:** Usar `==1.20.1` (fijada en requirements.txt). Las versiones 1.22+ tienen un bug de regresión que causa "DLL load failed" en apps empaquetadas con PyInstaller en Windows.
+
+Ver `build_config.spec` para `hiddenimports` y `binaries`. El spec usa `collect_all()` y un runtime hook (`hooks/rthook_onnxruntime.py`) para asegurar que los DLLs se incluyan correctamente.
 
 ### Tests: mocks para todo lo que toca hardware
 - `sounddevice.InputStream` → mock con `.read()` que devuelve arrays numpy

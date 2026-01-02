@@ -9,6 +9,7 @@ integration and background workers can be expanded later.
 from __future__ import annotations
 
 import json
+import multiprocessing
 import logging
 import os
 import queue
@@ -231,61 +232,62 @@ def setup_logging(app_data: Path) -> Path:
 
 
 def main():
+    # Detect if running as compiled executable
+    is_frozen = getattr(sys, "frozen", False)
     # CRITICAL: Single instance lock - prevent multiple instances from running
     mutex = None
-    if os.name == 'nt' and win32event is not None:
+    if os.name == "nt" and win32event is not None and win32api is not None and winerror is not None:
         try:
-            mutex_name = "Global\\WhisperCheap_SingleInstance_Mutex"
+            mutex_name = "Local\\WhisperCheap_SingleInstance_Mutex"
             mutex = win32event.CreateMutex(None, False, mutex_name)
             last_error = win32api.GetLastError()
 
             if last_error == winerror.ERROR_ALREADY_EXISTS:
-                print("ADVERTENCIA: Whisper Cheap ya está ejecutándose.")
+                print("ADVERTENCIA: Whisper Cheap ya esta ejecutandose.")
                 print("Solo se permite una instancia a la vez.")
-                print("Si ves múltiples ventanas, cierra todas y vuelve a ejecutar.")
-                input("\nPresiona Enter para salir...")
                 sys.exit(1)
         except Exception as e:
-            print(f"Advertencia: No se pudo crear mutex de instancia única: {e}")
+            print(f"Advertencia: No se pudo crear mutex de instancia unica: {e}")
             print("Continuando de todos modos...")
-
-    # Detect if running as compiled executable
-    is_frozen = getattr(sys, 'frozen', False)
 
     # Define base_dir consistently for both cases
     if is_frozen:
         # Running as .exe: base_dir = folder containing the .exe
         base_dir = Path(sys.executable).parent
+        resource_base_dir = Path(getattr(sys, "_MEIPASS", base_dir))
+        config_dir = Path(os.path.expandvars("%APPDATA%")) / "whisper-cheap"
     else:
         # Running as script: base_dir = project root (parent of src/)
         base_dir = Path(__file__).resolve().parent.parent
+        resource_base_dir = base_dir
+        config_dir = base_dir
 
-    resources_dir = base_dir / ("resources" if is_frozen else "src/resources")
-    # Config.json always next to the .exe (frozen) or in project root (dev)
-    config_path = base_dir / "config.json"
+    resources_dir = resource_base_dir / ("resources" if is_frozen else "src/resources")
+    # Config.json lives in AppData when frozen, project root in dev
+    config_path = config_dir / "config.json"
     cfg = load_config(config_path, is_frozen)
     apply_autostart(bool(cfg.get("general", {}).get("start_on_boot", False)), is_frozen, base_dir)
 
     # Helper to expand paths with proper defaults
-    def expand_path(p: str | Path | None, default: Path) -> Path:
+    def expand_path(p: str | Path | None, default: Path, relative_base: Path) -> Path:
         if not p:
             return default
         # Expand environment variables (%APPDATA%, etc.)
         expanded = Path(os.path.expandvars(str(p)))
-        # If relative path, make it relative to base_dir
+        # If relative path, make it relative to the caller-specified base
         if not expanded.is_absolute():
-            return base_dir / expanded
+            return relative_base / expanded
         return expanded
 
     # Calculate paths with fallback to sensible defaults
     paths = cfg.get("paths", {})
-    default_app_data = base_dir / ".data" if not is_frozen else Path(os.path.expandvars("%APPDATA%")) / "whisper-cheap"
+    default_app_data = config_dir / ".data" if not is_frozen else config_dir
 
-    app_data = expand_path(paths.get("app_data"), default_app_data)
+    app_data = expand_path(paths.get("app_data"), default_app_data, config_dir)
     log_file = setup_logging(app_data)
-    models_dir = expand_path(paths.get("models_dir"), app_data / "models")
-    recordings_dir = expand_path(paths.get("recordings_dir"), app_data / "recordings")
-    db_path = expand_path(paths.get("db_path"), app_data / "history.db")
+    models_dir = expand_path(paths.get("models_dir"), app_data / "models", app_data)
+    recordings_dir = expand_path(paths.get("recordings_dir"), app_data / "recordings", app_data)
+    db_path = expand_path(paths.get("db_path"), app_data / "history.db", app_data)
 
     mode_cfg = cfg.get("mode", {})
     audio_cfg = cfg.get("audio", {})
@@ -644,6 +646,24 @@ Fail-safe:
             except Exception as e:
                 print(f"[overlay] ERROR al mostrar {phase} (PyQt6): {e}")
 
+    def show_error_overlay(message: str):
+        """Show error overlay - persistent until user clicks to dismiss."""
+        if not overlay_cfg.get("enabled", True):
+            logging.error(f"[error] {message}")
+            return
+        logging.error(f"[error] Showing error overlay: {message}")
+        if win_bar:
+            try:
+                win_bar.show_error(message)
+            except Exception as e:
+                logging.error(f"[overlay] ERROR al mostrar error: {e}")
+        elif status_overlay:
+            try:
+                status_overlay.show_error(message)
+            except Exception as e:
+                logging.error(f"[overlay] ERROR al mostrar error (PyQt6): {e}")
+        tray.set_state("idle")
+
     last_rms_ui = {"t": 0.0}
 
     def handle_rms(rms: float):
@@ -798,6 +818,17 @@ Fail-safe:
                 logging.info(f"[complete] Transcribed {len(text)} chars")
             else:
                 logging.warning("[complete] No text transcribed")
+                # Show error if no text was transcribed
+                show_error_overlay("Transcripción vacía - no se detectó audio/voz")
+
+        def on_error(exc: Exception):
+            """Called when processing fails."""
+            logging.exception(f"[error] Processing failed: {exc}")
+            error_msg = str(exc)
+            # Truncate long error messages
+            if len(error_msg) > 80:
+                error_msg = error_msg[:77] + "..."
+            show_error_overlay(f"Error: {error_msg}")
 
         # Create processing job
         job = ProcessingJob(
@@ -817,6 +848,7 @@ Fail-safe:
             clipboard_policy=clip_cfg.get("policy", ClipboardPolicy.DONT_MODIFY.value),
             on_progress=on_progress,
             on_complete=on_complete,
+            on_error=on_error,
         )
 
         # Queue job to worker thread (returns immediately!)
@@ -1027,4 +1059,5 @@ Fail-safe:
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     main()

@@ -63,7 +63,8 @@ class WinOverlayBar:
         self._last_error: Optional[str] = None
 
         self._text = "Recording..."  # legacy; not drawn anymore
-        self._mode = "bars"  # "bars" | "loader"
+        self._mode = "bars"  # "bars" | "loader" | "error"
+        self._error_message = ""  # message to show in error mode
         self._level = 0.0  # displayed level in [0..1]
         self._target_level = 0.0
         self._visible = False
@@ -115,9 +116,17 @@ class WinOverlayBar:
     def set_mode(self, mode: str) -> None:
         self.start()
         normalized = (mode or "").strip().lower()
-        if normalized not in ("bars", "loader"):
+        if normalized not in ("bars", "loader", "error"):
             normalized = "bars"
         self._q.put(_Update(kind="mode", mode=normalized))
+
+    def show_error(self, message: str) -> None:
+        """Show error overlay - persistent until user clicks to dismiss."""
+        self.start()
+        self._error_message = message
+        self._q.put(_Update(kind="mode", mode="error"))
+        self._q.put(_Update(kind="text", text=message))
+        self._q.put(_Update(kind="show", visible=True))
 
     def set_opacity(self, opacity: float) -> None:
         if not self._ready.is_set():
@@ -158,8 +167,13 @@ class WinOverlayBar:
                 bottom = int(win32api.GetSystemMetrics(win32con.SM_CYSCREEN))
 
         work_w = int(right - left)
-        width = 180
-        height = 36
+        # Error mode needs wider window for text
+        if self._mode == "error":
+            width = min(500, work_w - 40)
+            height = 48
+        else:
+            width = 180
+            height = 36
         x = int(left + (work_w - width) // 2)
         y = int(bottom - height - 20) if self.position == "bottom" else int(top + 40)
         return x, y, width, height
@@ -197,6 +211,13 @@ class WinOverlayBar:
             def wndproc(hwnd, msg, wparam, lparam):  # noqa: ANN001
                 if msg == win32con.WM_PAINT:
                     self._on_paint(hwnd)
+                    return 0
+                if msg == win32con.WM_LBUTTONDOWN:
+                    # Click to dismiss error overlay
+                    if self._mode == "error" and self._visible:
+                        self._mode = "bars"
+                        self._error_message = ""
+                        self._q.put(_Update(kind="hide", visible=False))
                     return 0
                 if msg == win32con.WM_DESTROY:
                     win32gui.PostQuitMessage(0)
@@ -308,8 +329,12 @@ class WinOverlayBar:
                         dirty = True
 
                 if upd.mode is not None:
-                    self._mode = upd.mode if upd.mode in ("bars", "loader") else "bars"
+                    old_mode = self._mode
+                    self._mode = upd.mode if upd.mode in ("bars", "loader", "error") else "bars"
                     dirty = True
+                    # Reposition window when switching to/from error mode (different size)
+                    if (old_mode == "error") != (self._mode == "error") and self._visible:
+                        self._position_window(hwnd)
 
                 if upd.visible is not None:
                     self._visible = bool(upd.visible)
@@ -407,7 +432,67 @@ class WinOverlayBar:
                     win32gui.DeleteObject(green_brush)
             finally:
                 win32gui.DeleteObject(pill_rgn)
-            if self._mode == "loader":
+            if self._mode == "error":
+                # Error mode: red background with white text, click X to dismiss
+                red_brush = win32gui.CreateSolidBrush(win32api.RGB(180, 40, 40))
+                white_brush = win32gui.CreateSolidBrush(win32api.RGB(255, 255, 255))
+                try:
+                    # Draw red pill background
+                    error_rgn = win32gui.CreateRoundRectRgn(0, 0, w + 1, h + 1, h, h)
+                    try:
+                        win32gui.FillRgn(hdc, error_rgn, red_brush)
+                    finally:
+                        win32gui.DeleteObject(error_rgn)
+
+                    # Draw X button on the right
+                    x_size = 12
+                    x_margin = 12
+                    x_cx = w - x_margin - x_size // 2
+                    x_cy = h // 2
+                    white_pen = win32gui.CreatePen(win32con.PS_SOLID, 2, win32api.RGB(255, 255, 255))
+                    old_pen = win32gui.SelectObject(hdc, white_pen)
+                    try:
+                        win32gui.MoveToEx(hdc, x_cx - x_size // 2, x_cy - x_size // 2)
+                        win32gui.LineTo(hdc, x_cx + x_size // 2, x_cy + x_size // 2)
+                        win32gui.MoveToEx(hdc, x_cx + x_size // 2, x_cy - x_size // 2)
+                        win32gui.LineTo(hdc, x_cx - x_size // 2, x_cy + x_size // 2)
+                    finally:
+                        win32gui.SelectObject(hdc, old_pen)
+                        win32gui.DeleteObject(white_pen)
+
+                    # Draw error text
+                    old_bk = win32gui.SetBkMode(hdc, win32con.TRANSPARENT)
+                    old_color = win32gui.SetTextColor(hdc, win32api.RGB(255, 255, 255))
+                    try:
+                        font = win32gui.CreateFont(
+                            14, 0, 0, 0,
+                            win32con.FW_NORMAL,
+                            0, 0, 0,
+                            win32con.ANSI_CHARSET,
+                            win32con.OUT_DEFAULT_PRECIS,
+                            win32con.CLIP_DEFAULT_PRECIS,
+                            win32con.ANTIALIASED_QUALITY,
+                            win32con.DEFAULT_PITCH | win32con.FF_SWISS,
+                            "Segoe UI"
+                        )
+                        old_font = win32gui.SelectObject(hdc, font)
+                        try:
+                            text_rect = (pad + 10, 0, w - x_margin - x_size - 10, h)
+                            msg = self._error_message or "Error"
+                            win32gui.DrawText(
+                                hdc, msg, -1, text_rect,
+                                win32con.DT_LEFT | win32con.DT_VCENTER | win32con.DT_SINGLELINE | win32con.DT_END_ELLIPSIS
+                            )
+                        finally:
+                            win32gui.SelectObject(hdc, old_font)
+                            win32gui.DeleteObject(font)
+                    finally:
+                        win32gui.SetBkMode(hdc, old_bk)
+                        win32gui.SetTextColor(hdc, old_color)
+                finally:
+                    win32gui.DeleteObject(red_brush)
+                    win32gui.DeleteObject(white_brush)
+            elif self._mode == "loader":
                 # Simple spinner: head-only arcs (no track) to avoid stray lines.
                 cx = w // 2
                 cy = h // 2

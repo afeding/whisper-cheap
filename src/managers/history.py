@@ -7,6 +7,7 @@ Includes cleanup policies to keep disk usage bounded.
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
 import time
@@ -15,6 +16,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 SCHEMA_V1 = """
@@ -75,7 +78,9 @@ class HistoryManager:
                 ),
             )
             conn.commit()
-            return cur.lastrowid
+            entry_id = cur.lastrowid
+            logger.info(f"[history] Saved entry #{entry_id}: {file_name}, {len(transcription_text)} chars")
+            return entry_id
 
     def get_all(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         query = "SELECT id, file_name, timestamp, saved, title, transcription_text, post_processed_text, post_process_prompt FROM transcription_history ORDER BY timestamp DESC"

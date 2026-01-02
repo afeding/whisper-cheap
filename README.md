@@ -22,6 +22,24 @@ python -m src.main
 - Hotkey por defecto: `ctrl+shift+space` (toggle). Configurable en `config.json` o desde Settings.
 - Se abre la ventana de ajustes moderna al inicio; ahí puedes activar/desactivar post-proceso LLM y elegir modelo.
 
+## Empaquetado e instalador (Windows)
+```powershell
+pyinstaller build_config.spec
+```
+- Genera `dist/WhisperCheap/WhisperCheap.exe` (modo onedir). Este .exe es portable.
+- El instalador real se genera con Inno Setup.
+
+```powershell
+ISCC installer/WhisperCheap.iss
+```
+Si `ISCC` no esta en PATH, usa la ruta completa:
+```powershell
+& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" ".\installer\WhisperCheap.iss"
+```
+- Genera el instalador en `dist/installer/WhisperCheapSetup.exe`.
+- Si falla con "archivo en uso", cierra la app/tray y cualquier Explorador abierto en `dist/WhisperCheap` (o espera a que termine el antivirus).
+
+
 ## LLM (OpenRouter)
 - Se usa el SDK oficial `openrouter` (fallback al cliente `openai` apuntando a https://openrouter.ai/api/v1).
 - Prompt de sistema fijo: “Transcription 2.0” (limpieza mínima, no traducción, mantiene tokens técnicos).

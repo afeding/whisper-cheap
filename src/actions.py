@@ -6,9 +6,12 @@ Managers are injected so the module does not create global singletons.
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable, Optional
 
 from src.managers.audio import AudioRecordingManager
+
+logger = logging.getLogger(__name__)
 
 
 def start(
@@ -61,10 +64,7 @@ def stop(
     samples = None
     if audio_manager:
         samples = audio_manager.stop_recording(binding_id)
-        try:
-            print(f"Audio capturado: {getattr(samples, 'shape', None)}")
-        except Exception:
-            pass
+        logger.info(f"Audio capturado: {getattr(samples, 'shape', None)}")
 
     text = None
     post_text = None
@@ -75,11 +75,11 @@ def stop(
     if model_manager and hasattr(model_manager, "is_downloaded"):
         target = model_id or "parakeet-v3-int8"
         if not model_manager.is_downloaded(target):
-            print(f"Modelo {target} no esta descargado.")
+            logger.error(f"Modelo {target} no esta descargado.")
             model_ready = False
 
     if samples is None or getattr(samples, "size", 0) == 0:
-        print("No se capturo audio; nada que transcribir.")
+        logger.warning("No se capturo audio; nada que transcribir.")
 
     if transcription_manager and samples is not None and samples.size > 0 and model_ready:
         try:
@@ -92,15 +92,15 @@ def stop(
             else:
                 text = str(res)
             if text:
-                print(f"[stt] Texto base:\n{text}")
+                logger.info(f"[stt] Texto base ({len(text)} chars): {text[:100]}...")
         except Exception as exc:
-            print(f"Error transcribiendo: {exc}")
+            logger.exception(f"Error transcribiendo: {exc}")
             text = None
 
         if llm_enabled and llm_client and text:
             try:
                 progress("formatting")
-                print(f"[llm] Ejecutando post-proceso con modelo: {llm_model_id or llm_client.default_model}")
+                logger.info(f"[llm] Ejecutando post-proceso con modelo: {llm_model_id or llm_client.default_model}")
                 llm_res = llm_client.postprocess(
                     text,
                     postprocess_prompt or "${output}",
@@ -110,14 +110,14 @@ def stop(
                 )
                 if llm_res and llm_res.get("text"):
                     post_text = llm_res["text"]
-                    print(f"[llm] Texto post-procesado:\n{post_text}")
+                    logger.info(f"[llm] Texto post-procesado ({len(post_text)} chars)")
                 else:
-                    print("[llm] Respuesta vacia o sin texto; se usara la transcripcion original.")
+                    logger.warning("[llm] Respuesta vacia o sin texto; se usara la transcripcion original.")
             except Exception as exc:
-                print(f"Post-proceso LLM fallo: {exc}")
+                logger.exception(f"Post-proceso LLM fallo: {exc}")
                 post_text = None
         elif llm_enabled and not llm_client and text:
-            print("Post-proceso LLM omitido: cliente no disponible.")
+            logger.warning("Post-proceso LLM omitido: cliente no disponible.")
 
         if history_manager:
             import numpy as _np
@@ -133,14 +133,11 @@ def stop(
                 post_processed_text=post_text,
                 post_process_prompt=postprocess_prompt,
             )
-            try:
-                print(f"Audio guardado en: {history_manager.recordings_dir / fname}")
-            except Exception:
-                pass
+            logger.info(f"Audio guardado en: {history_manager.recordings_dir / fname}")
 
         if text:
             final_text = post_text or text
-            print(f"[final] Texto usado:\n{final_text}")
+            logger.info(f"[final] Texto listo ({len(final_text)} chars)")
             try:
                 from src.utils.paste import ClipboardPolicy, PasteMethod, paste_text
 
@@ -149,15 +146,15 @@ def stop(
                 policy = ClipboardPolicy(clipboard_policy) if clipboard_policy else ClipboardPolicy.DONT_MODIFY
                 paste_text(final_text, method=pm, policy=policy)
             except Exception as exc:
-                print(f"Advertencia: no se pudo pegar automaticamente ({exc}). Copiando al portapapeles.")
+                logger.warning(f"No se pudo pegar automaticamente ({exc}). Copiando al portapapeles.")
                 try:
                     from src.utils.clipboard import ClipboardManager
 
                     ClipboardManager().set_text(final_text)
                 except Exception as clip_err:
-                    print(f"Advertencia: no se pudo copiar al portapapeles ({clip_err}).")
+                    logger.error(f"No se pudo copiar al portapapeles ({clip_err}).")
         else:
-            print("Transcripcion vacia o fallida.")
+            logger.warning("Transcripcion vacia o fallida.")
 
     if on_state:
         on_state("idle")

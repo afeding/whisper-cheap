@@ -176,6 +176,10 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>History</span>
                 </button>
+                <button onclick="showSection('diagnostics')" data-nav="diagnostics" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    <span>Diagnostics</span>
+                </button>
                 <button onclick="showSection('about')" data-nav="about" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-sm text-text-secondary hover:text-text-primary hover:bg-bg-card">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>About</span>
@@ -362,6 +366,45 @@
                 </div>
                 <div id="history-list" class="flex flex-col gap-2">
                     <p class="text-text-dim text-sm text-center py-6">Loading...</p>
+                </div>
+            </section>
+
+            <!-- Diagnostics Section -->
+            <section id="section-diagnostics" class="section hidden">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-lg font-semibold">Diagnostics</h2>
+                    <button onclick="exportDiagnostics()" class="px-4 py-2 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover">Export Report</button>
+                </div>
+
+                <!-- System Info -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5 mb-4">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">System Info</h3>
+                    <div id="system-info" class="grid grid-cols-2 gap-2 text-xs font-mono">
+                        <p class="text-text-dim">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Recent Logs -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5 mb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-text-secondary">Recent Logs</h3>
+                        <div class="flex gap-2">
+                            <button onclick="refreshLogs()" class="px-3 py-1.5 text-xs bg-bg-input border border-border-default text-text-secondary rounded-md hover:text-text-primary hover:border-border-hover">Refresh</button>
+                            <button onclick="openLogFile()" class="px-3 py-1.5 text-xs bg-bg-input border border-border-default text-text-secondary rounded-md hover:text-text-primary hover:border-border-hover">Open File</button>
+                        </div>
+                    </div>
+                    <div id="logs-container" class="bg-bg-input rounded-lg p-3 max-h-64 overflow-y-auto font-mono text-xs text-text-secondary leading-relaxed">
+                        <p class="text-text-dim">Loading logs...</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-5">
+                    <h3 class="text-sm font-medium text-text-secondary mb-4">Quick Actions</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="openLogsFolder()" class="px-4 py-2.5 bg-bg-input border border-border-default text-sm text-text-secondary rounded-lg hover:text-text-primary hover:border-border-hover">Open Logs Folder</button>
+                        <button onclick="copySystemInfo()" class="px-4 py-2.5 bg-bg-input border border-border-default text-sm text-text-secondary rounded-lg hover:text-text-primary hover:border-border-hover">Copy System Info</button>
+                    </div>
                 </div>
             </section>
 

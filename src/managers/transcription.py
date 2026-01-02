@@ -11,6 +11,7 @@ Responsibilities:
 
 from __future__ import annotations
 
+import logging
 import re
 import threading
 import time
@@ -19,9 +20,16 @@ from typing import Any, Callable, Dict, Optional, List
 
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
 try:
     import onnxruntime as ort
-except ImportError:  # pragma: no cover - handled at runtime
+    logger.debug(f"[transcription] onnxruntime loaded: {ort.__version__}")
+except ImportError as e:  # pragma: no cover - handled at runtime
+    logger.error(f"[transcription] Failed to import onnxruntime: {e}")
+    ort = None
+except Exception as e:
+    logger.error(f"[transcription] Unexpected error importing onnxruntime: {type(e).__name__}: {e}")
     ort = None
 
 try:
@@ -361,13 +369,13 @@ class TranscriptionManager:
             # Split by any whitespace, expect at least 2 parts (token, index)
             parts = line.strip().split()
             if len(parts) < 2:
-                logging.warning(f"[vocab] Skipping malformed line {line_num}: '{line[:50]}'")
+                logger.warning(f"[vocab] Skipping malformed line {line_num}: '{line[:50]}'")
                 continue
             tok = parts[0]
             try:
                 idx = int(parts[-1])  # Use last part as index (more robust)
             except ValueError:
-                logging.warning(f"[vocab] Invalid index on line {line_num}: '{line[:50]}'")
+                logger.warning(f"[vocab] Invalid index on line {line_num}: '{line[:50]}'")
                 continue
             entries.append((idx, tok))
             if tok == BLANK_TOKEN:
@@ -391,16 +399,36 @@ class TranscriptionManager:
     def _transcribe_parakeet(self, audio: np.ndarray):
         if not (self._nemo_sess and self._enc_sess and self._dec_sess and self._vocab):
             raise RuntimeError("Parakeet pipeline not initialized")
+
+        import time as _time
+        t0 = _time.perf_counter()
+
         vocab = self._vocab
         blank_id = self._blank_id if self._blank_id is not None else len(vocab) - 1
         start_id = self._start_id if self._start_id is not None else None
 
+        audio_duration = len(audio) / DEFAULT_SAMPLE_RATE
+        logger.info(f"[parakeet] Starting transcription: {audio_duration:.2f}s audio, {len(audio)} samples")
+
         # 1) Feature extraction
+        t1 = _time.perf_counter()
         feats, feats_len = self._run_nemo(audio)
+        t2 = _time.perf_counter()
+        logger.debug(f"[parakeet] Nemo features: {feats.shape}, took {(t2-t1)*1000:.1f}ms")
+
         # 2) Encoder
         enc_out, enc_len = self._run_encoder(feats, feats_len)
+        t3 = _time.perf_counter()
+        logger.debug(f"[parakeet] Encoder: {enc_out.shape}, took {(t3-t2)*1000:.1f}ms")
+
         # 3) Greedy RNNT decode using decoder_joint
         text, tokens = self._rnnt_greedy(enc_out, enc_len, blank_id, start_id)
+        t4 = _time.perf_counter()
+
+        total_ms = (t4 - t0) * 1000
+        rtf = total_ms / (audio_duration * 1000) if audio_duration > 0 else 0
+        logger.info(f"[parakeet] Decoded {len(tokens)} tokens -> {len(text)} chars in {total_ms:.0f}ms (RTF={rtf:.2f})")
+
         return text, tokens
 
     def _run_nemo(self, audio: np.ndarray):
@@ -487,7 +515,7 @@ class TranscriptionManager:
             # next encoder frame
         text = self._tokens_to_text(tokens, self._vocab or [])
         if not text:
-            print(f"[parakeet] Tokens decoded (len={len(tokens)}): {tokens[:20]}")
+            logger.warning(f"[parakeet] Empty text from tokens (len={len(tokens)}): {tokens[:20]}")
         return text, tokens
 
     def _tokens_to_text(self, tokens: List[int], vocab: List[str]) -> str:

@@ -206,3 +206,43 @@ class RecordingOverlay(_BaseOverlay):
 class StatusOverlay(_BaseOverlay):
     def __init__(self, text: str = "Transcribing...", position: str = "bottom", opacity: float = 0.5):
         super().__init__(text, position=position, opacity=opacity)
+        self._is_error = False
+        self._default_style = self.container.styleSheet()
+
+    def show_error(self, message: str) -> None:
+        """Show error overlay - persistent until user clicks to dismiss."""
+        def _apply():
+            self._is_error = True
+            self.label.setText(message)
+            self.container.setStyleSheet(
+                """
+                background-color: rgba(180, 40, 40, 200);
+                border-radius: 999px;
+                """
+            )
+            self.window.setMinimumWidth(400)
+            self._place()
+            self.window.show()
+            # Enable mouse tracking and install event filter for click-to-dismiss
+            self.window.mousePressEvent = self._on_click
+
+        self._run_on_ui(_apply)
+
+    def _on_click(self, event):
+        """Handle click to dismiss error overlay."""
+        if self._is_error:
+            self._is_error = False
+            self.container.setStyleSheet(self._default_style)
+            self.window.setMinimumWidth(0)
+            self.window.hide()
+
+    def hide(self):
+        """Override hide to reset error state."""
+        def _hide():
+            if self._is_error:
+                self._is_error = False
+                self.container.setStyleSheet(self._default_style)
+                self.window.setMinimumWidth(0)
+            self.window.hide()
+
+        self._run_on_ui(_hide)

@@ -57,6 +57,12 @@ recordings/
 Thumbs.db
 .DS_Store
 *.tmp
+*.tmp.*
+nul
+web/nul
+
+# Debug logs
+logs.txt
 
 # Config
 config.local.json

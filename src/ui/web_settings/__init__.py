@@ -9,11 +9,27 @@ from __future__ import annotations
 
 import multiprocessing
 import sys
-import time
 from pathlib import Path
 from typing import Optional
 
 _process: Optional[multiprocessing.Process] = None
+
+
+def _web_settings_dir() -> Path:
+    if getattr(sys, "frozen", False):
+        base_dir = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        return base_dir / "ui" / "web_settings"
+    return Path(__file__).resolve().parent
+
+
+def _icon_path(config_path_str: str) -> Optional[str]:
+    if getattr(sys, "frozen", False):
+        base_dir = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        icon_path = base_dir / "resources" / "icons" / "app.ico"
+    else:
+        config_dir = Path(config_path_str).parent
+        icon_path = config_dir / "src" / "resources" / "icons" / "app.ico"
+    return str(icon_path) if icon_path.exists() else None
 
 
 def _run_webview_process(config_path_str: str, html_path_str: str):
@@ -22,13 +38,11 @@ def _run_webview_process(config_path_str: str, html_path_str: str):
     This function runs in its own process with its own main thread.
     """
     import sys
-    from pathlib import Path
 
     import webview
 
-    # Import SettingsAPI from api.py
-    sys.path.insert(0, str(Path(__file__).parent))
-    from api import SettingsAPI
+    # Import SettingsAPI from the package to avoid relying on cwd
+    from src.ui.web_settings.api import SettingsAPI
 
     # Create and run webview - pass as string to avoid multiprocessing serialization issues
     api = SettingsAPI(config_path_str)
@@ -44,9 +58,7 @@ def _run_webview_process(config_path_str: str, html_path_str: str):
     )
 
     # Find icon path
-    config_dir = Path(config_path_str).parent
-    icon_path = config_dir / "src" / "resources" / "icons" / "app.ico"
-    icon_str = str(icon_path.absolute()) if icon_path.exists() else None
+    icon_str = _icon_path(config_path_str)
 
     def set_window_icon_windows(window_title: str, icon_path: str):
         """Set window icon using Windows API (ctypes).
@@ -134,7 +146,9 @@ def open_web_settings(config_path: Path, history_manager=None) -> None:
         finally:
             _process = None
 
-    html_path = Path(__file__).parent / "index.html"
+    html_path = _web_settings_dir() / "index.html"
+    if not html_path.exists():
+        raise FileNotFoundError(f"Settings UI not found: {html_path}")
 
     # Convert to strings to avoid Path serialization issues
     config_path_str = str(config_path.resolve())

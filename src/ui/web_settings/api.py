@@ -26,8 +26,14 @@ LLM_SYSTEM_PROMPT = (
     "- Preserve meaning strictly. Do NOT add new ideas, facts, steps, names, or assumptions.\n"
 )
 
-DEFAULT_MODELS_PATH = Path(__file__).resolve().parent.parent.parent / "resources" / "models_default.json"
-PRICING_CACHE_PATH = Path(__file__).resolve().parent.parent.parent / "resources" / "models_pricing.json"
+def _resource_base() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+    return Path(__file__).resolve().parent.parent.parent
+
+
+DEFAULT_MODELS_PATH = _resource_base() / "resources" / "models_default.json"
+PRICING_RESOURCE_PATH = _resource_base() / "resources" / "models_pricing.json"
 
 
 class SettingsAPI:
@@ -38,6 +44,18 @@ class SettingsAPI:
         self._config_path_str = str(config_path)
         self.history_manager = history_manager
         self._default_models: Optional[List[str]] = None
+
+    def _get_app_data_dir(self) -> Path:
+        config = self.get_config()
+        app_data = None
+        if config:
+            app_data = config.get("paths", {}).get("app_data")
+        if not app_data:
+            app_data = "%APPDATA%\\whisper-cheap"
+        app_data = os.path.expandvars(str(app_data))
+        if not os.path.isabs(app_data):
+            app_data = str(Path(self._config_path_str).parent / app_data)
+        return Path(app_data)
 
     # =========================================================================
     # CONFIG
@@ -259,8 +277,15 @@ class SettingsAPI:
     def _load_pricing_cache(self) -> Optional[Dict[str, Any]]:
         """Load pricing cache from file."""
         try:
-            if PRICING_CACHE_PATH.exists():
-                with open(PRICING_CACHE_PATH, 'r', encoding='utf-8') as f:
+            cache_path = self._get_app_data_dir() / "models_pricing.json"
+            if cache_path.exists():
+                with open(cache_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        try:
+            if PRICING_RESOURCE_PATH.exists():
+                with open(PRICING_RESOURCE_PATH, 'r', encoding='utf-8') as f:
                     return json.load(f)
         except Exception:
             pass
@@ -269,8 +294,9 @@ class SettingsAPI:
     def _save_pricing_cache(self, data: Dict[str, Any]) -> bool:
         """Save pricing cache to file."""
         try:
-            PRICING_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-            with open(PRICING_CACHE_PATH, 'w', encoding='utf-8') as f:
+            cache_path = self._get_app_data_dir() / "models_pricing.json"
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(cache_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             return True
         except Exception:
@@ -381,6 +407,143 @@ class SettingsAPI:
                 subprocess.run(["xdg-open", folder], check=True)
 
             return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    # =========================================================================
+    # DIAGNOSTICS
+    # =========================================================================
+
+    def get_system_info(self) -> Dict[str, Any]:
+        """Get system and app diagnostics info."""
+        import platform
+
+        # Check dependencies
+        def check_dep(module_name: str) -> str:
+            try:
+                mod = __import__(module_name)
+                version = getattr(mod, "__version__", getattr(mod, "version", "installed"))
+                return str(version)
+            except ImportError as e:
+                return f"not installed ({e})"
+            except Exception as e:
+                return f"error: {type(e).__name__}: {e}"
+
+        app_data = self._get_app_data_dir()
+        log_file = app_data / "logs" / "app.log"
+
+        return {
+            "platform": sys.platform,
+            "platform_version": platform.version(),
+            "python_version": sys.version.split()[0],
+            "app_data_path": str(app_data),
+            "config_path": self._config_path_str,
+            "log_file_path": str(log_file),
+            "log_file_exists": log_file.exists(),
+            "onnxruntime": check_dep("onnxruntime"),
+            "sounddevice": check_dep("sounddevice"),
+            "pyqt6": check_dep("PyQt6"),
+            "keyboard": check_dep("keyboard"),
+        }
+
+    def get_logs(self, limit: int = 100) -> List[str]:
+        """Get recent log entries from app.log."""
+        app_data = self._get_app_data_dir()
+        log_file = app_data / "logs" / "app.log"
+
+        if not log_file.exists():
+            return ["Log file not found: " + str(log_file)]
+
+        try:
+            with open(log_file, 'r', encoding='utf-8', errors='replace') as f:
+                lines = f.readlines()
+            # Return last N lines, reversed (newest first)
+            return [line.rstrip() for line in lines[-limit:]][::-1]
+        except Exception as e:
+            return [f"Error reading logs: {e}"]
+
+    def get_log_file_path(self) -> str:
+        """Get the path to the log file."""
+        app_data = self._get_app_data_dir()
+        return str(app_data / "logs" / "app.log")
+
+    def open_log_file(self) -> Dict[str, Any]:
+        """Open the log file in the default text editor."""
+        log_path = self.get_log_file_path()
+        if not os.path.exists(log_path):
+            return {"success": False, "error": "Log file not found"}
+
+        try:
+            if sys.platform == "win32":
+                os.startfile(log_path)
+            elif sys.platform == "darwin":
+                subprocess.run(["open", log_path], check=True)
+            else:
+                subprocess.run(["xdg-open", log_path], check=True)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def open_logs_folder(self) -> Dict[str, Any]:
+        """Open the logs folder in file explorer."""
+        app_data = self._get_app_data_dir()
+        logs_folder = app_data / "logs"
+
+        if not logs_folder.exists():
+            logs_folder.mkdir(parents=True, exist_ok=True)
+
+        try:
+            if sys.platform == "win32":
+                os.startfile(str(logs_folder))
+            elif sys.platform == "darwin":
+                subprocess.run(["open", str(logs_folder)], check=True)
+            else:
+                subprocess.run(["xdg-open", str(logs_folder)], check=True)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def export_diagnostics(self) -> Dict[str, Any]:
+        """Export diagnostics to a text file and return its path."""
+        try:
+            app_data = self._get_app_data_dir()
+            export_path = app_data / f"diagnostics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+
+            sys_info = self.get_system_info()
+            logs = self.get_logs(200)
+
+            with open(export_path, 'w', encoding='utf-8') as f:
+                f.write("=" * 60 + "\n")
+                f.write("WHISPER CHEAP - DIAGNOSTIC REPORT\n")
+                f.write(f"Generated: {datetime.now().isoformat()}\n")
+                f.write("=" * 60 + "\n\n")
+
+                f.write("SYSTEM INFO\n")
+                f.write("-" * 40 + "\n")
+                for key, value in sys_info.items():
+                    f.write(f"{key}: {value}\n")
+
+                f.write("\n\nCONFIGURATION\n")
+                f.write("-" * 40 + "\n")
+                config = self.get_config()
+                # Redact sensitive info
+                if "post_processing" in config:
+                    if "openrouter_api_key" in config["post_processing"]:
+                        key = config["post_processing"]["openrouter_api_key"]
+                        if key:
+                            config["post_processing"]["openrouter_api_key"] = key[:8] + "..." + key[-4:] if len(key) > 12 else "***"
+                f.write(json.dumps(config, indent=2, ensure_ascii=False))
+
+                f.write("\n\n\nRECENT LOGS (newest first)\n")
+                f.write("-" * 40 + "\n")
+                for line in logs:
+                    f.write(line + "\n")
+
+            # Open the file location
+            if sys.platform == "win32":
+                subprocess.run(["explorer", "/select,", str(export_path)])
+
+            return {"success": True, "path": str(export_path)}
         except Exception as e:
             return {"success": False, "error": str(e)}
 

@@ -159,9 +159,11 @@ function showSection(name) {
         btn.classList.toggle('text-text-secondary', !isActive);
     });
 
-    // Refresh history when switching to that tab
+    // Refresh data when switching to specific tabs
     if (name === 'history') {
         loadHistory();
+    } else if (name === 'diagnostics') {
+        loadDiagnostics();
     }
 }
 
@@ -625,6 +627,121 @@ async function openFolder(type) {
     } catch (e) {
         console.error('[Settings] Failed to open folder:', e);
     }
+}
+
+// =============================================================================
+// DIAGNOSTICS
+// =============================================================================
+
+let _systemInfo = null;
+
+async function loadDiagnostics() {
+    try {
+        _systemInfo = await pywebview.api.get_system_info();
+        renderSystemInfo(_systemInfo);
+        await refreshLogs();
+    } catch (e) {
+        console.error('[Settings] Failed to load diagnostics:', e);
+    }
+}
+
+function renderSystemInfo(info) {
+    const container = document.getElementById('system-info');
+    if (!container || !info) return;
+
+    const items = [
+        { label: 'Platform', value: info.platform },
+        { label: 'Python', value: info.python_version },
+        { label: 'ONNX Runtime', value: info.onnxruntime },
+        { label: 'Sounddevice', value: info.sounddevice },
+        { label: 'PyQt6', value: info.pyqt6 },
+        { label: 'Keyboard', value: info.keyboard },
+        { label: 'App Data', value: info.app_data_path, full: true },
+        { label: 'Log File', value: info.log_file_exists ? 'Found' : 'Not found', full: true },
+    ];
+
+    container.innerHTML = items.map(item => {
+        const valueClass = item.value === 'not installed' ? 'text-red-400' : 'text-text-primary';
+        if (item.full) {
+            return `<div class="col-span-2 flex"><span class="text-text-dim w-24 flex-shrink-0">${item.label}:</span><span class="${valueClass} truncate" title="${escapeHTML(item.value)}">${escapeHTML(item.value)}</span></div>`;
+        }
+        return `<div class="flex"><span class="text-text-dim w-24 flex-shrink-0">${item.label}:</span><span class="${valueClass}">${escapeHTML(item.value)}</span></div>`;
+    }).join('');
+}
+
+async function refreshLogs() {
+    const container = document.getElementById('logs-container');
+    if (!container) return;
+
+    try {
+        const logs = await pywebview.api.get_logs(50);
+        if (!logs || logs.length === 0) {
+            container.innerHTML = '<p class="text-text-dim">No logs found</p>';
+            return;
+        }
+
+        container.innerHTML = logs.map(line => {
+            // Color code by log level
+            let colorClass = 'text-text-secondary';
+            if (line.includes('ERROR') || line.includes('EXCEPTION')) {
+                colorClass = 'text-red-400';
+            } else if (line.includes('WARNING')) {
+                colorClass = 'text-yellow-400';
+            } else if (line.includes('INFO')) {
+                colorClass = 'text-text-primary';
+            }
+            return `<div class="${colorClass} whitespace-pre-wrap break-all">${escapeHTML(line)}</div>`;
+        }).join('');
+    } catch (e) {
+        container.innerHTML = `<p class="text-red-400">Error loading logs: ${escapeHTML(e.message || e)}</p>`;
+    }
+}
+
+async function openLogFile() {
+    try {
+        const result = await pywebview.api.open_log_file();
+        if (!result.success) {
+            alert('Could not open log file: ' + result.error);
+        }
+    } catch (e) {
+        console.error('[Settings] Failed to open log file:', e);
+    }
+}
+
+async function openLogsFolder() {
+    try {
+        const result = await pywebview.api.open_logs_folder();
+        if (!result.success) {
+            alert('Could not open logs folder: ' + result.error);
+        }
+    } catch (e) {
+        console.error('[Settings] Failed to open logs folder:', e);
+    }
+}
+
+async function exportDiagnostics() {
+    try {
+        const result = await pywebview.api.export_diagnostics();
+        if (result.success) {
+            alert('Diagnostics exported to:\\n' + result.path);
+        } else {
+            alert('Failed to export: ' + result.error);
+        }
+    } catch (e) {
+        console.error('[Settings] Failed to export diagnostics:', e);
+        alert('Failed to export diagnostics: ' + e);
+    }
+}
+
+async function copySystemInfo() {
+    if (!_systemInfo) {
+        _systemInfo = await pywebview.api.get_system_info();
+    }
+    const text = Object.entries(_systemInfo)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join('\\n');
+    await copyText(text);
+    alert('System info copied to clipboard');
 }
 
 // =============================================================================

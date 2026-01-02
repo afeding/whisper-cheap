@@ -27,11 +27,13 @@
   "post_processing": {
     "enabled": true,
     "openrouter_api_key": "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",
-    "model": "openai/gpt-oss-20b",
+    "model": "nvidia/nemotron-3-nano-30b-a3b:free",
     "prompt_template": "Transcript:\n${output}",
-    "custom_models": []
+    "custom_models": [
+      "nvidia/nemotron-3-nano-30b-a3b:free"
+    ]
   },
   "general": {
-    "start_on_boot": false
+    "start_on_boot": true
   }
 }
