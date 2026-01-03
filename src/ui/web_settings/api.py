@@ -43,6 +43,7 @@ class SettingsAPI:
         # Store as string (private) to avoid pywebview serialization issues with Path objects
         self._config_path_str = str(config_path)
         self._default_models: Optional[List[str]] = None
+        self._update_manager = None  # Lazy-initialized
 
         # Initialize history_manager from config if not provided
         # (needed when running in subprocess where objects can't be passed)
@@ -606,3 +607,126 @@ class SettingsAPI:
         import webview
         for window in webview.windows:
             window.destroy()
+
+    # =========================================================================
+    # UPDATES
+    # =========================================================================
+
+    def _get_update_manager(self):
+        """Lazy-initialize UpdateManager."""
+        if self._update_manager is None:
+            try:
+                from src.managers.updater import UpdateManager
+                app_data = self._get_app_data_dir()
+                self._update_manager = UpdateManager(cache_dir=app_data)
+            except Exception as e:
+                print(f"[SettingsAPI] Failed to init UpdateManager: {e}")
+                return None
+        return self._update_manager
+
+    def get_app_version(self) -> str:
+        """Get current application version."""
+        try:
+            from src.__version__ import __version__
+            return __version__
+        except Exception:
+            return "unknown"
+
+    def get_update_status(self) -> Dict[str, Any]:
+        """
+        Get update status from cache (fast, no network request).
+
+        Returns:
+            {
+                "current_version": "1.0.0",
+                "update_available": bool,
+                "latest_version": "1.1.0" or None,
+                "release_notes": "..." or None,
+                "download_size_mb": float or None
+            }
+        """
+        try:
+            manager = self._get_update_manager()
+            if not manager:
+                return {
+                    "current_version": self.get_app_version(),
+                    "update_available": False,
+                    "error": "UpdateManager not available",
+                }
+
+            update = manager.get_cached_update()
+
+            return {
+                "current_version": manager.current_version,
+                "update_available": update is not None,
+                "latest_version": update.version if update else None,
+                "release_notes": update.release_notes if update else None,
+                "download_size_mb": round(update.asset_size / 1024 / 1024, 1) if update and update.asset_size else None,
+            }
+        except Exception as e:
+            return {
+                "current_version": self.get_app_version(),
+                "update_available": False,
+                "error": str(e),
+            }
+
+    def check_for_updates(self) -> Dict[str, Any]:
+        """
+        Force check for updates (makes network request).
+
+        Returns same format as get_update_status.
+        """
+        try:
+            manager = self._get_update_manager()
+            if not manager:
+                return {
+                    "current_version": self.get_app_version(),
+                    "update_available": False,
+                    "error": "UpdateManager not available",
+                }
+
+            update = manager.check_for_updates(force=True)
+
+            return {
+                "current_version": manager.current_version,
+                "update_available": update is not None,
+                "latest_version": update.version if update else None,
+                "release_notes": update.release_notes if update else None,
+                "download_size_mb": round(update.asset_size / 1024 / 1024, 1) if update and update.asset_size else None,
+            }
+        except Exception as e:
+            return {
+                "current_version": self.get_app_version(),
+                "update_available": False,
+                "error": str(e),
+            }
+
+    def download_and_install_update(self) -> Dict[str, Any]:
+        """
+        Download and install the available update.
+
+        This will exit the application after launching the installer.
+
+        Returns:
+            {"success": bool, "error": str or None}
+        """
+        try:
+            manager = self._get_update_manager()
+            if not manager:
+                return {"success": False, "error": "UpdateManager not available"}
+
+            update = manager.get_cached_update()
+            if not update:
+                return {"success": False, "error": "No update available"}
+
+            # Download the installer (blocking operation)
+            installer_path = manager.download_update(update)
+
+            # Install (this will exit the app)
+            manager.install_update(installer_path, silent=True)
+
+            # Should not reach here - install_update calls os._exit(0)
+            return {"success": True}
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}

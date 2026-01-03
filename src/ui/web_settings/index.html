@@ -153,7 +153,7 @@
                     </svg>
                     <div>
                         <div class="text-text-primary font-semibold text-sm">Whisper Cheap</div>
-                        <div class="text-text-dim text-xs">v1.0.0</div>
+                        <div id="sidebar-version" class="text-text-dim text-xs">v...</div>
                     </div>
                 </div>
             </div>
@@ -412,7 +412,9 @@
             <!-- About Section -->
             <section id="section-about" class="section hidden">
                 <h2 class="text-lg font-semibold mb-5">About</h2>
-                <div class="bg-bg-card rounded-xl border border-border-default p-6">
+
+                <!-- Version Card -->
+                <div class="bg-bg-card rounded-xl border border-border-default p-6 mb-4">
                     <div class="flex items-center gap-4 mb-4">
                         <svg class="w-10 h-10 text-accent" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
@@ -420,7 +422,7 @@
                         </svg>
                         <div>
                             <div class="text-text-primary font-semibold text-base">Whisper Cheap</div>
-                            <div class="text-text-dim text-sm">Version 1.0.0</div>
+                            <div id="current-version" class="text-text-dim text-sm">Version ...</div>
                         </div>
                     </div>
                     <p class="text-text-secondary text-sm mb-5 leading-relaxed">
@@ -430,6 +432,57 @@
                     <div class="flex gap-2">
                         <button onclick="openFolder('data')" class="px-4 py-2.5 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover">Open Data Folder</button>
                         <button onclick="openFolder('recordings')" class="px-4 py-2.5 bg-bg-input border border-border-default text-sm text-text-secondary rounded-lg hover:text-text-primary hover:border-border-hover">Open Recordings</button>
+                    </div>
+                </div>
+
+                <!-- Update Card -->
+                <div id="update-card" class="bg-bg-card rounded-xl border border-border-default p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-medium text-text-secondary">Updates</h3>
+                        <button onclick="checkForUpdates()" id="check-updates-btn"
+                            class="px-3 py-1.5 text-xs bg-bg-input border border-border-default text-text-secondary rounded-md hover:text-text-primary hover:border-border-hover">
+                            Check Now
+                        </button>
+                    </div>
+
+                    <!-- No update available (default) -->
+                    <div id="update-none" class="text-sm text-text-dim">
+                        <span class="text-accent">✓</span> You're up to date
+                    </div>
+
+                    <!-- Update available -->
+                    <div id="update-available" class="hidden">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-accent text-lg">↑</span>
+                            <span class="text-text-primary text-sm font-medium">
+                                Version <span id="new-version">?.?.?</span> available
+                            </span>
+                            <span id="update-size" class="text-text-dim text-xs"></span>
+                        </div>
+                        <div id="release-notes" class="text-xs text-text-secondary mb-3 max-h-20 overflow-y-auto"></div>
+                        <button onclick="installUpdate()" id="install-btn"
+                            class="w-full px-4 py-2.5 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover">
+                            Download and Install
+                        </button>
+                    </div>
+
+                    <!-- Downloading -->
+                    <div id="update-downloading" class="hidden">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="animate-spin w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span class="text-text-primary text-sm">Downloading update...</span>
+                        </div>
+                        <div class="w-full bg-bg-input rounded-full h-2">
+                            <div id="download-progress" class="bg-accent h-2 rounded-full transition-all" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Error -->
+                    <div id="update-error" class="hidden">
+                        <span class="text-red-400 text-sm" id="update-error-message"></span>
                     </div>
                 </div>
             </section>

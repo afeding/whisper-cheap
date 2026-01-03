@@ -34,6 +34,7 @@ window.addEventListener('pywebviewready', async () => {
     await loadModels();
     await loadDevices();
     await loadHistory();
+    await loadVersionInfo();
     populateUI();
     showSection('general');
 
@@ -798,4 +799,197 @@ function escapeJS(str) {
         .replace(/"/g, '\\"')
         .replace(/\n/g, '\\n')
         .replace(/\r/g, '\\r');
+}
+
+// =============================================================================
+// VERSION & UPDATES
+// =============================================================================
+
+async function loadVersionInfo() {
+    try {
+        const version = await pywebview.api.get_app_version();
+
+        // Update sidebar version
+        const sidebarVersion = document.getElementById('sidebar-version');
+        if (sidebarVersion) {
+            sidebarVersion.textContent = `v${version}`;
+        }
+
+        // Update about section version
+        const currentVersion = document.getElementById('current-version');
+        if (currentVersion) {
+            currentVersion.textContent = `Version ${version}`;
+        }
+
+        // Load update status
+        await loadUpdateStatus();
+
+        console.log('[Settings] Version loaded:', version);
+    } catch (e) {
+        console.error('[Settings] Failed to load version:', e);
+    }
+}
+
+async function loadUpdateStatus() {
+    try {
+        const status = await pywebview.api.get_update_status();
+
+        // Update version displays
+        if (status.current_version) {
+            const sidebarVersion = document.getElementById('sidebar-version');
+            if (sidebarVersion) {
+                sidebarVersion.textContent = `v${status.current_version}`;
+            }
+            const currentVersion = document.getElementById('current-version');
+            if (currentVersion) {
+                currentVersion.textContent = `Version ${status.current_version}`;
+            }
+        }
+
+        // Show/hide update sections
+        const noneEl = document.getElementById('update-none');
+        const availableEl = document.getElementById('update-available');
+        const downloadingEl = document.getElementById('update-downloading');
+        const errorEl = document.getElementById('update-error');
+
+        // Reset all states
+        if (noneEl) noneEl.classList.add('hidden');
+        if (availableEl) availableEl.classList.add('hidden');
+        if (downloadingEl) downloadingEl.classList.add('hidden');
+        if (errorEl) errorEl.classList.add('hidden');
+
+        if (status.error) {
+            console.warn('[Settings] Update status error:', status.error);
+            // Show "up to date" as fallback
+            if (noneEl) noneEl.classList.remove('hidden');
+            return;
+        }
+
+        if (status.update_available) {
+            if (availableEl) availableEl.classList.remove('hidden');
+
+            const newVersionEl = document.getElementById('new-version');
+            if (newVersionEl) {
+                newVersionEl.textContent = status.latest_version;
+            }
+
+            const sizeEl = document.getElementById('update-size');
+            if (sizeEl && status.download_size_mb) {
+                sizeEl.textContent = `(${status.download_size_mb} MB)`;
+            }
+
+            const notesEl = document.getElementById('release-notes');
+            if (notesEl && status.release_notes) {
+                notesEl.textContent = status.release_notes;
+            }
+
+            console.log('[Settings] Update available:', status.latest_version);
+        } else {
+            if (noneEl) noneEl.classList.remove('hidden');
+        }
+
+    } catch (e) {
+        console.error('[Settings] Failed to load update status:', e);
+        // Show "up to date" as fallback
+        const noneEl = document.getElementById('update-none');
+        if (noneEl) noneEl.classList.remove('hidden');
+    }
+}
+
+async function checkForUpdates() {
+    const btn = document.getElementById('check-updates-btn');
+    if (!btn) return;
+
+    const originalText = btn.textContent;
+    btn.textContent = 'Checking...';
+    btn.disabled = true;
+
+    try {
+        const status = await pywebview.api.check_for_updates();
+
+        // Refresh UI
+        await loadUpdateStatus();
+
+        if (!status.update_available && !status.error) {
+            // Briefly show confirmation message
+            const noneEl = document.getElementById('update-none');
+            if (noneEl) {
+                noneEl.innerHTML = '<span class="text-accent">✓</span> Already on latest version!';
+                setTimeout(() => {
+                    noneEl.innerHTML = '<span class="text-accent">✓</span> You\'re up to date';
+                }, 2000);
+            }
+        }
+
+        if (status.error) {
+            showUpdateError(status.error);
+        }
+
+    } catch (e) {
+        showUpdateError(e.toString());
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function installUpdate() {
+    const installBtn = document.getElementById('install-btn');
+    const availableEl = document.getElementById('update-available');
+    const downloadingEl = document.getElementById('update-downloading');
+
+    if (!installBtn) return;
+
+    installBtn.disabled = true;
+    installBtn.textContent = 'Starting...';
+
+    // Switch to downloading state
+    if (availableEl) availableEl.classList.add('hidden');
+    if (downloadingEl) downloadingEl.classList.remove('hidden');
+
+    try {
+        // This call will trigger app exit on success
+        const result = await pywebview.api.download_and_install_update();
+
+        if (!result.success) {
+            showUpdateError(result.error || 'Unknown error');
+            // Restore UI
+            if (downloadingEl) downloadingEl.classList.add('hidden');
+            if (availableEl) availableEl.classList.remove('hidden');
+            installBtn.disabled = false;
+            installBtn.textContent = 'Download and Install';
+        }
+        // If success, app will exit and we won't reach here
+
+    } catch (e) {
+        showUpdateError(e.toString());
+        if (downloadingEl) downloadingEl.classList.add('hidden');
+        if (availableEl) availableEl.classList.remove('hidden');
+        installBtn.disabled = false;
+        installBtn.textContent = 'Download and Install';
+    }
+}
+
+function showUpdateError(message) {
+    const noneEl = document.getElementById('update-none');
+    const availableEl = document.getElementById('update-available');
+    const downloadingEl = document.getElementById('update-downloading');
+    const errorEl = document.getElementById('update-error');
+    const errorMsg = document.getElementById('update-error-message');
+
+    // Hide all other states
+    if (noneEl) noneEl.classList.add('hidden');
+    if (availableEl) availableEl.classList.add('hidden');
+    if (downloadingEl) downloadingEl.classList.add('hidden');
+
+    // Show error
+    if (errorEl) errorEl.classList.remove('hidden');
+    if (errorMsg) errorMsg.textContent = message;
+
+    console.error('[Settings] Update error:', message);
+
+    // Auto-recover after 5 seconds
+    setTimeout(() => {
+        loadUpdateStatus();
+    }, 5000);
 }

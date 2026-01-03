@@ -47,6 +47,7 @@ class _Update:
     visible: Optional[bool] = None
     mode: Optional[str] = None
     opacity: Optional[float] = None
+    pending_count: Optional[int] = None
 
 
 class WinOverlayBar:
@@ -73,6 +74,8 @@ class WinOverlayBar:
         # Prefer built-in spinner; GIF frames are optional fallback.
         self._loader_frames = []
         self._loader_frame_delay = 0.08  # fallback fps if GIF lacks duration
+        # Pending jobs count (shown as badge when > 0)
+        self._pending_count = 0
 
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
@@ -133,6 +136,13 @@ class WinOverlayBar:
             return
         self.opacity = float(opacity)
         self._q.put(_Update(kind="opacity", opacity=float(opacity)))
+
+    def set_pending_count(self, count: int) -> None:
+        """Set the number of pending jobs (shown as badge)."""
+        if not self._ready.is_set():
+            self._pending_count = count
+            return
+        self._q.put(_Update(kind="pending", pending_count=int(count)))
 
     @staticmethod
     def _clamp(value: float, min_value: float = 0.0, max_value: float = 1.0) -> float:
@@ -271,10 +281,14 @@ class WinOverlayBar:
 
                 if self._visible and self._hwnd:
                     needs_repaint = False
-                    if self._mode == "loader":
+
+                    # Animate loader phase (for spinner in loader mode or badge spinner)
+                    if self._mode == "loader" or self._pending_count > 0:
                         self._loader_phase = (self._loader_phase + (dt * 2.0)) % 1.0  # ~2 rps
                         needs_repaint = True
-                    else:
+
+                    # Animate bars level
+                    if self._mode == "bars":
                         target = self._target_level
                         if abs(self._level - target) > 0.001:
                             # Attack/release smoothing for a "fluid" feel.
@@ -360,6 +374,10 @@ class WinOverlayBar:
                         win32gui.SetLayeredWindowAttributes(hwnd, 0, alpha, win32con.LWA_ALPHA)
                     except Exception:
                         pass
+
+                if upd.pending_count is not None:
+                    self._pending_count = int(upd.pending_count)
+                    dirty = True
         except queue.Empty:
             pass
         except Exception:
@@ -569,5 +587,84 @@ class WinOverlayBar:
                     win32gui.SelectObject(hdc, old_pen3)
                     win32gui.SelectObject(hdc, old_brush3)
                     win32gui.DeleteObject(green_brush)
+
+            # Draw pending count badge (for both bars and loader modes)
+            if self._pending_count > 0 and self._mode in ("bars", "loader"):
+                self._draw_pending_badge(hdc, w, h, self._pending_count)
         finally:
             win32gui.EndPaint(hwnd, paint_struct)
+
+    def _draw_pending_badge(self, hdc: int, w: int, h: int, count: int) -> None:
+        """Draw a small badge showing pending job count."""
+        assert win32gui is not None and win32con is not None and win32api is not None
+
+        # Badge position: right side of the bar
+        badge_text = str(count)
+        badge_w = 20
+        badge_h = 16
+        badge_x = w - badge_w - 8
+        badge_y = (h - badge_h) // 2
+
+        # Draw badge background (dark circle/pill)
+        bg_brush = win32gui.CreateSolidBrush(win32api.RGB(60, 60, 60))
+        null_pen = win32gui.GetStockObject(win32con.NULL_PEN)
+        old_pen = win32gui.SelectObject(hdc, null_pen)
+        old_brush = win32gui.SelectObject(hdc, bg_brush)
+        try:
+            win32gui.RoundRect(hdc, badge_x, badge_y, badge_x + badge_w, badge_y + badge_h, badge_h, badge_h)
+        finally:
+            win32gui.SelectObject(hdc, old_pen)
+            win32gui.SelectObject(hdc, old_brush)
+            win32gui.DeleteObject(bg_brush)
+
+        # Draw small spinner icon (⟳ approximation with arc)
+        spinner_x = badge_x + 4
+        spinner_cy = h // 2
+        spinner_r = 4
+        spinner_angle = self._loader_phase * 2.0 * math.pi
+
+        # Simple arc for spinner
+        arc_pen = win32gui.CreatePen(win32con.PS_SOLID, 1, win32api.RGB(200, 200, 200))
+        old_arc_pen = win32gui.SelectObject(hdc, arc_pen)
+        try:
+            # Draw a small arc
+            for i in range(3):
+                ang = spinner_angle + (i * 0.3)
+                x1 = spinner_x + int(math.cos(ang) * spinner_r)
+                y1 = spinner_cy + int(math.sin(ang) * spinner_r)
+                x2 = spinner_x + int(math.cos(ang + 0.5) * spinner_r)
+                y2 = spinner_cy + int(math.sin(ang + 0.5) * spinner_r)
+                win32gui.MoveToEx(hdc, x1, y1)
+                win32gui.LineTo(hdc, x2, y2)
+        finally:
+            win32gui.SelectObject(hdc, old_arc_pen)
+            win32gui.DeleteObject(arc_pen)
+
+        # Draw count text
+        old_bk = win32gui.SetBkMode(hdc, win32con.TRANSPARENT)
+        old_color = win32gui.SetTextColor(hdc, win32api.RGB(255, 255, 255))
+        try:
+            font = win32gui.CreateFont(
+                11, 0, 0, 0,
+                win32con.FW_BOLD,
+                0, 0, 0,
+                win32con.ANSI_CHARSET,
+                win32con.OUT_DEFAULT_PRECIS,
+                win32con.CLIP_DEFAULT_PRECIS,
+                win32con.ANTIALIASED_QUALITY,
+                win32con.DEFAULT_PITCH | win32con.FF_SWISS,
+                "Segoe UI"
+            )
+            old_font = win32gui.SelectObject(hdc, font)
+            try:
+                text_rect = (badge_x + 10, badge_y, badge_x + badge_w, badge_y + badge_h)
+                win32gui.DrawText(
+                    hdc, badge_text, -1, text_rect,
+                    win32con.DT_LEFT | win32con.DT_VCENTER | win32con.DT_SINGLELINE
+                )
+            finally:
+                win32gui.SelectObject(hdc, old_font)
+                win32gui.DeleteObject(font)
+        finally:
+            win32gui.SetBkMode(hdc, old_bk)
+            win32gui.SetTextColor(hdc, old_color)

@@ -33,30 +33,38 @@ Ingeniero Python senior especializado en aplicaciones desktop Windows, procesami
 ```
 whisper-cheap/
 ├── src/
+│   ├── __version__.py       # Versión de la app (punto único de verdad)
 │   ├── main.py              # Entry point: carga config, inicializa managers, registra hotkeys
 │   ├── actions.py           # Capa glue: start/stop/cancel recording
 │   ├── managers/            # Lógica de negocio encapsulada
 │   │   ├── audio.py         # AudioRecordingManager: sounddevice stream + VAD Silero
 │   │   ├── model.py         # ModelManager: descarga/extracción modelos ONNX
-│   │   ├── transcription.py # TranscriptionManager: Parakeet V3 pipeline (nemo/encoder/decoder)
+│   │   ├── transcription.py # TranscriptionManager: Parakeet V3 pipeline
 │   │   ├── history.py       # HistoryManager: SQLite + almacenamiento audios .wav
-│   │   └── hotkey.py        # HotkeyManager: keyboard lib para hotkeys globales
+│   │   ├── hotkey.py        # HotkeyManager: pynput para hotkeys globales
+│   │   └── updater.py       # UpdateManager: check/download/install updates via GitHub
 │   ├── ui/
 │   │   ├── tray.py          # TrayManager: icono system tray con pystray
 │   │   ├── overlay.py       # RecordingOverlay + StatusOverlay (PyQt6 frameless)
-│   │   ├── settings_modern.py # Ventana de settings (PyQt6, QTabWidget)
-│   │   └── settings_simple.py # Ventana fallback simple
+│   │   ├── win_overlay.py   # WinOverlayBar: overlay nativo Win32
+│   │   └── web_settings/    # Ventana de settings (pywebview)
+│   │       ├── __init__.py  # open_web_settings(), cleanup
+│   │       ├── api.py       # SettingsAPI expuesta a JavaScript
+│   │       ├── index.html   # UI HTML/Tailwind
+│   │       └── app.js       # Lógica JavaScript
 │   ├── utils/
 │   │   ├── clipboard.py     # ClipboardManager: pyperclip wrapper
 │   │   ├── paste.py         # paste_text: SendInput via pywin32
 │   │   └── llm_client.py    # LLMClient: llamadas a OpenRouter
 │   └── resources/
-│       └── icons/           # (placeholder para iconos del tray)
+│       ├── icons/           # Iconos del tray y app
+│       └── sounds/          # Sonidos de inicio/fin de grabación
+├── installer/
+│   └── WhisperCheap.iss     # Script de Inno Setup
 ├── tests/                   # Tests unitarios con pytest + mocks
 ├── config.json              # Configuración runtime (hotkey, audio, paths, LLM)
 ├── requirements.txt         # Deps Python
-├── build_config.py          # PyInstaller spec
-├── IMPLEMENTACION_CHECKLIST.md # Plan de implementación por fases
+├── build_config.spec        # PyInstaller spec
 └── README.md
 ```
 
@@ -65,6 +73,8 @@ whisper-cheap/
   - `models/parakeet-tdt-0.6b-v3-int8/` — archivos ONNX descargados
   - `recordings/` — archivos .wav guardados
   - `history.db` — SQLite con transcripciones
+  - `update_cache.json` — cache de estado de actualizaciones
+  - `logs/app.log` — logs de la aplicación
 
 ---
 
@@ -342,3 +352,123 @@ Ver `build_config.spec` para `hiddenimports` y `binaries`. El spec usa `collect_
 - Usar `--onefile` solo para distribución final (lento al arrancar)
 - Modo `--onedir` más rápido para desarrollo
 - Excluir módulos no usados con `--exclude-module` (ej: matplotlib si no se usa)
+
+---
+
+## Versionado y Releases
+
+### Sistema de versiones
+
+**Punto único de verdad:** `src/__version__.py`
+
+```python
+__version__ = "1.0.0"
+```
+
+Este archivo es importado por:
+- `src/main.py` — AppUserModelID de Windows
+- `src/managers/updater.py` — comparación de versiones
+- `src/ui/web_settings/api.py` — mostrar versión en UI
+
+**También actualizar manualmente:**
+- `installer/WhisperCheap.iss` línea 4: `AppVersion=X.Y.Z`
+
+### Sistema de actualizaciones automáticas
+
+La app detecta nuevas versiones via GitHub Releases API y permite actualizar desde Settings → About.
+
+**Archivos involucrados:**
+- `src/__version__.py` — versión actual
+- `src/managers/updater.py` — `UpdateManager` (check, download, install)
+- `src/ui/web_settings/api.py` — métodos expuestos a JS
+- `src/ui/web_settings/app.js` — UI de updates
+
+**Configuración del repositorio** (`src/managers/updater.py`):
+```python
+GITHUB_OWNER = "afeding"  # Tu usuario/org de GitHub
+GITHUB_REPO = "whisper-cheap"
+INSTALLER_ASSET_NAME = "WhisperCheapSetup.exe"
+```
+
+**Flujo de actualización:**
+1. App inicia → `check_async()` en background (no bloquea)
+2. Cache en `%APPDATA%/whisper-cheap/update_cache.json` (cooldown 6h)
+3. Usuario abre Settings → About → ve estado de updates
+4. Si hay update → botón "Download and Install"
+5. Click → descarga a `%TEMP%`, verifica SHA256, ejecuta `/silent`
+6. Inno Setup cierra app, instala sobre versión existente, reinicia
+
+### Checklist para publicar una release
+
+```
+□ 1. Actualizar versión
+      - src/__version__.py → __version__ = "X.Y.Z"
+      - installer/WhisperCheap.iss → AppVersion=X.Y.Z
+
+□ 2. Commit de versión
+      git add src/__version__.py installer/WhisperCheap.iss
+      git commit -m "chore: bump version to X.Y.Z"
+
+□ 3. Build de la aplicación
+      pyinstaller build_config.spec
+
+□ 4. Build del instalador
+      # Si ISCC está en PATH:
+      ISCC installer/WhisperCheap.iss
+
+      # Si no:
+      & "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" ".\installer\WhisperCheap.iss"
+
+      # Output: dist/installer/WhisperCheapSetup.exe
+
+□ 5. Crear tag y push
+      git tag vX.Y.Z
+      git push origin master --tags
+
+□ 6. Crear GitHub Release
+      - Ir a: https://github.com/afeding/whisper-cheap/releases/new
+      - Tag: vX.Y.Z
+      - Título: vX.Y.Z
+      - Descripción: changelog/notas de la versión
+      - Adjuntar: dist/installer/WhisperCheapSetup.exe
+      - Publicar release
+
+□ 7. Verificar
+      - GitHub genera SHA256 automáticamente para el asset
+      - La app detectará el update en el próximo check (o forzar con "Check Now")
+```
+
+### Troubleshooting de releases
+
+**"El proceso no tiene acceso al archivo" al compilar:**
+Windows Defender escanea archivos mientras Inno Setup comprime. Soluciones:
+1. Reintentar (a veces el escaneo ya terminó)
+2. Añadir exclusión temporal:
+   ```powershell
+   Add-MpPreference -ExclusionPath "D:\1.SASS\whisper-cheap\dist"
+   # Después de compilar:
+   Remove-MpPreference -ExclusionPath "D:\1.SASS\whisper-cheap\dist"
+   ```
+
+**La app no detecta el update:**
+- Verificar que `GITHUB_OWNER` y `GITHUB_REPO` son correctos en `updater.py`
+- El asset debe llamarse exactamente `WhisperCheapSetup.exe`
+- El tag debe ser formato `vX.Y.Z` (ej: `v1.1.0`)
+- Esperar 6h o usar "Check Now" en Settings para bypass del cache
+
+**El instalador no cierra la app anterior:**
+- Inno Setup espera a que el proceso termine
+- Si la app no cierra, `os._exit(0)` fuerza el cierre
+- Verificar que no hay procesos zombie en Task Manager
+
+### Versionado semántico
+
+Usar [SemVer](https://semver.org/):
+- **MAJOR** (X.0.0): cambios incompatibles en API/config
+- **MINOR** (0.X.0): nuevas funcionalidades retrocompatibles
+- **PATCH** (0.0.X): bug fixes retrocompatibles
+
+Ejemplos:
+- `1.0.0` → `1.0.1`: fix de bug en transcripción
+- `1.0.1` → `1.1.0`: nueva feature (ej: soporte para otro modelo)
+- `1.1.0` → `2.0.0`: cambio en estructura de config.json que rompe compatibilidad

@@ -26,7 +26,8 @@ _main_thread_queue: queue.SimpleQueue = queue.SimpleQueue()
 if os.name == 'nt':
     try:
         import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('whisper-cheap.app.1.0')
+        from src.__version__ import __version__ as APP_VERSION
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(f'whisper-cheap.app.{APP_VERSION}')
     except Exception:
         pass
 
@@ -174,18 +175,59 @@ def _remove_startup_registry(app_name: str):
         print(f"No se pudo quitar inicio automatico: {exc}")
 
 
+def _get_startup_registry(app_name: str) -> Optional[str]:
+    """
+    Get current autostart registry value, or None if not set.
+    """
+    if os.name != "nt" or winreg is None:
+        return None
+    try:
+        key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ) as key:
+            value, _ = winreg.QueryValueEx(key, app_name)
+            return value
+    except FileNotFoundError:
+        return None
+    except Exception:
+        return None
+
+
+def _fix_startup_registry_if_wrong(is_frozen: bool):
+    """
+    If running as .exe and autostart points to wrong path, fix it.
+    This corrects cases where autostart was set during development.
+    """
+    if not is_frozen or os.name != "nt" or winreg is None:
+        return
+
+    app_name = "WhisperCheap"
+    current = _get_startup_registry(app_name)
+
+    if current is None:
+        return  # No autostart configured
+
+    correct_command = f'"{sys.executable}"'
+
+    # If current value doesn't match the correct .exe path, fix it
+    if current != correct_command:
+        print(f"Corrigiendo autostart: {current} -> {correct_command}")
+        _set_startup_registry(app_name, correct_command)
+
+
 def apply_autostart(start_on_boot: bool, is_frozen: bool, base_dir: Path, exe_name: Optional[str] = None):
     """
     Ensure autostart registry entry matches config.
+    Only works when running as frozen .exe to prevent CMD window issues.
     """
     app_name = "WhisperCheap"
+
+    # Only allow autostart configuration when running as .exe
+    # This prevents registering python.exe which shows a CMD window
+    if not is_frozen:
+        return
+
     if start_on_boot:
-        if is_frozen:
-            command = f'"{sys.executable}"'
-        else:
-            python = sys.executable
-            script = Path(__file__).resolve()
-            command = f'"{python}" "{script}"'
+        command = f'"{sys.executable}"'
         _set_startup_registry(app_name, command)
     else:
         _remove_startup_registry(app_name)
@@ -267,6 +309,8 @@ def main():
     config_path = config_dir / "config.json"
     cfg = load_config(config_path, is_frozen)
     apply_autostart(bool(cfg.get("general", {}).get("start_on_boot", False)), is_frozen, base_dir)
+    # Fix autostart if it points to python.exe instead of the .exe (from dev setup)
+    _fix_startup_registry_if_wrong(is_frozen)
 
     # Helper to expand paths with proper defaults
     def expand_path(p: str | Path | None, default: Path, relative_base: Path) -> Path:
@@ -516,6 +560,18 @@ Fail-safe:
     except Exception as e:
         print(f"No se pudo precargar sonidos: {e}")
 
+    # Check for updates in background (non-blocking)
+    try:
+        from src.managers.updater import UpdateManager
+        update_manager = UpdateManager(cache_dir=app_data)
+        update_manager.check_async(
+            callback=lambda u: logging.info(
+                f"[updater] Update available: {u.version}" if u else "[updater] No updates available"
+            )
+        )
+    except Exception as e:
+        logging.debug(f"[updater] Failed to init update check: {e}")
+
     stop_event = threading.Event()
 
     def quit_app():
@@ -568,10 +624,24 @@ Fail-safe:
     state_machine.start_worker()
     logging.info(f"[main] State machine initialized, mode={activation_mode}")
 
-    # Overlays / status UI
+    # Overlays / status UI (declare early for closure capture)
     rec_overlay = None
     status_overlay = None
     win_bar = None
+
+    # Connect queue change callback to update overlay badge
+    def on_queue_change(pending_count: int):
+        """Update overlay badge when pending job count changes."""
+        if win_bar:
+            try:
+                win_bar.set_pending_count(pending_count)
+                # If we're not recording and count drops to 0, hide the overlay
+                if pending_count == 0 and state_machine.state == State.IDLE:
+                    threading.Timer(0.4, win_bar.hide).start()
+            except Exception as e:
+                logging.debug(f"[overlay] Error updating pending count: {e}")
+
+    state_machine.set_on_queue_change(on_queue_change)
 
     # Inicializar Win32 overlay
     try:
@@ -629,8 +699,7 @@ Fail-safe:
             try:
                 win_bar.set_mode("loader")
                 win_bar.show("")
-                if phase == "done":
-                    threading.Timer(0.4, win_bar.hide).start()
+                # Don't hide on "done" - on_queue_change handles visibility
             except Exception as e:
                 print(f"[overlay] ERROR al mostrar {phase}: {e}")
         elif status_overlay:
@@ -639,8 +708,7 @@ Fail-safe:
                 status_overlay.set_text(text)
                 status_overlay.show()
                 print(f"[overlay] show: {phase} OK (PyQt6)")
-                if phase == "done":
-                    threading.Timer(1.2, status_overlay.hide).start()
+                # Don't hide on "done" - let queue state handle it
             except Exception as e:
                 print(f"[overlay] ERROR al mostrar {phase} (PyQt6): {e}")
 
@@ -733,15 +801,15 @@ Fail-safe:
 
         logging.info("[hotkey] on_release triggered")
 
-        # Hide recording overlay, show loader
+        # Keep overlay visible but switch to loader mode (will show badge if there are pending jobs)
         if rec_overlay:
             rec_overlay.hide()
         if win_bar:
             try:
                 win_bar.set_mode("loader")
-                win_bar.show("")
+                # Don't hide - let queue change callback handle visibility
             except Exception:
-                win_bar.hide()
+                pass
 
         # Reload config (fast operation) so UI changes take effect
         try:
@@ -806,9 +874,10 @@ Fail-safe:
                 tray.set_state("formatting")
             elif phase == "done":
                 tray.set_state("idle")
-                if win_bar:
-                    threading.Timer(0.4, win_bar.hide).start()
-            show_status_overlay(phase)
+                # Don't hide overlay here - on_queue_change handles it when all jobs complete
+            # Don't show status overlay for individual phases - pending badge is enough
+            if phase not in ("transcribing", "formatting", "pasting", "done"):
+                show_status_overlay(phase)
 
         def on_complete(result: dict):
             text = result.get("text")
