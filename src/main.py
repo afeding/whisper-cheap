@@ -636,8 +636,11 @@ Fail-safe:
             try:
                 win_bar.set_pending_count(pending_count)
                 # If we're not recording and count drops to 0, hide the overlay
+                # But don't hide if in error mode (error needs user dismissal)
                 if pending_count == 0 and state_machine.state == State.IDLE:
-                    threading.Timer(0.4, win_bar.hide).start()
+                    # Check mode before hiding - error mode should stay visible
+                    if win_bar._mode != "error":
+                        threading.Timer(0.4, win_bar.hide).start()
             except Exception as e:
                 logging.debug(f"[overlay] Error updating pending count: {e}")
 

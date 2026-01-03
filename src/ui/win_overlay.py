@@ -478,22 +478,13 @@ class WinOverlayBar:
                         win32gui.SelectObject(hdc, old_pen)
                         win32gui.DeleteObject(white_pen)
 
-                    # Draw error text
+                    # Draw error text (use system default font - CreateFont not available in win32gui)
                     old_bk = win32gui.SetBkMode(hdc, win32con.TRANSPARENT)
                     old_color = win32gui.SetTextColor(hdc, win32api.RGB(255, 255, 255))
                     try:
-                        font = win32gui.CreateFont(
-                            14, 0, 0, 0,
-                            win32con.FW_NORMAL,
-                            0, 0, 0,
-                            win32con.ANSI_CHARSET,
-                            win32con.OUT_DEFAULT_PRECIS,
-                            win32con.CLIP_DEFAULT_PRECIS,
-                            win32con.ANTIALIASED_QUALITY,
-                            win32con.DEFAULT_PITCH | win32con.FF_SWISS,
-                            "Segoe UI"
-                        )
-                        old_font = win32gui.SelectObject(hdc, font)
+                        # Use system default GUI font (safe, always available)
+                        sys_font = win32gui.GetStockObject(win32con.DEFAULT_GUI_FONT)
+                        old_font = win32gui.SelectObject(hdc, sys_font)
                         try:
                             text_rect = (pad + 10, 0, w - x_margin - x_size - 10, h)
                             msg = self._error_message or "Error"
@@ -503,7 +494,7 @@ class WinOverlayBar:
                             )
                         finally:
                             win32gui.SelectObject(hdc, old_font)
-                            win32gui.DeleteObject(font)
+                            # Don't delete stock objects
                     finally:
                         win32gui.SetBkMode(hdc, old_bk)
                         win32gui.SetTextColor(hdc, old_color)
@@ -595,76 +586,53 @@ class WinOverlayBar:
             win32gui.EndPaint(hwnd, paint_struct)
 
     def _draw_pending_badge(self, hdc: int, w: int, h: int, count: int) -> None:
-        """Draw a small badge showing pending job count."""
+        """Draw a small badge showing pending job count as dots."""
         assert win32gui is not None and win32con is not None and win32api is not None
 
         # Badge position: right side of the bar
-        badge_text = str(count)
-        badge_w = 20
-        badge_h = 16
-        badge_x = w - badge_w - 8
-        badge_y = (h - badge_h) // 2
+        badge_x = w - 24
+        badge_cy = h // 2
 
-        # Draw badge background (dark circle/pill)
-        bg_brush = win32gui.CreateSolidBrush(win32api.RGB(60, 60, 60))
+        # Draw small spinner (rotating arc segments)
+        spinner_r = 5
+        spinner_angle = self._loader_phase * 2.0 * math.pi
+
+        # Draw spinner arcs with varying brightness
+        for i, (sweep, width, gray) in enumerate([(60, 2, 255), (45, 2, 180), (30, 1, 120)]):
+            ang = spinner_angle - (i * 0.25)
+            pen = win32gui.CreatePen(win32con.PS_SOLID, width, win32api.RGB(gray, gray, gray))
+            old_pen = win32gui.SelectObject(hdc, pen)
+            try:
+                # Draw arc as connected line segments
+                steps = 4
+                for j in range(steps):
+                    a1 = ang + math.radians(sweep * j / steps)
+                    a2 = ang + math.radians(sweep * (j + 1) / steps)
+                    x1 = badge_x + int(math.cos(a1) * spinner_r)
+                    y1 = badge_cy + int(math.sin(a1) * spinner_r)
+                    x2 = badge_x + int(math.cos(a2) * spinner_r)
+                    y2 = badge_cy + int(math.sin(a2) * spinner_r)
+                    win32gui.MoveToEx(hdc, x1, y1)
+                    win32gui.LineTo(hdc, x2, y2)
+            finally:
+                win32gui.SelectObject(hdc, old_pen)
+                win32gui.DeleteObject(pen)
+
+        # Draw count as dots (simpler than text, no font needed)
+        dot_count = min(count, 3)  # Max 3 dots
+        dot_r = 2
+        dot_spacing = 5
+        dots_start_x = badge_x + spinner_r + 4
+
+        white_brush = win32gui.CreateSolidBrush(win32api.RGB(255, 255, 255))
         null_pen = win32gui.GetStockObject(win32con.NULL_PEN)
         old_pen = win32gui.SelectObject(hdc, null_pen)
-        old_brush = win32gui.SelectObject(hdc, bg_brush)
+        old_brush = win32gui.SelectObject(hdc, white_brush)
         try:
-            win32gui.RoundRect(hdc, badge_x, badge_y, badge_x + badge_w, badge_y + badge_h, badge_h, badge_h)
+            for i in range(dot_count):
+                dx = dots_start_x + i * dot_spacing
+                win32gui.Ellipse(hdc, dx - dot_r, badge_cy - dot_r, dx + dot_r, badge_cy + dot_r)
         finally:
             win32gui.SelectObject(hdc, old_pen)
             win32gui.SelectObject(hdc, old_brush)
-            win32gui.DeleteObject(bg_brush)
-
-        # Draw small spinner icon (⟳ approximation with arc)
-        spinner_x = badge_x + 4
-        spinner_cy = h // 2
-        spinner_r = 4
-        spinner_angle = self._loader_phase * 2.0 * math.pi
-
-        # Simple arc for spinner
-        arc_pen = win32gui.CreatePen(win32con.PS_SOLID, 1, win32api.RGB(200, 200, 200))
-        old_arc_pen = win32gui.SelectObject(hdc, arc_pen)
-        try:
-            # Draw a small arc
-            for i in range(3):
-                ang = spinner_angle + (i * 0.3)
-                x1 = spinner_x + int(math.cos(ang) * spinner_r)
-                y1 = spinner_cy + int(math.sin(ang) * spinner_r)
-                x2 = spinner_x + int(math.cos(ang + 0.5) * spinner_r)
-                y2 = spinner_cy + int(math.sin(ang + 0.5) * spinner_r)
-                win32gui.MoveToEx(hdc, x1, y1)
-                win32gui.LineTo(hdc, x2, y2)
-        finally:
-            win32gui.SelectObject(hdc, old_arc_pen)
-            win32gui.DeleteObject(arc_pen)
-
-        # Draw count text
-        old_bk = win32gui.SetBkMode(hdc, win32con.TRANSPARENT)
-        old_color = win32gui.SetTextColor(hdc, win32api.RGB(255, 255, 255))
-        try:
-            font = win32gui.CreateFont(
-                11, 0, 0, 0,
-                win32con.FW_BOLD,
-                0, 0, 0,
-                win32con.ANSI_CHARSET,
-                win32con.OUT_DEFAULT_PRECIS,
-                win32con.CLIP_DEFAULT_PRECIS,
-                win32con.ANTIALIASED_QUALITY,
-                win32con.DEFAULT_PITCH | win32con.FF_SWISS,
-                "Segoe UI"
-            )
-            old_font = win32gui.SelectObject(hdc, font)
-            try:
-                text_rect = (badge_x + 10, badge_y, badge_x + badge_w, badge_y + badge_h)
-                win32gui.DrawText(
-                    hdc, badge_text, -1, text_rect,
-                    win32con.DT_LEFT | win32con.DT_VCENTER | win32con.DT_SINGLELINE
-                )
-            finally:
-                win32gui.SelectObject(hdc, old_font)
-                win32gui.DeleteObject(font)
-        finally:
-            win32gui.SetBkMode(hdc, old_bk)
-            win32gui.SetTextColor(hdc, old_color)
+            win32gui.DeleteObject(white_brush)
