@@ -186,19 +186,36 @@
                 </button>
             </nav>
 
-            <!-- Update Notification Badge (bottom of sidebar) -->
-            <div id="sidebar-update-badge" class="hidden p-3 border-t border-border-default">
-                <button onclick="showSection('about'); scrollToUpdates()" class="w-full bg-accent hover:bg-accent-hover text-black rounded-lg px-3 py-2.5 text-sm font-medium flex items-center justify-between gap-2 transition-colors">
-                    <div class="flex items-center gap-2">
+            <!-- Update Status (bottom of sidebar) - Always visible -->
+            <div id="sidebar-update-section" class="p-3 border-t border-border-default">
+                <!-- Update Available State -->
+                <div id="sidebar-update-available" class="hidden">
+                    <button onclick="showSection('about'); scrollToUpdates()" class="w-full bg-accent hover:bg-accent-hover text-black rounded-lg px-3 py-2.5 text-sm font-medium flex items-center justify-between gap-2 transition-colors">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <span id="sidebar-update-version">Update</span>
+                        </div>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
-                        <span id="sidebar-update-version">New update</span>
-                    </div>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
+                    </button>
+                </div>
+                <!-- Up to Date State -->
+                <div id="sidebar-up-to-date" class="hidden">
+                    <button onclick="showSection('about'); scrollToUpdates(); checkForUpdates()" class="w-full bg-bg-card hover:bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm flex items-center justify-between gap-2 transition-colors">
+                        <div class="flex items-center gap-2 text-text-dim">
+                            <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Up to date</span>
+                        </div>
+                        <svg class="w-3 h-3 text-text-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </aside>
 

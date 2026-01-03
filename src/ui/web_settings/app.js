@@ -875,6 +875,10 @@ async function loadUpdateStatus() {
             return;
         }
 
+        // Sidebar elements
+        const sidebarAvailable = document.getElementById('sidebar-update-available');
+        const sidebarUpToDate = document.getElementById('sidebar-up-to-date');
+
         if (status.update_available) {
             if (availableEl) availableEl.classList.remove('hidden');
 
@@ -893,25 +897,23 @@ async function loadUpdateStatus() {
                 notesEl.textContent = status.release_notes;
             }
 
-            // Show sidebar update badge
-            const sidebarBadge = document.getElementById('sidebar-update-badge');
-            if (sidebarBadge) {
-                sidebarBadge.classList.remove('hidden');
+            // Show sidebar "update available" state
+            if (sidebarAvailable) {
+                sidebarAvailable.classList.remove('hidden');
                 const sidebarVersionText = document.getElementById('sidebar-update-version');
                 if (sidebarVersionText) {
                     sidebarVersionText.textContent = `v${status.latest_version}`;
                 }
             }
+            if (sidebarUpToDate) sidebarUpToDate.classList.add('hidden');
 
             console.log('[Settings] Update available:', status.latest_version);
         } else {
             if (noneEl) noneEl.classList.remove('hidden');
 
-            // Hide sidebar update badge
-            const sidebarBadge = document.getElementById('sidebar-update-badge');
-            if (sidebarBadge) {
-                sidebarBadge.classList.add('hidden');
-            }
+            // Show sidebar "up to date" state
+            if (sidebarAvailable) sidebarAvailable.classList.add('hidden');
+            if (sidebarUpToDate) sidebarUpToDate.classList.remove('hidden');
         }
 
     } catch (e) {
@@ -919,6 +921,12 @@ async function loadUpdateStatus() {
         // Show "up to date" as fallback
         const noneEl = document.getElementById('update-none');
         if (noneEl) noneEl.classList.remove('hidden');
+
+        // Also update sidebar to "up to date" state
+        const sidebarAvailable = document.getElementById('sidebar-update-available');
+        const sidebarUpToDate = document.getElementById('sidebar-up-to-date');
+        if (sidebarAvailable) sidebarAvailable.classList.add('hidden');
+        if (sidebarUpToDate) sidebarUpToDate.classList.remove('hidden');
     }
 }
 
