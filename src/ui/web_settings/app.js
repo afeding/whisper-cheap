@@ -168,6 +168,16 @@ function showSection(name) {
     }
 }
 
+function scrollToUpdates() {
+    // Wait for section to be shown, then scroll to update card
+    setTimeout(() => {
+        const updateCard = document.getElementById('update-card');
+        if (updateCard) {
+            updateCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 100);
+}
+
 // =============================================================================
 // CONFIG SAVING
 // =============================================================================
@@ -883,9 +893,25 @@ async function loadUpdateStatus() {
                 notesEl.textContent = status.release_notes;
             }
 
+            // Show sidebar update badge
+            const sidebarBadge = document.getElementById('sidebar-update-badge');
+            if (sidebarBadge) {
+                sidebarBadge.classList.remove('hidden');
+                const sidebarVersionText = document.getElementById('sidebar-update-version');
+                if (sidebarVersionText) {
+                    sidebarVersionText.textContent = `v${status.latest_version}`;
+                }
+            }
+
             console.log('[Settings] Update available:', status.latest_version);
         } else {
             if (noneEl) noneEl.classList.remove('hidden');
+
+            // Hide sidebar update badge
+            const sidebarBadge = document.getElementById('sidebar-update-badge');
+            if (sidebarBadge) {
+                sidebarBadge.classList.add('hidden');
+            }
         }
 
     } catch (e) {
