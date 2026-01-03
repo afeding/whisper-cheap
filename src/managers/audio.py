@@ -52,6 +52,7 @@ DEFAULT_SAMPLE_RATE = 16_000
 DEFAULT_CHANNELS = 1
 DEFAULT_CHUNK_SIZE = 512  # 32ms @16k
 DEFAULT_VAD_THRESHOLD = 0.5
+_MAX_RECORDING_SECONDS = 120  # 2 minutos - protección contra memory leaks
 # Pin to tags that still host the ONNX file; upstream removed it from the default branch.
 SILERO_VAD_URLS = [
     "https://raw.githubusercontent.com/snakers4/silero-vad/v4.0/files/silero_vad.onnx",
@@ -170,7 +171,11 @@ class AudioRecordingManager:
         if sd is None:
             self._emit_event("backend-missing:sounddevice")
 
-        self._buffer: Deque[np.ndarray] = deque()
+        # Límite de chunks para evitar memory leaks (2 min máximo)
+        max_chunks = int(
+            _MAX_RECORDING_SECONDS * self.config.sample_rate / self.config.chunk_size
+        )
+        self._buffer: Deque[np.ndarray] = deque(maxlen=max_chunks)
         self._recording_lock = threading.Lock()
         self._is_recording = False
         self._binding_id = None

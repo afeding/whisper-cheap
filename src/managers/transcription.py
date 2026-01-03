@@ -11,6 +11,7 @@ Responsibilities:
 
 from __future__ import annotations
 
+import gc
 import logging
 import re
 import threading
@@ -50,6 +51,18 @@ MAX_TOKENS_PER_STEP = 10
 SPACE_RE = re.compile(r"\A\s|\s\B|(\s)\b")
 
 
+def _create_onnx_session(path: str, provider: str = "CPUExecutionProvider"):
+    """Create ONNX session with memory-efficient options."""
+    if ort is None:
+        raise RuntimeError("onnxruntime is not available")
+    sess_opts = ort.SessionOptions()
+    sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+    # Limitar threads para reducir memoria de arenas thread-local
+    sess_opts.inter_op_num_threads = 2
+    sess_opts.intra_op_num_threads = 2
+    return ort.InferenceSession(path, providers=[provider], sess_options=sess_opts)
+
+
 class TranscriptionManager:
     def __init__(
         self,
@@ -62,7 +75,7 @@ class TranscriptionManager:
         self.model_manager = model_manager
         self.provider = provider
         self.on_event = on_event
-        self.session_factory = session_factory or (lambda path: ort.InferenceSession(path, providers=[provider])) if ort else None
+        self.session_factory = session_factory or (lambda path: _create_onnx_session(path, provider)) if ort else None
 
         self._lock = threading.Lock()
         self._cond = threading.Condition(self._lock)
@@ -191,6 +204,17 @@ class TranscriptionManager:
         with self._cond:
             self._session = None
             self._model_id = None
+            # Liberar sesiones ONNX de Parakeet
+            self._nemo_sess = None
+            self._enc_sess = None
+            self._dec_sess = None
+            # Liberar vocabulario y metadata
+            self._vocab = None
+            self._blank_id = None
+            self._start_id = None
+            self._vocab_size = 0
+            # Reset para evitar should_unload() repetido
+            self._last_used = None
         self._emit("unloaded")
 
     # -------- Transcription --------
@@ -207,6 +231,8 @@ class TranscriptionManager:
         if self._nemo_sess and self._enc_sess and self._dec_sess and self._vocab:
             text, tokens = self._transcribe_parakeet(audio)
             self._last_used = time.time()
+            # Liberar arrays temporales de la transcripción
+            gc.collect()
             return {"text": text or "", "segments": [], "tokens": tokens}
 
         with self._cond:

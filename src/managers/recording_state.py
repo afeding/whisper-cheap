@@ -473,6 +473,9 @@ class RecordingStateMachine:
                 samples=samples,
             )
 
+            # Liberar samples del job (ya están en result)
+            job.samples = None
+
             # Add to paste queue and try to paste in order
             self._queue_result_and_paste(result, job)
 
@@ -561,6 +564,10 @@ class RecordingStateMachine:
                 "file_name": result.file_name,
                 "timestamp": result.timestamp,
             })
+
+        # Liberar samples del result (ya no se necesitan)
+        if result:
+            result.samples = None
 
         logger.debug(f"[worker] Job seq={job.seq_id} complete, remaining={remaining}")
 
