@@ -242,13 +242,28 @@ class AudioRecordingManager:
             self._buffer.clear()
             self._is_recording = True
             self._binding_id = binding_id
+
         # Always ensure the stream is open at recording time.
         if self._stream is None:
             try:
                 self.open_stream(device_id=device_id)
             except Exception as e:
-                # Keep going so feed_samples-based tests still work.
+                # Reset recording state before raising
+                with self._recording_lock:
+                    self._is_recording = False
+                    self._binding_id = None
                 self._emit_event(f"stream-open-failed:{e}")
+                # Raise so caller knows stream failed (no silent empty recordings)
+                raise RuntimeError(f"Cannot start recording: failed to open audio stream: {e}") from e
+
+        # Verify stream is actually active
+        if self._stream is not None and not self._stream.active:
+            with self._recording_lock:
+                self._is_recording = False
+                self._binding_id = None
+            raise RuntimeError("Audio stream not active after open - check microphone connection")
+
+        logger.info(f"[audio] Recording started on device {device_id or 'default'}")
         self._emit_event("recording-started")
 
     def stop_recording(self, binding_id: str) -> np.ndarray:

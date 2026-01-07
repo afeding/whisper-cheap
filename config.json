@@ -26,9 +26,9 @@
   },
   "post_processing": {
     "enabled": true,
-    "openrouter_api_key": "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",
+    "openrouter_api_key": "",
     "model": "nvidia/nemotron-3-nano-30b-a3b:free",
-    "prompt_template": "Transcript:\n${output}",
+    "prompt_template": "Improve this voice transcription to make it more readable and natural.\n\nAllowed improvements:\n- Add periods, commas, and semicolons where natural\n- Separate into paragraphs when the topic changes\n- Remove accidentally repeated words (e.g., \"and and\" → \"and\")\n- Convert spoken lists into bulleted format with dashes (-)\n- Paraphrase slightly for clarity if needed\n- Adjust vocabulary if it improves understanding\n\nImportant limits:\n- Keep the original message and meaning\n- Do not add information that isn't in the transcription\n- If something is confusing or ambiguous, leave it as is\n- ALWAYS respond in the same language as the original transcription\n\nTranscription:\n${output}",
     "custom_models": [
       "nvidia/nemotron-3-nano-30b-a3b:free"
     ]

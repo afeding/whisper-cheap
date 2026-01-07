@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import { getDictionary, type Locale, locales } from '@/dictionaries'
 import '../globals.css'
+import { Footer } from '@/components/Footer'
 
 export async function generateStaticParams() {
-  return locales.map((lang) => ({ lang }))
+  return locales.map((lang: any) => ({ lang }))
 }
 
 export async function generateMetadata({
@@ -105,9 +106,28 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: params.lang === 'es' ? [
+                { '@type': 'Question', name: '¿Es realmente gratis?', acceptedAnswer: { '@type': 'Answer', text: 'Sí. 100% gratis, sin límites, sin funciones premium. Open source (MIT).' }},
+                { '@type': 'Question', name: '¿Qué tan preciso es?', acceptedAnswer: { '@type': 'Answer', text: 'Muy preciso. Usa IA optimizada para español e inglés. Soporta 100+ idiomas.' }},
+                { '@type': 'Question', name: '¿Necesito crear cuenta?', acceptedAnswer: { '@type': 'Answer', text: 'No. Descargas, instalas y funciona. Sin registros ni emails.' }},
+              ] : [
+                { '@type': 'Question', name: 'Is it really free?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. 100% free, no limits, no premium features. Open source (MIT).' }},
+                { '@type': 'Question', name: 'How accurate is it?', acceptedAnswer: { '@type': 'Answer', text: 'Very accurate. Uses optimized AI for English and Spanish. Supports 100+ languages.' }},
+                { '@type': 'Question', name: 'Do I need an account?', acceptedAnswer: { '@type': 'Answer', text: 'No. Download, install, and it works. No signup or emails.' }},
+              ],
+            }),
+          }}
+        />
       </head>
       <body className="bg-bg-primary text-text-primary antialiased">
         {children}
+        <Footer lang={params.lang} />
       </body>
     </html>
   )

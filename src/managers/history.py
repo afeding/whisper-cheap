@@ -46,9 +46,44 @@ class HistoryManager:
         return sqlite3.connect(self.db_path)
 
     def _init_db(self):
-        with self._connect() as conn:
-            conn.execute(SCHEMA_V1)
-            conn.commit()
+        try:
+            with self._connect() as conn:
+                # Check database integrity first
+                result = conn.execute("PRAGMA integrity_check").fetchone()
+                if result[0] != "ok":
+                    raise sqlite3.DatabaseError(f"Database corrupted: {result[0]}")
+                conn.execute(SCHEMA_V1)
+                conn.commit()
+        except sqlite3.DatabaseError as e:
+            # Database is corrupted - backup and recreate
+            logger.error(f"[history] Database error: {e}")
+            self._handle_corrupted_db()
+
+    def _handle_corrupted_db(self):
+        """Backup corrupted database and create fresh one."""
+        if self.db_path.exists():
+            backup_path = self.db_path.with_suffix(".db.corrupted")
+            try:
+                # Remove old backup if exists
+                backup_path.unlink(missing_ok=True)
+                self.db_path.rename(backup_path)
+                logger.warning(f"[history] Corrupted DB backed up to: {backup_path.name}")
+            except OSError as e:
+                logger.error(f"[history] Could not backup corrupted DB: {e}")
+                # Try to delete it instead
+                try:
+                    self.db_path.unlink()
+                except OSError:
+                    pass
+
+        # Create fresh database
+        try:
+            with self._connect() as conn:
+                conn.execute(SCHEMA_V1)
+                conn.commit()
+            logger.info("[history] Created fresh database")
+        except Exception as e:
+            logger.error(f"[history] Failed to create fresh DB: {e}")
 
     def insert_entry(
         self,
@@ -158,15 +193,45 @@ class HistoryManager:
     def save_audio(self, samples: np.ndarray, timestamp: int) -> str:
         """
         Save audio as 16-bit PCM WAV and return file name.
+
+        Raises:
+            OSError: If disk is full or write fails
         """
+        import shutil
+
         fname = f"whisper-cheap-{timestamp}.wav"
         path = self.recordings_dir / fname
+
+        # Pre-check disk space (samples * 2 bytes for int16 + WAV header ~44 bytes)
+        estimated_size = len(samples) * 2 + 100  # +100 for header margin
+        try:
+            free_space = shutil.disk_usage(self.recordings_dir).free
+            if free_space < estimated_size + 1_000_000:  # +1MB safety margin
+                raise OSError(
+                    f"Disco casi lleno: {free_space // 1_000_000}MB libres, "
+                    f"se necesitan ~{estimated_size // 1_000}KB"
+                )
+        except OSError as e:
+            logger.error(f"[history] Disk space check failed: {e}")
+            raise
+
+        # Write WAV file with error handling
         samples_int16 = (samples * 32767).astype(np.int16)
-        with wave.open(str(path), "wb") as wf:
-            wf.setnchannels(1)
-            wf.setsampwidth(2)  # 16-bit
-            wf.setframerate(16000)
-            wf.writeframes(samples_int16.tobytes())
+        try:
+            with wave.open(str(path), "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)  # 16-bit
+                wf.setframerate(16000)
+                wf.writeframes(samples_int16.tobytes())
+        except OSError as e:
+            # Clean up partial file on failure
+            logger.error(f"[history] Failed to save audio: {e}")
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                pass
+            raise OSError(f"No se pudo guardar audio (disco lleno?): {e}") from e
+
         return fname
 
     def clear_all(self):

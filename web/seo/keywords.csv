@@ -1,0 +1,23 @@
+cluster,primary_keyword,secondary_keywords,intent,target_page_slug,page_type,priority_score,notes
+ai-dictation,AI dictation software free,AI voice typing free;AI dictation app;free AI dictation,Transactional,/en,landing,P0,HIGH VOLUME - AI + free combo
+ai-dictation-es,dictado con IA gratis,dictado inteligencia artificial;IA voz a texto gratis,Transactional,/es,landing,P0,HIGH VOLUME - IA + gratis
+ai-transcription,AI transcription offline,local AI speech to text;private AI transcription;AI voice to text offline,Informational,/en,landing,P0,Diferenciador - AI local sin cloud
+ai-transcription-es,transcripcion IA offline,transcripcion inteligencia artificial local;IA voz texto sin internet,Informational,/es,landing,P0,Diferenciador - IA local
+ai-voice-typing,AI voice typing software,AI powered dictation;voice typing with AI;AI speech recognition,Commercial,/en,landing,P0,Término trending 2025
+ai-voice-typing-es,escritura por voz con IA,dictado con inteligencia artificial;reconocimiento voz IA,Commercial,/es,landing,P0,Término trending
+competitor,wispr flow alternative,wispr alternative;wispr flow free alternative;better than wispr,Commercial,/en,landing,P0,High intent - users searching alternatives
+competitor-es,alternativa wispr flow,alternativa a wispr;wispr gratis;mejor que wispr,Commercial,/es,landing,P0,High intent - competidor directo
+free-unlimited,free voice typing software,free dictation software;unlimited voice typing;no subscription dictation,Transactional,/en,landing,P0,Diferenciador vs Wispr $12/mes
+free-unlimited-es,dictado por voz gratis,dictado gratis ilimitado;voz a texto gratis;sin suscripcion,Transactional,/es,landing,P0,Diferenciador vs Wispr
+privacy,offline speech to text,local voice recognition;private speech to text;no cloud dictation,Informational,/en,landing,P0,Diferenciador privacidad 100% local
+privacy-es,voz a texto sin internet,reconocimiento voz offline;dictado sin nube;transcripcion local,Informational,/es,landing,P0,Diferenciador privacidad
+whisper-model,Whisper AI transcription,OpenAI Whisper free;Whisper speech to text;Whisper model app,Informational,/en,landing,P1,Usuarios técnicos buscan Whisper
+whisper-model-es,transcripcion Whisper IA,Whisper OpenAI gratis;Whisper voz a texto,Informational,/es,landing,P1,Usuarios técnicos
+windows,AI dictation windows,windows speech to text AI;dictation app windows free;voice typing windows AI,Transactional,/en,landing,P1,Wispr más fuerte en Mac
+windows-es,dictado IA windows,voz a texto windows IA;dictado windows gratis,Transactional,/es,landing,P1,Oportunidad Windows
+keyboard,keyboard shortcut dictation,hotkey voice typing;ctrl space dictation;voice typing shortcut,Commercial,/en,landing,P1,Feature diferenciador UX
+keyboard-es,dictado atajo teclado,dictado hotkey;ctrl espacio voz;atajo dictado,Commercial,/es,landing,P1,Feature diferenciador UX
+dragon-alt,Dragon alternative free,free dragon dictation;dragon speech to text alternative,Commercial,/en,landing,P2,Dragon es caro - usuarios buscan alternativas
+dragon-alt-es,alternativa Dragon gratis,dragon dictado alternativa;dragon voz texto gratis,Commercial,/es,landing,P2,Dragon es caro
+accuracy,accurate AI transcription,high accuracy speech to text;99 percent transcription,Commercial,/en,landing,P2,Claim de precisión
+accuracy-es,transcripcion IA precisa,alta precision voz texto;transcripcion exacta,Commercial,/es,landing,P2,Claim de precisión

@@ -116,6 +116,10 @@ def get_default_config(is_frozen: bool) -> dict:
             "retention_policy": "preserve_limit",
             "retention_limit": 100
         },
+        "onnx": {
+            "provider": "auto",  # "auto" | "cpu" | "cuda"
+            "fallback_to_cpu": True
+        },
         "paths": {
             "app_data": default_app_data
         }
@@ -129,8 +133,25 @@ def load_config(path: Path, is_frozen: bool) -> dict:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(default_config, indent=2), encoding="utf-8")
         print(f"Created default config at: {path}")
-    # Handle potential BOM with utf-8-sig
-    return json.loads(path.read_text(encoding="utf-8-sig"))
+        return default_config
+
+    # Try to load config, handle corrupted JSON gracefully
+    try:
+        # Handle potential BOM with utf-8-sig
+        return json.loads(path.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError as e:
+        # Backup corrupted config and restore defaults
+        backup_path = path.with_suffix(".json.corrupted")
+        try:
+            path.rename(backup_path)
+            print(f"Config corrupted (line {e.lineno}): backed up to {backup_path.name}")
+        except OSError:
+            print(f"Config corrupted (line {e.lineno}): could not backup")
+
+        default_config = get_default_config(is_frozen)
+        path.write_text(json.dumps(default_config, indent=2), encoding="utf-8")
+        print(f"Created new default config at: {path}")
+        return default_config
 
 
 def retention_policy_to_args(policy: str):
@@ -237,8 +258,11 @@ def setup_logging(app_data: Path) -> Path:
     """
     Configure detailed logging to file + stdout.
 
-    Console shows INFO+, file shows DEBUG+.
+    Console shows INFO+, file shows DEBUG+ with rotation.
+    Log files rotate at 10MB, keeping 5 backups (50MB total max).
     """
+    from logging.handlers import RotatingFileHandler
+
     logs_dir = app_data / "logs"
     logs_dir.mkdir(parents=True, exist_ok=True)
     log_file = logs_dir / "app.log"
@@ -259,8 +283,13 @@ def setup_logging(app_data: Path) -> Path:
     ))
     root.addHandler(console_handler)
 
-    # File handler: DEBUG+ with detailed format
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    # File handler: DEBUG+ with detailed format + ROTATION
+    file_handler = RotatingFileHandler(
+        log_file,
+        maxBytes=10 * 1024 * 1024,  # 10MB per file
+        backupCount=5,               # Keep 5 rotated files (50MB total max)
+        encoding="utf-8"
+    )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(logging.Formatter(
         "%(asctime)s.%(msecs)03d [%(levelname)s] [%(threadName)s] %(message)s",
@@ -268,7 +297,13 @@ def setup_logging(app_data: Path) -> Path:
     ))
     root.addHandler(file_handler)
 
-    logging.info("Logging initialized: console=INFO, file=DEBUG")
+    # Suppress noise from external libraries
+    logging.getLogger("onnxruntime").setLevel(logging.WARNING)
+    logging.getLogger("sounddevice").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
+    logging.getLogger("PyQt6").setLevel(logging.WARNING)
+
+    logging.info("Logging initialized: console=INFO, file=DEBUG, rotation=10MB x5")
     logging.info(f"Log file: {log_file}")
     return log_file
 
@@ -397,9 +432,15 @@ def main():
     }
     unload_timeout = unload_map.get(str(mode_cfg.get("unload_timeout", "")).lower(), None)
 
+    # ONNX provider settings (GPU/CPU)
+    onnx_cfg = cfg.get("onnx", {})
+    onnx_provider = onnx_cfg.get("provider", "auto")  # "auto", "cpu", "cuda"
+    onnx_fallback = onnx_cfg.get("fallback_to_cpu", True)
+
     transcription_manager = TranscriptionManager(
         model_manager=model_manager,
-        provider=audio_cfg.get("provider", "CPUExecutionProvider"),
+        provider=onnx_provider,
+        fallback_to_cpu=onnx_fallback,
         unload_timeout_seconds=unload_timeout,
     )
 
@@ -779,19 +820,36 @@ Fail-safe:
             tray.set_state("recording")
 
             # Start audio capture and preload model
-            actions.start(
-                binding_id="main",
-                audio_manager=audio_manager,
-                transcription_manager=transcription_manager,
-                sound_player=sound_player,
-                on_state=lambda s: None,  # State managed by state_machine now
-                model_manager=model_manager,
-                model_id=cfg.get("model", {}).get("default_model", "parakeet-v3-int8"),
-                device_id=audio_cfg.get("device_id"),
-            )
+            try:
+                actions.start(
+                    binding_id="main",
+                    audio_manager=audio_manager,
+                    transcription_manager=transcription_manager,
+                    sound_player=sound_player,
+                    on_state=lambda s: None,  # State managed by state_machine now
+                    model_manager=model_manager,
+                    model_id=cfg.get("model", {}).get("default_model", "parakeet-v3-int8"),
+                    device_id=audio_cfg.get("device_id"),
+                )
+            except RuntimeError as audio_err:
+                # Audio stream failed - reset state and show error
+                logging.error(f"[hotkey] Audio error: {audio_err}")
+                state_machine.force_idle()  # Reset state machine
+                hide_recording_overlay()
+                tray.set_state("idle")
+                show_error_overlay(f"Error de micrófono:\n{str(audio_err)[:60]}")
+                return
+
             logging.info("[hotkey] on_press completed")
         except Exception as e:
             logging.exception(f"[hotkey] ERROR in on_press: {e}")
+            # Reset state on unexpected errors
+            try:
+                state_machine.force_idle()
+                hide_recording_overlay()
+                tray.set_state("idle")
+            except Exception:
+                pass
 
     def on_release():
         """
@@ -884,11 +942,16 @@ Fail-safe:
 
         def on_complete(result: dict):
             text = result.get("text")
-            if text:
+            status = result.get("status", "success")
+            error_message = result.get("error_message")
+
+            if status == "success" and text:
                 logging.info(f"[complete] Transcribed {len(text)} chars")
+            elif error_message:
+                logging.warning(f"[complete] {status}: {error_message}")
+                show_error_overlay(error_message)
             else:
                 logging.warning("[complete] No text transcribed")
-                # Show error if no text was transcribed
                 show_error_overlay("Transcripción vacía - no se detectó audio/voz")
 
         def on_error(exc: Exception):
@@ -1128,6 +1191,59 @@ Fail-safe:
                 logging.error(f"[shutdown] Error releasing mutex: {e}")
 
 
+def _emergency_log(message: str) -> None:
+    """
+    Write to emergency log file when normal logging may not be available.
+    Used for fatal errors during startup before logging is configured.
+    """
+    import traceback
+    from datetime import datetime
+
+    try:
+        # Try to write to AppData first
+        appdata = os.environ.get("APPDATA", "")
+        if appdata:
+            emergency_dir = Path(appdata) / "whisper-cheap" / "logs"
+        else:
+            emergency_dir = Path.home() / ".whisper-cheap" / "logs"
+
+        emergency_dir.mkdir(parents=True, exist_ok=True)
+        emergency_file = emergency_dir / "crash.log"
+
+        with open(emergency_file, "a", encoding="utf-8") as f:
+            f.write(f"\n{'='*60}\n")
+            f.write(f"CRASH: {datetime.now().isoformat()}\n")
+            f.write(f"{'='*60}\n")
+            f.write(message)
+            f.write("\n")
+            f.write(traceback.format_exc())
+            f.write("\n")
+
+        print(f"[FATAL] Crash log written to: {emergency_file}")
+    except Exception as e:
+        print(f"[FATAL] Could not write crash log: {e}")
+        print(message)
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     multiprocessing.freeze_support()
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass  # Clean exit on Ctrl+C
+    except SystemExit:
+        raise  # Allow sys.exit() to work normally
+    except Exception as e:
+        # Log fatal error that escaped main()
+        error_msg = f"FATAL ERROR: {type(e).__name__}: {e}"
+        print(f"[FATAL] {error_msg}")
+
+        # Try logging if available, otherwise use emergency log
+        try:
+            logging.critical(error_msg, exc_info=True)
+        except Exception:
+            pass
+
+        _emergency_log(error_msg)
+        sys.exit(1)

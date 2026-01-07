@@ -1,0 +1,162 @@
+{
+  "aiDictationGuide": {
+    "meta": {
+      "title": "Cómo Usar Dictación AI: Guía Completa para Principiantes (2025)",
+      "description": "Aprende a usar la dictación AI efectivamente. Configuración, consejos, mejores prácticas y errores comunes. Comienza con dictado de voz en 5 minutos.",
+      "keywords": "cómo usar dictación AI, tutorial de dictación AI, guía de dictado de voz, consejos de conversión de voz a texto"
+    },
+    "hero": {
+      "title": "Cómo Usar Dictación AI: Guía Completa para Principiantes",
+      "subtitle": "Todo lo que necesitas saber para comenzar a escribir por voz de forma efectiva, precisa y productiva.",
+      "date": "3 de enero de 2025",
+      "readingTime": "10 min de lectura",
+      "author": "Equipo de Whisper Cheap",
+      "authorRole": "Ingenieros de Software"
+    },
+    "toc": {
+      "label": "Tabla de Contenidos",
+      "items": [
+        {"id": "what-is-ai-dictation", "title": "¿Qué es la Dictación AI?"},
+        {"id": "benefits", "title": "Beneficios del Dictado de Voz"},
+        {"id": "getting-started", "title": "Cómo Comenzar (5 Minutos)"},
+        {"id": "best-practices", "title": "Mejores Prácticas"},
+        {"id": "common-mistakes", "title": "Errores Comunes"},
+        {"id": "advanced-tips", "title": "Consejos Avanzados"},
+        {"id": "faq", "title": "Preguntas Frecuentes"}
+      ]
+    },
+    "sections": {
+      "whatIs": {
+        "title": "¿Qué es la Dictación AI?",
+        "subtitle": "La dictación AI es una tecnología de reconocimiento de voz impulsada por inteligencia artificial que convierte tu habla en texto escrito instantáneamente.",
+        "content": "A diferencia del dictado tradicional (como el Reconocimiento de Voz de Windows), la dictación AI moderna utiliza redes neuronales profundas entrenadas con millones de horas de audio para entender el contexto, acentos y lenguaje natural con alta precisión. Whisper Cheap utiliza la arquitectura optimizada Parakeet V3, que se ejecuta 100% en tu computadora.",
+        "points": [
+          "Convierte tu voz a texto en tiempo real",
+          "Funciona completamente local en tu PC (sin cargas en la nube)",
+          "Soporta más de 100 idiomas con buena precisión",
+          "Optimizado para inglés y español",
+          "Se actualiza automáticamente mientras hablas"
+        ]
+      },
+      "benefits": {
+        "title": "Beneficios del Dictado de Voz",
+        "intro": "El dictado de voz no es solo más rápido—cambia fundamentalmente cómo piensas y trabajas. Aquí están los beneficios clave.",
+        "items": [
+          {"title": "Escribe 3x Más Rápido", "description": "Hablas a ~150 palabras por minuto. Escribes a ~40. El dictado cierra esa brecha dramáticamente.", "metric": "3x"},
+          {"title": "Reduce RSI y Dolor en las Manos", "description": "Tus manos permanecen relajadas. Menos túnel carpiano, menos dolor de muñeca, menos fatiga por escribir.", "metric": "↓100%"},
+          {"title": "Captura Ideas Naturalmente", "description": "Tu voz fluye naturalmente. No pierdes ideas mientras buscas las palabras correctas en el teclado.", "metric": "∞"},
+          {"title": "Mejora la Claridad", "description": "Hablar en voz alta te obliga a organizar tus pensamientos mejor. Las ideas falsas se hacen evidentes inmediatamente.", "metric": "+40%"},
+          {"title": "Mejor Accesibilidad", "description": "Los usuarios con dislexia, artritis o problemas de movilidad pueden expresarse sin dolor.", "metric": "✓"},
+          {"title": "Multitarea Más Fácil", "description": "Sigue dictando mientras caminas, giras la cabeza o cambias de posición. Tu voz te acompaña.", "metric": "✓"}
+        ]
+      },
+      "gettingStarted": {
+        "title": "Cómo Comenzar (5 Minutos)",
+        "intro": "La configuración es simple. Te guiaremos paso a paso para que estés dictando en 5 minutos.",
+        "steps": [
+          {
+            "num": "1",
+            "title": "Elige Tu Software",
+            "description": "Descarga Whisper Cheap (gratis, sin cuenta necesaria) o elige otra herramienta de dictación. Recomendamos Whisper Cheap porque es completamente local y gratuito.",
+            "tips": [
+              "Asegúrate de que tu software soporta tu idioma",
+              "Verifica compatibilidad con tus aplicaciones (Word, Google Docs, etc.)",
+              "Considera la privacidad: ¿se carga tu voz a la nube?"
+            ]
+          },
+          {
+            "num": "2",
+            "title": "Configura Tu Micrófono",
+            "description": "Usa un micrófono decente. Los auriculares integrados funcionan, pero un micrófono USB o un headset entrega mejor precisión.",
+            "tips": [
+              "Posiciona el micrófono a 15-20 cm de tu boca",
+              "Limpia los auriculares regularmente para eliminar polvo",
+              "Prueba en un ambiente tranquilo primero",
+              "Ajusta los niveles de volumen en Configuración"
+            ]
+          },
+          {
+            "num": "3",
+            "title": "Configura Tus Preferencias",
+            "description": "Abre la ventana de configuración. Elige tu atajo de teclado (Ctrl+Espacio es predeterminado), idioma y cualquier configuración avanzada como VAD (Detección de Actividad de Voz).",
+            "tips": [
+              "Personaliza tu atajo de teclado con algo cómodo",
+              "Habilita VAD para ignorar ruido de fondo",
+              "Prueba modos de conversión de texto automático vs manual"
+            ]
+          },
+          {
+            "num": "4",
+            "title": "Tu Primer Dictado",
+            "description": "Abre un editor de texto (Word, Notion, Google Docs). Presiona tu atajo de teclado, habla claramente durante 10-15 segundos, suelta. El texto debería aparecer instantáneamente.",
+            "tips": [
+              "Habla a un ritmo normal, como si estuvieras conversando",
+              "Usa un tono natural (no demasiado lento ni demasiado rápido)",
+              "Intenta diferentes frases para acostumbrarte"
+            ]
+          }
+        ]
+      },
+      "bestPractices": {
+        "title": "Mejores Prácticas para Precisión",
+        "intro": "Algunos hábitos simples mejoran dramáticamente la precisión y tu experiencia de dictado.",
+        "practices": [
+          {"title": "Habla Claro y Naturalmente", "description": "No necesitas gritar, pero sé claro. Articula bien sin ser robótico. Habla como lo harías con un amigo.", "icon": "📢"},
+          {"title": "Usa Buena Calidad de Micrófono", "description": "La calidad del micrófono importa. Un headset USB o un micrófono dedicado supera los auriculares integrados. Mantenlo limpio.", "icon": "🎙️"},
+          {"title": "Minimiza el Ruido de Fondo", "description": "Dicta en espacios tranquilos. Si hay ruido, habilita VAD en configuración para ignorarlo. Cierra ventanas, apaga la TV, silencia el teléfono.", "icon": "🔇"},
+          {"title": "Dicta en Sesiones Cortas", "description": "Tu voz se cansa. Dicta en ráfagas cortas (15-20 min), luego toma un descanso. Más productivo que una sesión larga.", "icon": "⏱️"},
+          {"title": "Edita en una Pasada Separada", "description": "No intentes editar mientras dictas. Dicta todo primero en modo borrador, luego edita como lo harías con texto escrito.", "icon": "✏️"},
+          {"title": "Di Puntuación Cuando Sea Necesario", "description": "Di \"punto\", \"coma\", \"signo de interrogación\" o simplemente edita después. La mayoría de usuarios encuentran que editar la puntuación es lo más rápido.", "icon": "🗣️"}
+        ]
+      },
+      "commonMistakes": {
+        "title": "Errores Comunes a Evitar",
+        "intro": "Incluso los usuarios experimentados cometen estos errores. Aquí está cómo evitarlos.",
+        "mistakes": [
+          {"title": "Hablar Demasiado Rápido", "description": "Si hablas demasiado rápido, la AI no puede mantenerse al ritmo. Las palabras se superponen o se pierden.", "solution": "Habla a un ritmo normal de conversación. Si cometes muchos errores, habla un poco más lento."},
+          {"title": "Hablar Ininteligiblemente o Poco Claro", "description": "La AI necesita un sonido claro. Hablar ininteligiblemente, soltar sonidos o arrastrar las palabras causa errores.", "solution": "Articula cada palabra con claridad. Sé claro sin ser exagerado. Practica con frases cortas."},
+          {"title": "Detenerse a Mitad de Oración", "description": "Si te detienes abruptamente, la AI no puede procesar la oración completa.", "solution": "Completa tus pensamientos. Si necesitas una pausa, haz una natural (una coma o un punto)."},
+          {"title": "Editar Mientras Dictas", "description": "Intentar corregirte mientras hablas rompe tu flujo y confunde el reconocimiento.", "solution": "Dicta todo primero. Edita después en una pasada separada. Tu velocidad total es más rápida."},
+          {"title": "Esperar Perfección", "description": "La AI no es perfecta. Algunos errores (homófonos, nombres propios) necesitan corrección manual.", "solution": "Espera 2-5% de errores. Aún es mucho más rápido que escribir. Edita rápidamente después."},
+          {"title": "Usar Micrófono Pobre", "description": "Los auriculares integrados, micrófonos dañados o sucios afectan significativamente la precisión.", "solution": "Invierte en un micrófono USB decente o un headset. Realmente vale la pena."}
+        ]
+      },
+      "advancedTips": {
+        "title": "Consejos Avanzados",
+        "intro": "Una vez domines los conceptos básicos, aquí hay técnicas para obtener aún más valor de la dictación.",
+        "tips": [
+          {"title": "Vocabularios Personalizados", "description": "Muchas herramientas (incluido Whisper Cheap) te permiten entrenar vocabularios personalizados. Añade términos especializados, nombres de empresas o jerga técnica."},
+          {"title": "Combina con Expansores de Texto", "description": "Usa un expansor de texto (como TextExpander) junto con dictación. Escribe abreviaturas que se expanden a párrafos completos. Ahorra tiempo en frases repetidas."},
+          {"title": "Usa Números y Símbolos Correctamente", "description": "Di \"dos punto cinco\" para 2.5, \"signo de arroba\" para @, \"almohadilla\" para #. Practica para hacerlo rápido."},
+          {"title": "Depuración de Pato de Goma", "description": "Para desarrolladores: explica tu código en voz alta como si estuvieras hablando con un pato de goma. La dictación captura el hilo de pensamiento."},
+          {"title": "Dictación para Lluvia de Ideas", "description": "La dictación es excelente para lluvia de ideas porque no editas mientras piensas. Captura el flujo natural sin autocrítica."}
+        ]
+      },
+      "faq": {
+        "title": "Preguntas Frecuentes",
+        "items": [
+          {"q": "¿Qué software de dictación debo usar?", "a": "Existen varias opciones. Whisper Cheap es gratis, local y sin suscripción. Otras opciones incluyen Wispr Flow (pagado), Dictado de Voz de Google Docs (nube) y Dragon (caro). Elige según tu presupuesto, necesidades de privacidad y requisitos."},
+          {"q": "¿Funciona en mi idioma?", "a": "Whisper Cheap está optimizado para inglés y español, pero soporta más de 100 idiomas con buena precisión. Si tu idioma no está soportado, considera el dictado de voz de Google Docs o Wispr Flow."},
+          {"q": "¿Qué tan preciso es realmente?", "a": "Para inglés y español, la precisión es 95-98% en audio claro. Eso significa 2-5 errores por 100 palabras, aún mucho más rápido que escribir y editar después. Los errores disminuyen con micrófono mejor y práctica."},
+          {"q": "¿Puedo usar dictación para trabajo profesional?", "a": "Absolutamente. Muchos escritores, abogados, médicos y profesionales confían en la dictación. Solo asegúrate de usar una herramienta privada/local si manejas información sensible."},
+          {"q": "¿Cuánto tiempo tarda en sentirme cómodo?", "a": "La mayoría de usuarios se sienten cómodos en 1-2 sesiones. Tu velocidad aumenta después de una semana de práctica regular. Después de un mes, muchos usuarios dictan más rápido de lo que escriben."},
+          {"q": "¿Puedo usar dictación para programación?", "a": "No para sintaxis de código (eso es para lo que está el teclado). Pero sí para documentación, comentarios, mensajes de commit y escritura técnica. Extremadamente útil."},
+          {"q": "¿Funciona en teléfono?", "a": "Whisper Cheap es solo para Windows. Pero la mayoría de teléfonos tienen dictación integrada (iOS Siri, Android Google Assistant). Algunos servicios como Wispr Flow ofrecen aplicaciones móviles."},
+          {"q": "¿Es seguro?", "a": "Depende de tu software. Las herramientas locales como Whisper Cheap son más seguras (tu voz nunca deja tu PC). Los servicios en nube como Wispr Flow dependen de su política de privacidad."}
+        ]
+      },
+      "cta": {
+        "title": "Comienza Ahora",
+        "description": "La mejor manera de aprender es haciendo. Descarga Whisper Cheap (gratis, sin cuenta) y dicta tu primer párrafo hoy.",
+        "buttonText": "Descargar Whisper Cheap Gratis"
+      }
+    },
+    "relatedArticles": {
+      "label": "Artículos Relacionados",
+      "articles": [
+        {"title": "Dictación AI para Escritores", "description": "Cómo los escritores usan dictación para escribir 3x más rápido", "url": "/es/use-cases/writers"},
+        {"title": "Conversión de Voz a Texto Privada: Tu Privacidad Garantizada", "description": "Por qué el procesamiento local protege tu privacidad", "url": "/es/features/privacy"}
+      ]
+    }
+  }
+}

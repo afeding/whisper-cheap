@@ -50,32 +50,128 @@ DURATION_HEAD = 5  # last logits reserved for duration; ignore
 MAX_TOKENS_PER_STEP = 10
 SPACE_RE = re.compile(r"\A\s|\s\B|(\s)\b")
 
+# Chunking settings for long audio
+CHUNK_THRESHOLD_SEC = 30.0  # Only chunk if audio > 30s
+CHUNK_SIZE_SEC = 30.0  # Process in 30s chunks
+CHUNK_OVERLAP_SEC = 2.0  # 2s overlap to avoid cutting words
 
-def _create_onnx_session(path: str, provider: str = "CPUExecutionProvider"):
-    """Create ONNX session with memory-efficient options."""
+# Timeout for transcription to prevent app freeze
+TRANSCRIBE_TIMEOUT_SEC = 120  # 2 minutes max for any transcription
+
+
+def _get_available_providers() -> list:
+    """Get list of available ONNX Runtime providers."""
+    if ort is None:
+        return []
+    try:
+        return ort.get_available_providers()
+    except Exception:
+        return ["CPUExecutionProvider"]
+
+
+def _resolve_providers(user_provider: str, fallback_to_cpu: bool = True) -> list:
+    """
+    Resolve user-friendly provider name to ONNX provider list with fallback.
+
+    Args:
+        user_provider: "auto", "cpu", "cuda", or full provider name
+        fallback_to_cpu: If True, add CPU as fallback when using GPU
+
+    Returns:
+        List of provider names in priority order (first = preferred)
+    """
+    available = _get_available_providers()
+
+    mapping = {
+        "cpu": ["CPUExecutionProvider"],
+        "cuda": ["CUDAExecutionProvider"],
+        "tensorrt": ["TensorrtExecutionProvider"],
+    }
+
+    if user_provider == "auto":
+        # Auto-detect: prefer CUDA if available
+        if "CUDAExecutionProvider" in available:
+            providers = ["CUDAExecutionProvider"]
+            logger.info("[onnx] Auto-detected CUDA, using GPU acceleration")
+        else:
+            providers = ["CPUExecutionProvider"]
+            logger.info("[onnx] CUDA not available, using CPU")
+    elif user_provider.lower() in mapping:
+        providers = mapping[user_provider.lower()]
+    elif "ExecutionProvider" in user_provider:
+        # Full provider name passed directly
+        providers = [user_provider]
+    else:
+        # Unknown, default to CPU
+        logger.warning(f"[onnx] Unknown provider '{user_provider}', defaulting to CPU")
+        providers = ["CPUExecutionProvider"]
+
+    # Add CPU fallback for GPU providers
+    if fallback_to_cpu and providers[0] != "CPUExecutionProvider":
+        if "CPUExecutionProvider" not in providers:
+            providers.append("CPUExecutionProvider")
+
+    # Filter to only available providers
+    final_providers = [p for p in providers if p in available]
+    if not final_providers:
+        logger.warning("[onnx] No requested providers available, falling back to CPU")
+        final_providers = ["CPUExecutionProvider"]
+
+    return final_providers
+
+
+def _create_onnx_session(path: str, providers: list = None):
+    """Create ONNX session with memory-efficient options and provider fallback."""
     if ort is None:
         raise RuntimeError("onnxruntime is not available")
+
+    if providers is None:
+        providers = ["CPUExecutionProvider"]
+
     sess_opts = ort.SessionOptions()
     sess_opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-    # Limitar threads para reducir memoria de arenas thread-local
-    sess_opts.inter_op_num_threads = 2
-    sess_opts.intra_op_num_threads = 2
-    return ort.InferenceSession(path, providers=[provider], sess_options=sess_opts)
+
+    # Thread settings - more threads for CPU, less for GPU (GPU handles parallelism internally)
+    is_gpu = any("CUDA" in p or "Tensorrt" in p for p in providers)
+    if is_gpu:
+        sess_opts.inter_op_num_threads = 1
+        sess_opts.intra_op_num_threads = 1
+    else:
+        sess_opts.inter_op_num_threads = 2
+        sess_opts.intra_op_num_threads = 2
+
+    try:
+        session = ort.InferenceSession(path, providers=providers, sess_options=sess_opts)
+        actual_providers = session.get_providers()
+        logger.info(f"[onnx] Session created with providers: {actual_providers}")
+        return session
+    except Exception as e:
+        # If GPU failed, try CPU only
+        if providers[0] != "CPUExecutionProvider":
+            logger.warning(f"[onnx] Failed with {providers[0]}: {e}. Falling back to CPU.")
+            return ort.InferenceSession(path, providers=["CPUExecutionProvider"], sess_options=sess_opts)
+        raise
 
 
 class TranscriptionManager:
     def __init__(
         self,
         model_manager: ModelManager,
-        provider: str = "CPUExecutionProvider",
+        provider: str = "auto",
+        fallback_to_cpu: bool = True,
         on_event: Optional[Callable[[str], None]] = None,
         session_factory: Optional[Callable[..., Any]] = None,
         unload_timeout_seconds: Optional[int] = None,
     ) -> None:
         self.model_manager = model_manager
-        self.provider = provider
         self.on_event = on_event
-        self.session_factory = session_factory or (lambda path: _create_onnx_session(path, provider)) if ort else None
+
+        # Resolve provider(s) with fallback
+        self._providers = _resolve_providers(provider, fallback_to_cpu)
+        self.provider = self._providers[0]  # Primary provider for logging
+        logger.info(f"[transcription] Using providers: {self._providers}")
+
+        self.session_factory = session_factory or (lambda path: _create_onnx_session(path, self._providers)) if ort else None
 
         self._lock = threading.Lock()
         self._cond = threading.Condition(self._lock)
@@ -219,21 +315,63 @@ class TranscriptionManager:
 
     # -------- Transcription --------
     def transcribe(self, audio_samples: np.ndarray, model_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Transcribe audio samples to text.
+
+        Includes timeout protection to prevent app freeze on very long audio.
+        Raises TimeoutError if transcription takes longer than TRANSCRIBE_TIMEOUT_SEC.
+        """
         if audio_samples is None:
             raise ValueError("audio_samples is required")
+
+        # Prepare audio outside the timeout-protected block
         audio = np.asarray(audio_samples, dtype=np.float32)
         if audio.ndim > 1:
             audio = audio[:, 0]
-        audio = self._pad_audio(audio)
         audio = self._normalize_audio(audio)
+        duration_sec = len(audio) / DEFAULT_SAMPLE_RATE
 
+        # Run transcription in a thread with timeout
+        result_holder = [None]
+        exception_holder = [None]
+
+        def _do_transcribe():
+            try:
+                result_holder[0] = self._transcribe_internal(audio, model_id, duration_sec)
+            except Exception as e:
+                exception_holder[0] = e
+
+        thread = threading.Thread(target=_do_transcribe, daemon=True, name="TranscribeWorker")
+        thread.start()
+        thread.join(timeout=TRANSCRIBE_TIMEOUT_SEC)
+
+        if thread.is_alive():
+            # Timeout occurred - thread is still running
+            logger.error(f"[transcribe] TIMEOUT after {TRANSCRIBE_TIMEOUT_SEC}s for {duration_sec:.1f}s audio")
+            raise TimeoutError(f"Transcription timeout (>{TRANSCRIBE_TIMEOUT_SEC}s). Audio was {duration_sec:.1f}s long.")
+
+        if exception_holder[0]:
+            raise exception_holder[0]
+
+        return result_holder[0] or {"text": "", "segments": [], "tokens": None}
+
+    def _transcribe_internal(self, audio: np.ndarray, model_id: Optional[str], duration_sec: float) -> Dict[str, Any]:
+        """Internal transcription logic, called by transcribe() with timeout protection."""
         # Parakeet pipeline path
         if self._nemo_sess and self._enc_sess and self._dec_sess and self._vocab:
-            text, tokens = self._transcribe_parakeet(audio)
+            # Use chunking for long audio (>30s)
+            if duration_sec > CHUNK_THRESHOLD_SEC:
+                logger.info(f"[transcribe] Long audio ({duration_sec:.1f}s), using chunked processing")
+                result = self._transcribe_chunked(audio)
+            else:
+                # Short audio: process directly
+                audio = self._pad_audio(audio)
+                text, tokens = self._transcribe_parakeet(audio)
+                result = {"text": text or "", "segments": [], "tokens": tokens}
+
             self._last_used = time.time()
-            # Liberar arrays temporales de la transcripción
             gc.collect()
-            return {"text": text or "", "segments": [], "tokens": tokens}
+            return result
 
         with self._cond:
             if self._session is None or (model_id and self._model_id != model_id):
@@ -263,6 +401,50 @@ class TranscriptionManager:
         for src, dst in custom_words.items():
             output = output.replace(src, dst)
         return output
+
+    # -------- Chunked transcription --------
+    def _transcribe_chunked(self, audio: np.ndarray) -> Dict[str, Any]:
+        """
+        Transcribe long audio by splitting into chunks and merging results.
+
+        This reduces memory pressure and improves stability for long recordings.
+        Processing is sequential to reuse ONNX sessions (they're not thread-safe).
+        """
+        import time as _time
+        t_start = _time.perf_counter()
+
+        chunks = self._split_audio_chunks(audio)
+        texts = []
+        all_tokens = []
+
+        for i, chunk in enumerate(chunks):
+            logger.info(f"[chunked] Processing chunk {i+1}/{len(chunks)} ({len(chunk)/DEFAULT_SAMPLE_RATE:.1f}s)")
+            t_chunk = _time.perf_counter()
+
+            # Pad chunk if needed
+            chunk = self._pad_audio(chunk)
+
+            # Transcribe this chunk
+            text, tokens = self._transcribe_parakeet(chunk)
+            texts.append(text or "")
+            if tokens:
+                all_tokens.extend(tokens)
+
+            elapsed = (_time.perf_counter() - t_chunk) * 1000
+            logger.debug(f"[chunked] Chunk {i+1} done in {elapsed:.0f}ms: '{text[:50]}...' " if text and len(text) > 50 else f"[chunked] Chunk {i+1} done in {elapsed:.0f}ms")
+
+            # Free memory between chunks
+            gc.collect()
+
+        # Merge all transcriptions
+        merged_text = self._merge_transcriptions(texts)
+
+        total_time = (_time.perf_counter() - t_start) * 1000
+        audio_duration = len(audio) / DEFAULT_SAMPLE_RATE
+        rtf = total_time / (audio_duration * 1000) if audio_duration > 0 else 0
+        logger.info(f"[chunked] Total: {len(chunks)} chunks, {total_time:.0f}ms (RTF={rtf:.2f})")
+
+        return {"text": merged_text, "segments": [], "tokens": all_tokens}
 
     # -------- Helpers --------
     def warmup(self) -> None:
@@ -294,6 +476,102 @@ class TranscriptionManager:
         if max_abs > 1.0e-6 and max_abs > 1.0:
             audio = audio / max_abs
         return audio.astype(np.float32)
+
+    def _split_audio_chunks(
+        self,
+        audio: np.ndarray,
+        chunk_size_sec: float = CHUNK_SIZE_SEC,
+        overlap_sec: float = CHUNK_OVERLAP_SEC,
+    ) -> List[np.ndarray]:
+        """
+        Split audio into overlapping chunks for processing long audio.
+
+        Args:
+            audio: Audio samples at DEFAULT_SAMPLE_RATE
+            chunk_size_sec: Size of each chunk in seconds
+            overlap_sec: Overlap between chunks in seconds
+
+        Returns:
+            List of audio chunks (numpy arrays)
+        """
+        chunk_samples = int(chunk_size_sec * DEFAULT_SAMPLE_RATE)
+        overlap_samples = int(overlap_sec * DEFAULT_SAMPLE_RATE)
+        step_samples = chunk_samples - overlap_samples
+
+        chunks = []
+        start = 0
+        total_samples = len(audio)
+
+        while start < total_samples:
+            end = min(start + chunk_samples, total_samples)
+            chunk = audio[start:end]
+
+            # Pad last chunk if too short (min 1.25s for Parakeet)
+            min_samples = int(1.25 * DEFAULT_SAMPLE_RATE)
+            if len(chunk) < min_samples:
+                chunk = np.pad(chunk, (0, min_samples - len(chunk)), mode="constant")
+
+            chunks.append(chunk)
+            start += step_samples
+
+            # Avoid tiny last chunk
+            if total_samples - start < min_samples and start < total_samples:
+                break
+
+        logger.info(f"[chunking] Split {total_samples/DEFAULT_SAMPLE_RATE:.1f}s audio into {len(chunks)} chunks")
+        return chunks
+
+    def _merge_transcriptions(
+        self,
+        texts: List[str],
+        overlap_sec: float = CHUNK_OVERLAP_SEC,
+    ) -> str:
+        """
+        Merge transcriptions from overlapping chunks, removing duplicates.
+
+        Uses a simple heuristic: remove common suffix/prefix in overlap regions.
+        """
+        if not texts:
+            return ""
+        if len(texts) == 1:
+            return texts[0]
+
+        merged = texts[0]
+
+        for i in range(1, len(texts)):
+            current = texts[i]
+            if not current:
+                continue
+            if not merged:
+                merged = current
+                continue
+
+            # Find overlap by looking for common words
+            # Split into words and find longest matching suffix/prefix
+            merged_words = merged.split()
+            current_words = current.split()
+
+            # Look for overlap in last N words of merged and first N words of current
+            # Overlap region corresponds to ~2s of audio, typically 5-15 words
+            max_overlap_words = min(20, len(merged_words), len(current_words))
+            best_overlap = 0
+
+            for overlap_len in range(1, max_overlap_words + 1):
+                suffix = merged_words[-overlap_len:]
+                prefix = current_words[:overlap_len]
+                if suffix == prefix:
+                    best_overlap = overlap_len
+
+            if best_overlap > 0:
+                # Remove overlapping words from current
+                current_words = current_words[best_overlap:]
+                logger.debug(f"[merge] Removed {best_overlap} overlapping words")
+
+            # Join with space
+            if current_words:
+                merged = merged + " " + " ".join(current_words)
+
+        return merged.strip()
 
     def _prepare_input(self, session, audio: np.ndarray):
         """
@@ -477,28 +755,49 @@ class TranscriptionManager:
 
     def _rnnt_greedy(self, encoder_out: np.ndarray, encoder_len: np.ndarray, blank_id: int, start_id: Optional[int]) -> List[int]:
         """
-        Greedy RNNT decode step-by-step (per Handy/transcribe-rs):
-        - use encoder step-by-step
-        - feed last emitted token (start with blank)
-        - ignore duration head (last logits)
-        - update predictor states only on emit
+        Optimized greedy RNNT decode with label-looping inspired optimizations:
+        - Pre-allocated arrays to reduce memory allocations
+        - Cached encoder frame reshaping
+        - Early termination on long silence
+        - Batch-friendly data structures
         """
         assert self._dec_sess is not None
+
         # encoder_out: (1, T, 1024)
         enc = encoder_out[0]
         T = int(encoder_len[0])
+
+        # Pre-allocate states (avoid repeated allocations)
         state1 = np.zeros((2, 1, 640), dtype=np.float32)
         state2 = np.zeros((2, 1, 640), dtype=np.float32)
+
+        # Pre-allocate reusable arrays
+        tgt = np.zeros((1, 1), dtype=np.int32)
+        tgt_len = np.array([1], dtype=np.int32)
+
         tokens: List[int] = []
-        timestamps: List[float] = []
-        last_token = blank_id  # start with blank as in Handy
+        last_token = blank_id
+
+        # Label-looping optimization: track consecutive blanks
+        consecutive_blanks = 0
+        MAX_CONSECUTIVE_BLANKS = 50  # Skip remaining if >50 blanks in a row (silence)
+
+        # Pre-compute encoder frame reshapes (memory layout optimization)
+        # This avoids repeated reshape calls in the loop
+        enc_frames = enc.reshape(T, 1, 1024, 1).astype(np.float32, copy=False)
+
+        vocab_size = self._vocab_size
 
         for t in range(T):
-            enc_step = enc[t].reshape(1, 1024, 1).astype(np.float32)  # (1,1024,1)
+            # Use pre-computed frame (zero-copy view)
+            enc_step = enc_frames[t]
+
             emitted = 0
             for _ in range(MAX_TOKENS_PER_STEP):
-                tgt = np.array([[last_token]], dtype=np.int32)
-                tgt_len = np.array([1], dtype=np.int32)
+                # Update target in-place
+                tgt[0, 0] = last_token
+
+                # Build feed dict (reuse arrays)
                 feed = {
                     "encoder_outputs": enc_step,
                     "targets": tgt,
@@ -506,39 +805,47 @@ class TranscriptionManager:
                     "input_states_1": state1,
                     "input_states_2": state2,
                 }
+
                 out = self._dec_sess.run(None, feed)
                 logits = out[0]
-                new_state1 = out[2] if len(out) > 2 else state1
-                new_state2 = out[3] if len(out) > 3 else state2
 
-                # Handle possible shapes: (1, T_tar, T_enc, V) or (1, T_enc, T_tar, V) or (1, T_tar, V)
+                # Extract logits vector (handle various output shapes)
                 if logits.ndim == 4:
-                    if logits.shape[2] >= 1:
-                        logvec = logits[0, 0, -1, :]
-                    else:
-                        logvec = logits[0, -1, -1, :]
+                    logvec = logits[0, 0, -1, :vocab_size] if logits.shape[2] >= 1 else logits[0, -1, -1, :vocab_size]
                 elif logits.ndim == 3:
-                    logvec = logits[0, -1, :]
+                    logvec = logits[0, -1, :vocab_size]
                 else:
-                    logvec = logits.reshape(-1)
+                    logvec = logits.ravel()[:vocab_size]
 
-                vocab_logits = logvec[: self._vocab_size] if self._vocab_size else logvec
-                token = int(np.argmax(vocab_logits))
-                if token < 0 or token >= self._vocab_size:
-                    token = blank_id
+                # Argmax (numpy optimized)
+                token = int(np.argmax(logvec))
 
-                if token != blank_id:
+                if token != blank_id and 0 <= token < vocab_size:
                     tokens.append(token)
-                    timestamps.append(t * WINDOW_SIZE * SUBSAMPLING)
-                    state1, state2 = new_state1, new_state2  # advance states only on emit
+                    # Update states only on emit
+                    if len(out) > 2:
+                        state1 = out[2]
+                    if len(out) > 3:
+                        state2 = out[3]
                     last_token = token
                     emitted += 1
+                    consecutive_blanks = 0  # Reset blank counter
                 else:
                     # Blank: advance encoder frame
+                    consecutive_blanks += 1
                     break
+
                 if emitted >= MAX_TOKENS_PER_STEP:
                     break
-            # next encoder frame
+
+            # Early termination: if we've seen many consecutive blanks, likely silence
+            # This provides speedup for audio with silence at the end
+            if consecutive_blanks >= MAX_CONSECUTIVE_BLANKS:
+                remaining = T - t - 1
+                if remaining > 10:
+                    logger.debug(f"[decoder] Early termination: {consecutive_blanks} consecutive blanks, skipping {remaining} frames")
+                break
+
         text = self._tokens_to_text(tokens, self._vocab or [])
         if not text:
             logger.warning(f"[parakeet] Empty text from tokens (len={len(tokens)}): {tokens[:20]}")

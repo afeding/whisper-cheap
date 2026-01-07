@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Sora', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
@@ -17,14 +18,21 @@ const config: Config = {
         'accent-hover': '#00dd77',
         'accent-dim': '#00aa55',
         'bg-primary': '#0a0a0a',
-        'bg-secondary': '#111111',
-        'bg-card': '#161616',
-        'bg-input': '#0e0e0e',
-        'border-default': '#222222',
-        'border-hover': '#333333',
-        'text-primary': '#e5e5e5',
-        'text-secondary': '#888888',
-        'text-dim': '#555555',
+        'bg-secondary': '#0f0f0f',
+        'bg-card': '#141414',
+        'bg-elevated': '#1a1a1a',
+        'border-default': '#1f1f1f',
+        'border-hover': '#2a2a2a',
+        'text-primary': '#f0f0f0',
+        'text-secondary': '#8a8a8a',
+        'text-dim': '#5a5a5a',
+      },
+      borderRadius: {
+        '2xl': '16px',
+        '3xl': '24px',
+      },
+      transitionTimingFunction: {
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
       },
     },
   },

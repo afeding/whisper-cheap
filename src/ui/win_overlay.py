@@ -179,11 +179,11 @@ class WinOverlayBar:
         work_w = int(right - left)
         # Error mode needs wider window for text
         if self._mode == "error":
-            width = min(500, work_w - 40)
-            height = 48
-        else:
-            width = 180
+            width = min(375, work_w - 40)
             height = 36
+        else:
+            width = 135
+            height = 27
         x = int(left + (work_w - width) // 2)
         y = int(bottom - height - 20) if self.position == "bottom" else int(top + 40)
         return x, y, width, height
@@ -436,7 +436,7 @@ class WinOverlayBar:
             h = int(bottom - top)
 
             pad = 2
-            border_width = 2
+            border_width = 1
             # Use regions for a cleaner pill border (less clipping artifacts than RoundRect pens).
             pill_rgn = win32gui.CreateRoundRectRgn(0, 0, w + 1, h + 1, h, h)
             try:
@@ -463,8 +463,8 @@ class WinOverlayBar:
                         win32gui.DeleteObject(error_rgn)
 
                     # Draw X button on the right
-                    x_size = 12
-                    x_margin = 12
+                    x_size = 9
+                    x_margin = 9
                     x_cx = w - x_margin - x_size // 2
                     x_cy = h // 2
                     white_pen = win32gui.CreatePen(win32con.PS_SOLID, 2, win32api.RGB(255, 255, 255))
@@ -486,7 +486,7 @@ class WinOverlayBar:
                         sys_font = win32gui.GetStockObject(win32con.DEFAULT_GUI_FONT)
                         old_font = win32gui.SelectObject(hdc, sys_font)
                         try:
-                            text_rect = (pad + 10, 0, w - x_margin - x_size - 10, h)
+                            text_rect = (pad + 8, 0, w - x_margin - x_size - 8, h)
                             msg = self._error_message or "Error"
                             win32gui.DrawText(
                                 hdc, msg, -1, text_rect,
@@ -505,12 +505,12 @@ class WinOverlayBar:
                 # Simple spinner: head-only arcs (no track) to avoid stray lines.
                 cx = w // 2
                 cy = h // 2
-                ring_r = max(5, min(w, h) // 4)
+                ring_r = max(4, min(w, h) // 4)
 
                 head_angle = (self._loader_phase * 2.0 * math.pi)
 
                 def _arc_segment(start_ang: float, sweep_deg: float, width: int, gray: int):
-                    pen = win32gui.CreatePen(win32con.PS_SOLID, width, win32api.RGB(gray, gray, gray))
+                    pen = win32gui.CreatePen(win32con.PS_SOLID, max(1, width), win32api.RGB(gray, gray, gray))
                     old_pen_local = win32gui.SelectObject(hdc, pen)
                     try:
                         # Approximate short arc by two lines (sufficient for small spinner).
@@ -534,7 +534,7 @@ class WinOverlayBar:
                 # Bars: centered, no text
                 wave_y_center = h // 2
                 wave_height = int(h * 0.9)
-                bar_count = 18
+                bar_count = 14
                 base_bar_width = 3
                 base_gap = 1
                 avail_w = max(1, w - (pad * 2))
@@ -552,7 +552,7 @@ class WinOverlayBar:
                 max_h = max(min_h + 1, wave_height)
                 center = (bar_count - 1) / 2.0
                 denom = max(1.0, center)
-                min_diameter = max(4, bar_width + 1)
+                min_diameter = max(3, bar_width + 1)
 
                 green_brush = win32gui.CreateSolidBrush(win32api.RGB(0, 255, 136))
                 null_pen3 = win32gui.GetStockObject(win32con.NULL_PEN)
@@ -590,11 +590,11 @@ class WinOverlayBar:
         assert win32gui is not None and win32con is not None and win32api is not None
 
         # Badge position: right side of the bar
-        badge_x = w - 24
+        badge_x = w - 18
         badge_cy = h // 2
 
         # Draw small spinner (rotating arc segments)
-        spinner_r = 5
+        spinner_r = 4
         spinner_angle = self._loader_phase * 2.0 * math.pi
 
         # Draw spinner arcs with varying brightness
@@ -621,8 +621,8 @@ class WinOverlayBar:
         # Draw count as dots (simpler than text, no font needed)
         dot_count = min(count, 3)  # Max 3 dots
         dot_r = 2
-        dot_spacing = 5
-        dots_start_x = badge_x + spinner_r + 4
+        dot_spacing = 4
+        dots_start_x = badge_x + spinner_r + 3
 
         white_brush = win32gui.CreateSolidBrush(win32api.RGB(255, 255, 255))
         null_pen = win32gui.GetStockObject(win32con.NULL_PEN)

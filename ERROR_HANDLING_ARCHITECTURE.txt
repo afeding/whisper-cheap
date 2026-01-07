@@ -1,0 +1,451 @@
+================================================================================
+ERROR HANDLING ARCHITECTURE & FLOW DIAGRAMS
+================================================================================
+
+## CURRENT STATE: Error Handling Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        WHISPER CHEAP APP                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐          │
+│  │   Hotkey     │    │    Audio     │    │ Transcription│          │
+│  │   Manager    │    │   Manager    │    │   Manager    │          │
+│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘          │
+│         │                   │                   │                   │
+│         └─────────┬─────────┴───────┬───────────┘                  │
+│                   │                 │                              │
+│        ┌──────────▼─────────┐  ┌────▼──────────┐                 │
+│        │ RecordingStateMachine  │ Error Path?  │                 │
+│        │ (Concurrent worker)    │              │                 │
+│        └──────────┬─────────┘    │              │                 │
+│                   │              │              │                 │
+│      ┌────────────▼──────────┐   │              │                 │
+│      │  Try/Except:          │   │              │                 │
+│      │  - Transcribe         │   │              │                 │
+│      │  - Post-process LLM   │◄──┤ Logger?     │                 │
+│      │  - Paste Text         │   │ UI Notify?  │                 │
+│      └────────────┬──────────┘   │ Retry?      │                 │
+│                   │              │ Cleanup?    │                 │
+│      ┌────────────▼──────────┐   │              │                 │
+│      │ Exception caught:     │   │              │                 │
+│      │ - Log? (INCONSISTENT) │   │              │                 │
+│      │ - Notify user? (NO!)  │   │              │                 │
+│      │ - Cleanup? (MAYBE)    │   │              │                 │
+│      │ - Retry? (SOMETIMES)  │   │              │                 │
+│      └───────────────────────┘   │              │                 │
+│                                   │ ❌ PROBLEM  │                 │
+│                                   └──────────────┘                 │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## PROBLEM AREAS BY LAYER
+
+### Layer 1: UI Thread (main.py)
+```
+on_hotkey_press()
+  ├─ Try to start recording
+  │   ├─ [OK] Log exception
+  │   └─ [ISSUE] No user feedback
+  │
+  ├─ Update overlays
+  │   ├─ [ISSUE] ❌ bare pass (line 681, 823, 974)
+  │   ├─ No logging
+  │   └─ Silent failure
+  │
+  └─ Show status
+      └─ [ISSUE] Tray may die (line 176)
+```
+
+### Layer 2: Audio Thread (audio.py)
+```
+_audio_callback() [on audio thread]
+  ├─ Read audio chunk
+  │   ├─ [OK] Protected by lock
+  │   └─ [ISSUE] No error recovery
+  │
+  ├─ VAD processing
+  │   ├─ [ISSUE] ❌ bare pass on VAD fail (line 143)
+  │   ├─ Silent fallback to RMS
+  │   └─ User doesn't know
+  │
+  └─ Append to buffer
+      └─ [OK] Try/except
+
+close_stream()
+  └─ [ISSUE] ❌ Close can fail (line 225)
+      ├─ bare pass
+      ├─ Stream may stay open
+      └─ Device blocked
+```
+
+### Layer 3: Processing Thread (recording_state.py)
+```
+_worker_loop() [background thread]
+  ├─ Get job from queue
+  │   └─ [OK] Handles queue.Empty
+  │
+  ├─ Transcribe audio
+  │   ├─ [OK] Exception logged
+  │   └─ Result queued
+  │
+  ├─ Post-process (LLM)
+  │   ├─ [OK] Exception logged
+  │   └─ Fallback to original
+  │
+  ├─ Paste result
+  │   ├─ [ISSUE] ❌ bare pass on clipboard fail (line 529)
+  │   ├─ Silent fallback
+  │   └─ User doesn't know
+  │
+  └─ Cleanup
+      ├─ [ISSUE] ❌ bare pass on sound fail (line 541)
+      └─ Silent failure
+```
+
+### Layer 4: Settings API (web_settings/api.py)
+```
+get_config() [from main or subprocess]
+  ├─ [ISSUE] ❌ bare except (line 115)
+  │   ├─ Returns {} on ANY error
+  │   ├─ No logging
+  │   └─ User doesn't know config failed
+  │
+  ├─ Try to load JSON
+  │   ├─ FileNotFoundError: Create default
+  │   ├─ JSONDecodeError: ❌ Silent
+  │   └─ Other Exception: ❌ Silent
+
+save_config()
+  ├─ [OK] Returns error dict
+  └─ [OK] Caller can check
+
+get_default_models()
+  ├─ [ISSUE] ❌ bare except (line 170)
+  ├─ Silent fallback to hardcoded list
+  └─ User doesn't see which was used
+```
+
+### Layer 5: I/O Operations
+```
+Model Download (model.py)
+  ├─ [ISSUE] ❌ Incomplete download not cleaned (line 112)
+  ├─ Partial file causes next attempt to fail
+  └─ Need: atomic writes (temp file)
+
+Audio File Cleanup (history.py)
+  ├─ [ISSUE] ❌ unlink() fail not handled (line 154, 185)
+  ├─ Disk space leak
+  └─ Need: retry + log
+
+Installer Download (updater.py)
+  ├─ [ISSUE] ❌ Incomplete if verify fails (line 313)
+  ├─ Leftover .exe in temp
+  └─ Need: finally cleanup
+```
+
+## IDEAL STATE: What Should Happen
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    IDEAL ERROR HANDLING                             │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │ CRITICAL ERROR (e.g., No microphone)                       │    │
+│  │  1. Log with full context + stacktrace                     │    │
+│  │  2. Stop recording attempt gracefully                      │    │
+│  │  3. Show error in UI overlay (user sees message)           │    │
+│  │  4. Clean up any partial state                            │    │
+│  │  5. Allow user to fix and retry                           │    │
+│  │  6. Maybe: Send to error reporting (if enabled)           │    │
+│  └────────────────────────────────────────────────────────────┘    │
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │ NON-CRITICAL ERROR (e.g., Sound file missing)              │    │
+│  │  1. Log with debug level                                   │    │
+│  │  2. Continue operation (no user-facing impact)             │    │
+│  │  3. Fallback mechanism (silent beep → no sound)            │    │
+│  │  4. Clean up gracefully                                    │    │
+│  │  5. Maybe: Show subtle indicator (greyed out setting)      │    │
+│  └────────────────────────────────────────────────────────────┘    │
+│                                                                       │
+│  ┌────────────────────────────────────────────────────────────┐    │
+│  │ RECOVERABLE ERROR (e.g., Network timeout)                  │    │
+│  │  1. Log the error                                          │    │
+│  │  2. Retry with backoff                                     │    │
+│  │  3. Show user spinner ("Retrying...")                      │    │
+│  │  4. If max retries: show error and allow manual retry      │    │
+│  │  5. Clean up any temp resources                            │    │
+│  │  6. Track retry metrics                                    │    │
+│  └────────────────────────────────────────────────────────────┘    │
+│                                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+## ERROR CLASSIFICATION MATRIX
+
+```
+┌─────────────────┬──────────────┬────────────┬──────────────┐
+│ Error Type      │ Severity     │ User Sees  │ Current Impl  │
+├─────────────────┼──────────────┼────────────┼──────────────┤
+│ No Audio Device │ CRITICAL     │ Should     │ ❌ Hidden    │
+│ Model Missing   │ CRITICAL     │ Should     │ ❌ Hidden    │
+│ Tray Exception  │ CRITICAL     │ Should     │ ❌ Hidden    │
+├─────────────────┼──────────────┼────────────┼──────────────┤
+│ VAD Unavailable │ HIGH         │ Maybe      │ ❌ Silent    │
+│ Stream Close    │ HIGH         │ Maybe      │ ❌ Silent    │
+│ Paste Fails     │ HIGH         │ Should     │ ❌ Hidden    │
+├─────────────────┼──────────────┼────────────┼──────────────┤
+│ Sound Missing   │ MEDIUM       │ Maybe      │ ❌ Silent    │
+│ Config Corrupt  │ MEDIUM       │ Should     │ ❌ Hidden    │
+│ Preload Slow    │ MEDIUM       │ Maybe      │ ❌ Silent    │
+├─────────────────┼──────────────┼────────────┼──────────────┤
+│ LLM Timeout     │ LOW          │ Maybe      │ ⚠️ Logged    │
+│ Model Unload    │ LOW          │ No         │ ❌ Silent    │
+│ Callback Slow   │ LOW          │ No         │ ❌ Silent    │
+└─────────────────┴──────────────┴────────────┴──────────────┘
+```
+
+## LOGGING STRATEGY
+
+### Current (BROKEN):
+```
+try:
+    operation()
+except Exception:
+    pass  # ← NOPE
+
+try:
+    operation()
+except Exception as e:
+    print(f"Error: {e}")  # ← Goes to console, not log file
+
+try:
+    operation()
+except Exception as e:
+    logger.error(f"Error: {e}")  # ← OK but no context
+```
+
+### Proposed (GOOD):
+```
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    operation()
+except SpecificException as e:
+    logger.warning(f"[context] Operation failed (recoverable): {e}")
+    # Handle fallback
+except Exception as e:
+    logger.exception(f"[context] Unexpected error: {e}")  # Includes stacktrace
+    # Handle retry or raise
+```
+
+### Logging Levels:
+```
+DEBUG   - Preload started, warmup running, etc. (no user concern)
+INFO    - Operation completed, config loaded, etc. (progress)
+WARNING - Non-critical failure with fallback (user may not notice)
+ERROR   - Critical failure with user impact (must notify UI)
+CRITICAL - App may become unusable (shutdown imminent)
+```
+
+## CLEANUP PATTERNS
+
+### BAD: No guarantee of cleanup
+```python
+try:
+    f = open(file)
+    data = f.read()
+except Exception:
+    pass  # File handle leaked!
+```
+
+### GOOD: Guaranteed cleanup
+```python
+try:
+    with open(file) as f:
+        data = f.read()
+except FileNotFoundError:
+    logger.warning(f"File not found: {file}")
+except Exception as e:
+    logger.error(f"Failed to read file: {e}")
+```
+
+### BETTER: Cleanup of complex resources
+```python
+resource = None
+try:
+    resource = allocate_resource()
+    use_resource(resource)
+except Exception as e:
+    logger.error(f"Operation failed: {e}")
+    raise
+finally:
+    if resource:
+        try:
+            resource.cleanup()
+        except Exception as cleanup_e:
+            logger.warning(f"Cleanup failed: {cleanup_e}")
+```
+
+## THREADING ERROR HANDLING
+
+### Current (BAD):
+```python
+def run(self):
+    try:
+        self._icon.run()  # Blocking
+    except Exception:
+        pass  # ← Thread dies, no signal to main
+```
+
+### Proposed (GOOD):
+```python
+def run(self):
+    try:
+        self._icon.run()  # Blocking
+    except SystemExit:
+        pass  # Expected
+    except Exception as e:
+        logger.exception(f"[tray] Fatal error: {e}")
+        raise SystemExit(1)  # Signal main thread
+
+# In main.py
+if tray_thread:
+    tray_thread.join()
+    if tray_thread.exitcode != 0:
+        logger.critical("[main] Tray thread died unexpectedly")
+        # Graceful shutdown
+```
+
+## STATE RECOVERY
+
+### Recovery Strategies by Error Type:
+
+```
+CORRUPT CONFIG
+  ├─ Detect: json.JSONDecodeError
+  ├─ Backup: Rename to .corrupted
+  ├─ Reset: Load defaults
+  └─ Notify: Show error overlay
+
+INCOMPLETE DOWNLOAD
+  ├─ Detect: File size < expected
+  ├─ Cleanup: Delete .tmp file
+  ├─ Retry: Next start (automatic)
+  └─ Notify: Show progress
+
+DEVICE UNAVAILABLE
+  ├─ Detect: RuntimeError on open_stream()
+  ├─ Fallback: None (can't continue)
+  ├─ Notify: ERROR overlay "Microphone not found"
+  └─ User: Fix device and restart
+
+NETWORK TIMEOUT
+  ├─ Detect: requests.Timeout
+  ├─ Retry: Exponential backoff
+  ├─ Max: 3 attempts
+  └─ Notify: Spinner, then error
+```
+
+## PROPOSED CALLBACK FOR USER NOTIFICATIONS
+
+```python
+class ErrorHandler:
+    """Centralized error handling and user notification."""
+
+    def __init__(self, overlay_manager, logger):
+        self.overlay = overlay_manager
+        self.logger = logger
+
+    def handle(self, error: Exception, context: str,
+               user_visible: bool = False, recoverable: bool = False):
+        """Handle error with logging and optional UI notification."""
+
+        # Always log
+        self.logger.error(f"[{context}] {error}", exc_info=True)
+
+        # Notify user if critical
+        if user_visible:
+            message = self._friendly_message(error, context)
+            if self.overlay:
+                try:
+                    self.overlay.show_error(message)
+                except Exception as ui_error:
+                    self.logger.warning(f"Failed to show error UI: {ui_error}")
+
+        # Return whether caller should retry
+        return recoverable
+
+    def _friendly_message(self, error: Exception, context: str) -> str:
+        """Convert technical error to user-friendly message."""
+        mapping = {
+            'RuntimeError': 'Operation failed. Please try again.',
+            'FileNotFoundError': 'Required file not found.',
+            'PermissionError': 'Permission denied. Check file access.',
+            'ConnectionError': 'Network error. Check your internet.',
+            'TimeoutError': 'Operation timed out. Please try again.',
+        }
+        error_type = type(error).__name__
+        return mapping.get(error_type, f"{context} failed: {str(error)[:50]}")
+
+# Usage:
+error_handler = ErrorHandler(overlay_manager, logger)
+
+try:
+    model_manager.download(url)
+except Exception as e:
+    if error_handler.handle(e, "model_download",
+                           user_visible=True, recoverable=True):
+        # Retry logic in main
+        pass
+```
+
+## TESTING ERROR PATHS
+
+```python
+# Mock exceptions at different layers
+@pytest.fixture
+def mock_error_paths(monkeypatch):
+    """Mock various error paths for testing."""
+
+    # Audio layer errors
+    monkeypatch.setattr('sounddevice.InputStream.start',
+                       side_effect=RuntimeError("Device failed"))
+
+    # Config layer errors
+    monkeypatch.setattr('builtins.open',
+                       side_effect=PermissionError("Config locked"))
+
+    # Network errors
+    monkeypatch.setattr('requests.get',
+                       side_effect=requests.Timeout("Took too long"))
+
+def test_audio_device_failure():
+    """App should survive and notify user of audio error."""
+    with pytest.raises(RuntimeError):
+        manager.open_stream()
+
+    # But app shouldn't crash
+    assert app.is_running()
+
+def test_config_corruption():
+    """Corrupted config should trigger backup and fallback."""
+    api = SettingsAPI(corrupted_config_path)
+    config = api.get_config()
+
+    # Should return defaults
+    assert config is not None
+
+    # Should backup corrupted file
+    assert (corrupted_config_path.parent /
+            corrupted_config_path.name + '.corrupted').exists()
+```
+
+================================================================================
+SUMMARY: Current state is fragmented. Need unified error handling framework.
+================================================================================

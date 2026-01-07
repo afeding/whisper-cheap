@@ -1,91 +1,1718 @@
 {
   "meta": {
     "title": "Whisper Cheap - Free Local Speech-to-Text for Windows",
-    "description": "Type 10x faster by just talking. 100% local, no cloud, no subscriptions. Free speech recognition that runs entirely on your PC.",
-    "keywords": "speech to text, voice recognition, transcription, Windows, offline, local, free, STT, voice to text, dictation, productivity"
+    "description": "Type 10x faster by just talking. Local transcription, no cloud, no subscriptions. Free speech recognition that runs entirely on your PC.",
+    "keywords": "AI dictation, AI voice typing, AI transcription, speech to text, free dictation software, offline, local, Windows, voice recognition, keyboard shortcut, Whisper AI, voice to text app"
   },
   "nav": {
     "features": "Features",
     "download": "Download"
   },
   "hero": {
-    "tagline": "Local voice transcription",
+    "tagline": "Powered by AI",
     "title1": "Stop typing.",
     "title2": "Start talking.",
-    "subtitle": "Your voice becomes text instantly. Right where your cursor is. No cloud. No subscription. Just you and your computer.",
-    "cta": "Download for Windows",
-    "note": "Free forever. ~200MB. No account needed."
+    "subtitle": "Your voice becomes text instantly. Right where your cursor is. No cloud. No subscription.",
+    "cta": "Download",
+    "note": "Free forever. Unlimited. No account."
   },
   "demo": {
     "press": "Press",
-    "recording": "Recording",
-    "output": "The meeting is tomorrow at 10am, please confirm attendance."
+    "recording": "Listening...",
+    "output": "To-do list:\n\n• Review Q4 sales report\n• Call Sarah - Tuesday meeting\n• Update project documentation\n• Buy milk, bread and coffee\n• Reply to emails before 5pm\n• Prepare Monday's presentation"
   },
   "problem": {
-    "title": "The problem with typing",
+    "title": "Speaking is 3x faster than typing",
     "stat1": "40",
-    "stat1Label": "words/min typing",
+    "stat1Label": "words/min",
     "stat2": "150",
-    "stat2Label": "words/min speaking",
-    "description": "You think at 150 words per minute. Your fingers max out at 40. By the time you finish typing, you've forgotten half your ideas.",
-    "solution": "Speaking captures everything."
+    "stat2Label": "words/min",
+    "typing": "Typing",
+    "speaking": "Speaking"
   },
   "whyThis": {
     "title": "Why this exists",
     "reason1Title": "Free alternatives are garbage",
-    "reason1Desc": "I tried them all. Inaccurate, slow, clunky interfaces. Not worth the frustration.",
+    "reason1Desc": "Inaccurate, slow, clunky interfaces.",
     "reason2Title": "Good ones cost $15/month",
-    "reason2Desc": "For something my CPU can do locally? That's $180/year for basic functionality.",
+    "reason2Desc": "That's $180/year for basic functionality.",
     "reason3Title": "Cloud = your voice on someone's server",
-    "reason3Desc": "Every word you speak, uploaded and stored. Not for me.",
-    "conclusion": "So I built Whisper Cheap. It runs 100% on your PC. It's fast. It's accurate. And it's free because it costs me nothing to share."
+    "reason3Desc": "Every word uploaded and stored.",
+    "conclusion": "Whisper Cheap transcribes on your PC. Fast, accurate, and free."
   },
   "features": {
     "local": {
-      "title": "100% Local",
-      "desc": "Your voice never leaves your computer. Works offline after download."
+      "title": "Private by default",
+      "desc": "Transcription runs on your PC. No cloud. Works offline."
     },
     "fast": {
-      "title": "Instant",
-      "desc": "Powered by Parakeet V3. Transcribes while you're still talking."
+      "title": "Fast & accurate",
+      "desc": "CPU-optimized AI. Transcribes in 1-2 seconds after you speak."
     },
     "simple": {
-      "title": "One Shortcut",
-      "desc": "Press, speak, release. Text appears at your cursor. Works everywhere."
+      "title": "Simple flow",
+      "desc": "Hold key, speak, release. Text appears where your cursor is."
     }
   },
   "howItWorks": {
     "title": "How it works",
     "step1": "Press your hotkey",
-    "step1Desc": "Ctrl+Space by default. Customize it.",
+    "step1Desc": "Ctrl+Space by default.",
     "step2": "Speak naturally",
-    "step2Desc": "A small indicator shows you're recording.",
-    "step3": "Text appears instantly",
-    "step3Desc": "Right where your cursor was. Done."
+    "step2Desc": "Say what you want to type.",
+    "step3": "Release and done",
+    "step3Desc": "Transcribed text appears where your cursor was."
   },
   "founder": {
-    "quote": "I got tired of two things: expensive software for basic functionality, and free tools that were absolute garbage. The best part of talking vs typing? You don't lose context. When you write, by the time you finish one sentence, you've already forgotten the next three ideas. Speaking lets everything flow.",
+    "quote": "The best part of talking vs typing? You don't lose context. When you write, by the time you finish one sentence, you've forgotten the next three ideas. Speaking lets everything flow.",
     "name": "Andrés",
-    "role": "Creator of Whisper Cheap"
+    "role": "Creator"
   },
   "faq": {
-    "title": "Common questions",
+    "title": "Questions",
     "q1": "Is it really free?",
-    "a1": "Yes. Open source, MIT license. No paid tiers, no premium features, no data collection.",
-    "q2": "Does it work offline?",
-    "a2": "100%. After download, you never need internet again. The AI runs on your CPU.",
-    "q3": "What languages?",
-    "a3": "Optimized for English and Spanish. More coming.",
+    "a1": "Yes. 100% free, no limits, no premium features. Open source (MIT).",
+    "q2": "Do I need an account?",
+    "a2": "No. Download, install, and it works. No signup or emails.",
+    "q3": "Does it work in all apps?",
+    "a3": "Yes. Word, Chrome, Notion, Slack, email... any app where you can paste text.",
     "q4": "Mac or Linux?",
-    "a4": "Windows only for now. Cross-platform is on the roadmap."
+    "a4": "Windows only for now. Cross-platform in development."
   },
   "cta": {
     "title": "Ready?",
-    "button": "Download Whisper Cheap"
+    "button": "Download"
   },
   "footer": {
-    "tagline": "Built for fast thinkers who hate typing",
+    "tagline": "Write with your voice",
     "github": "GitHub",
     "releases": "Releases"
+  },
+  "vs_dragon": {
+    "meta": {
+      "title": "Dragon Dictation Alternative - Free AI Speech-to-Text | Whisper Cheap",
+      "description": "Free Dragon NaturallySpeaking alternative. Professional AI dictation without the $500+ price tag. Accurate, local, unlimited. Download free.",
+      "keywords": "dragon alternative free, dragon naturally speaking alternative, free dragon dictation, dragon speech to text alternative, dragon professional alternative, cheap dragon alternative"
+    },
+    "hero": {
+      "eyebrow": "Dragon Alternative",
+      "title": "Free Dragon NaturallySpeaking Alternative",
+      "subtitle": "Professional AI dictation without the $500+ price tag",
+      "cta": "Download"
+    },
+    "problem": {
+      "title": "Why Dragon Users Are Looking for Alternatives",
+      "reason1": "$500+ is a big investment for voice dictation",
+      "reason2": "Dragon was built in the 90s—its UI shows it",
+      "reason3": "Overkill features you don't need (voice commands, macros)",
+      "conclusion": "You just want to dictate text. Free. Local. Done."
+    },
+    "comparison": {
+      "title": "Dragon vs Whisper Cheap",
+      "features": [
+        {
+          "label": "Price",
+          "dragon": "$500+",
+          "whisper": "Free forever"
+        },
+        {
+          "label": "Cost per year",
+          "dragon": "$0 (one-time, but outdated)",
+          "whisper": "$0"
+        },
+        {
+          "label": "Word limit",
+          "dragon": "Unlimited",
+          "whisper": "Unlimited"
+        },
+        {
+          "label": "Privacy",
+          "dragon": "On your PC",
+          "whisper": "100% local, never uploaded"
+        },
+        {
+          "label": "Modern AI",
+          "dragon": "Legacy model from 2012",
+          "whisper": "Latest Parakeet V3 (2024)"
+        },
+        {
+          "label": "UI/UX",
+          "dragon": "Complex, steep learning curve",
+          "whisper": "Minimal, just press hotkey"
+        },
+        {
+          "label": "Setup time",
+          "dragon": "2-3 hours (training, config)",
+          "whisper": "5 minutes"
+        },
+        {
+          "label": "Voice commands",
+          "dragon": "Yes",
+          "whisper": "No (dictation only)"
+        },
+        {
+          "label": "Accuracy",
+          "dragon": "Very good (after training)",
+          "whisper": "Very good (no training needed)"
+        },
+        {
+          "label": "Customization",
+          "dragon": "Extensive",
+          "whisper": "Simple settings"
+        },
+        {
+          "label": "Learning curve",
+          "dragon": "Steep",
+          "whisper": "None"
+        },
+        {
+          "label": "Tech support",
+          "dragon": "Paid",
+          "whisper": "Community (open source)"
+        }
+      ]
+    },
+    "whisper_strengths": {
+      "title": "Why Choose Whisper Cheap",
+      "free": {
+        "heading": "It's Free",
+        "text": "Dragon costs $500+. Whisper Cheap is $0. There's no catch—it's open source, and the code is public."
+      },
+      "modern": {
+        "heading": "Modern AI (2024)",
+        "text": "Dragon uses legacy technology. Whisper Cheap uses Parakeet V3, trained on massive datasets from NVIDIA. Better accuracy, no training needed."
+      },
+      "simple": {
+        "heading": "Dead Simple",
+        "text": "Dragon has voice commands, macros, vocabulary training. Whisper Cheap does one thing: Press hotkey → speak → text appears. Done."
+      },
+      "local": {
+        "heading": "100% Local Processing",
+        "text": "Your voice never touches the internet. The AI model runs on your PC. Dragon is also local, but costs 100x more."
+      },
+      "fast": {
+        "heading": "No Setup",
+        "text": "Download, install (2 min), press Ctrl+Space. Dragon requires 2-3 hours of training and configuration. Whisper Cheap works immediately."
+      }
+    },
+    "dragon_better": {
+      "title": "What Dragon Does Better",
+      "intro": "Being honest: Dragon has advantages in specific scenarios.",
+      "features": [
+        {
+          "heading": "Medical/Legal Vocabulary",
+          "text": "Dragon has specialized vocabularies trained on years of medical and legal terminology. Whisper Cheap uses general language. If you dictate complex legal documents, Dragon is more accurate."
+        },
+        {
+          "heading": "Voice Commands & Macros",
+          "text": "Dragon lets you create voice commands ('Format bold', 'Open file') and macros. Whisper Cheap only transcribes text—no automation."
+        },
+        {
+          "heading": "Auto-Punctuation After Training",
+          "text": "Dragon learns your speaking style and auto-punctuates. Whisper Cheap needs you to say 'period' or add punctuation manually (usually fine for most users)."
+        }
+      ]
+    },
+    "who": {
+      "title": "Who Should Choose Whisper Cheap?",
+      "perfect_for": [
+        "Budget-conscious users (no $500 budget)",
+        "General writers, developers, business users",
+        "Anyone frustrated with Dragon's complexity",
+        "Users who value privacy and offline processing",
+        "People who want modern, updated AI",
+        "Those who just need basic accurate dictation"
+      ]
+    },
+    "switch": {
+      "title": "How to Switch from Dragon",
+      "steps": [
+        {
+          "num": "1",
+          "title": "Download Whisper Cheap",
+          "desc": "Grab the latest release from our website."
+        },
+        {
+          "num": "2",
+          "title": "Install (5 minutes)",
+          "desc": "Run the installer, click finish. No configuration needed."
+        },
+        {
+          "num": "3",
+          "title": "Uninstall Dragon",
+          "desc": "Free up ~200MB of disk space. Reclaim your $500 decision."
+        },
+        {
+          "num": "4",
+          "title": "Start Using Ctrl+Space",
+          "desc": "Press in Word, Chrome, Notion, VS Code, email—everywhere. It works."
+        }
+      ]
+    },
+    "faq": {
+      "title": "FAQ: Dragon vs Whisper Cheap",
+      "items": [
+        {
+          "q": "How accurate is Whisper Cheap compared to Dragon?",
+          "a": "Comparable for general dictation. Whisper Cheap uses Parakeet V3 (2024), while Dragon uses legacy models. For everyday writing, you won't notice the difference. Dragon wins on specialized vocabularies (medical, legal)."
+        },
+        {
+          "q": "Does Whisper Cheap support voice commands?",
+          "a": "No. Whisper Cheap transcribes text only. If you need voice commands and macros, Dragon is better. For simple dictation, Whisper Cheap is perfect."
+        },
+        {
+          "q": "Can I import my Dragon data?",
+          "a": "Dragon's data is proprietary. But Whisper Cheap starts fresh with no training needed, so migration is simple: just switch hotkeys."
+        },
+        {
+          "q": "Does Whisper Cheap work in the same apps as Dragon?",
+          "a": "Yes. Word, Chrome, Notion, Slack, VS Code, email, Obsidian—any app where you can paste text. Just press Ctrl+Space."
+        },
+        {
+          "q": "Is Whisper Cheap really 100% local?",
+          "a": "Yes. The AI model runs entirely on your PC. Your microphone input never leaves your computer. No uploads, no cloud, no analytics."
+        },
+        {
+          "q": "What if I need medical/legal vocabulary?",
+          "a": "For highly specialized terms, Dragon is more accurate after training. For general medical/legal writing, Whisper Cheap is sufficient. You can add custom terms in the settings."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Stop Overpaying for Voice Dictation",
+      "subtitle": "Dragon costs $500. Whisper Cheap is free. Try it.",
+      "button": "Download"
+    }
+  },
+  "vs_wispr_flow": {
+    "meta": {
+      "title": "Wispr Flow Alternative - Free AI Dictation Without Limits",
+      "description": "Looking for a Wispr Flow alternative? Whisper Cheap is 100% free with unlimited words. No 2,000/week limit. Works offline. Download now.",
+      "keywords": "wispr flow alternative, wispr alternative, wispr flow free alternative, better than wispr flow, wispr flow competitor, wispr flow vs whisper cheap, wispr flow unlimited alternative, wispr flow offline alternative"
+    },
+    "hero": {
+      "badge": "Better Alternative",
+      "title": "Wispr Flow Alternative: Unlimited, Free, Forever",
+      "subtitle": "Stop paying $15/month. Whisper Cheap offers unlimited words, zero cost, and works completely offline."
+    },
+    "problem": {
+      "title": "Why Wispr Flow Users Are Looking for Alternatives",
+      "issue1Title": "Word Limit Frustration",
+      "issue1Desc": "2,000 words/week free tier is not enough. Hit the limit mid-sentence? Start over next week.",
+      "issue2Title": "Subscription Costs Add Up",
+      "issue2Desc": "$12-15/month = $180/year. That's $1,800 over a decade for a basic feature.",
+      "issue3Title": "Your Voice in the Cloud",
+      "issue3Desc": "Every word you say gets uploaded to Wispr's servers. Where does it stay? How long? Who knows."
+    },
+    "comparison": {
+      "title": "Whisper Cheap vs Wispr Flow: Complete Comparison",
+      "headers": [
+        "Feature",
+        "Whisper Cheap",
+        "Wispr Flow"
+      ],
+      "rows": [
+        [
+          "Price",
+          "Free forever",
+          "$12-15/month"
+        ],
+        [
+          "Word limit",
+          "Unlimited",
+          "2,000/week free tier"
+        ],
+        [
+          "Processing",
+          "100% local (offline)",
+          "Cloud-based"
+        ],
+        [
+          "Account required",
+          "No",
+          "Yes"
+        ],
+        [
+          "Auto-edits with AI",
+          "Not yet",
+          "Yes"
+        ],
+        [
+          "Multi-device sync",
+          "Not needed (local)",
+          "Yes"
+        ],
+        [
+          "Works without internet",
+          "Yes",
+          "No"
+        ],
+        [
+          "Privacy",
+          "100% local",
+          "Server-stored"
+        ],
+        [
+          "Open source",
+          "Yes",
+          "No"
+        ],
+        [
+          "Voice upload",
+          "Never",
+          "Always"
+        ]
+      ]
+    },
+    "differences": {
+      "title": "Key Differences",
+      "diff1Title": "Unlimited vs 2,000 Words/Week",
+      "diff1Desc": "Wispr Flow's free tier caps at 2,000 words/week. That's ~8 minutes of continuous dictation. Whisper Cheap has zero limits. Dictate for hours if you want.",
+      "diff2Title": "Free Forever vs $180/Year",
+      "diff2Desc": "Pay nothing with Whisper Cheap, ever. No hidden tiers, no 'Pro' features. Everything is included. With Wispr, you'll eventually hit the limit and pay up.",
+      "diff3Title": "100% Local vs Cloud Upload",
+      "diff3Desc": "Your voice never leaves your computer with Whisper Cheap. Wispr uploads every word to their servers. For sensitive content, that's a dealbreaker.",
+      "diff4Title": "No Account vs Mandatory Signup",
+      "diff4Desc": "Download, install, use. Zero friction. Wispr requires email, password, and phone verification. More friction = more friction abandonment."
+    },
+    "wispr": {
+      "title": "What Wispr Flow Does Better",
+      "desc": "We're honest. Wispr has some advantages:",
+      "features": [
+        "Multi-device sync (phone, web, desktop)",
+        "AI auto-corrects grammar and formatting",
+        "Mobile app for on-the-go dictation",
+        "Existing user base and integrations"
+      ]
+    },
+    "whoShouldChoose": {
+      "title": "Who Should Choose Whisper Cheap?",
+      "profiles": [
+        {
+          "name": "Heavy Dictation Users",
+          "desc": "You hit Wispr's word limit regularly. You need unlimited dictation, not a 2,000-word ceiling."
+        },
+        {
+          "name": "Privacy-Conscious Users",
+          "desc": "Your voice is personal. You don't want it stored on cloud servers or used to train AI models."
+        },
+        {
+          "name": "Budget-Conscious Users",
+          "desc": "You can't justify $180/year for a tool that should be free. You have better things to spend money on."
+        },
+        {
+          "name": "Windows-Primary Users",
+          "desc": "You work mostly on desktop/laptop. You don't need mobile sync. Local is simpler and faster."
+        },
+        {
+          "name": "Offline Workers",
+          "desc": "You travel, work in places without WiFi, or have unreliable internet. Wispr won't work. Whisper Cheap always works."
+        }
+      ]
+    },
+    "switch": {
+      "title": "How to Switch from Wispr Flow",
+      "step1Title": "1. Download Whisper Cheap",
+      "step1Desc": "Get the free installer from GitHub. No email, no signup.",
+      "step2Title": "2. Install (2 Minutes)",
+      "step2Desc": "Run the installer, choose install location, done. It downloads the AI model automatically.",
+      "step3Title": "3. Set Your Hotkey",
+      "step3Desc": "Configure Ctrl+Space or your preferred hotkey in Settings.",
+      "step4Title": "4. Start Dictating",
+      "step4Desc": "Open any text editor, press your hotkey, speak, and watch the text appear.",
+      "step5Title": "5. Optionally Export From Wispr",
+      "step5Desc": "Export your history from Wispr and import it into Whisper Cheap for continuity."
+    },
+    "faq": {
+      "title": "Questions About the Switch",
+      "q1": "Is Whisper Cheap really free forever?",
+      "a1": "Yes. 100% free, no catches, no premium tiers. Open source (MIT license). The code is on GitHub—anyone can verify it's truly free.",
+      "q2": "How accurate is Whisper Cheap compared to Wispr?",
+      "a2": "Very accurate. Uses the same underlying AI architecture (Parakeet/Whisper). Accuracy varies by microphone quality and background noise, just like Wispr. For most users, the difference is negligible.",
+      "q3": "Does it work in the same apps?",
+      "a3": "Yes. Whisper Cheap works anywhere—Word, Google Docs, Notion, Slack, email, Discord. Anywhere you can paste text.",
+      "q4": "Will I lose my Wispr history?",
+      "a4": "Export from Wispr as a CSV/JSON file, then import into Whisper Cheap. Your transcriptions transfer over.",
+      "q5": "What if I need multi-device sync?",
+      "a5": "Whisper Cheap is local-only, so multi-device sync isn't built-in. But your history stays on your PC. If you absolutely need sync, keep Wispr. For most users, local-only is faster and more private.",
+      "q6": "Does Whisper Cheap have auto-edits?",
+      "a6": "Not yet, but it's on the roadmap. For now, you dictate and manually edit if needed. Most users find this a small tradeoff for unlimited words and zero cost."
+    },
+    "cta": {
+      "title": "Ready to Switch?",
+      "subtitle": "Get unlimited dictation. Forever free. No word limits. No subscriptions.",
+      "button": "Download"
+    }
+  },
+  "writers": {
+    "meta": {
+      "title": "AI Dictation for Writers - Write 3x Faster | Whisper Cheap",
+      "description": "Free AI dictation software for writers. Write novels, articles, and scripts by voice. Capture ideas before they fade. 100% private, works offline."
+    },
+    "hero": {
+      "hook": "Capture Every Idea at the Speed of Thought",
+      "subtitle": "Stop losing sentences while your fingers catch up. Write your first draft in half the time. Dictation built for the creative process.",
+      "cta": "Download"
+    },
+    "problem": {
+      "title": "The Writer's Dilemma: Thinking vs Typing",
+      "intro": "Your mind moves faster than your fingers ever could.",
+      "painPoint1": "Typing can't keep up with your thoughts",
+      "painPoint1Desc": "By the time you finish typing one sentence, you've forgotten the next three ideas.",
+      "painPoint2": "Ideas fade while you hunt for keys",
+      "painPoint2Desc": "Keyboard shortcuts, tab switching, reaching for the mouse—it all breaks your creative flow.",
+      "painPoint3": "Writer's block and the inner critic",
+      "painPoint3Desc": "Typing makes you edit as you write. Speaking helps you draft freely without judgment.",
+      "painPoint4": "RSI and typing fatigue are real",
+      "painPoint4Desc": "Wrist pain, shoulder tension, and repetitive strain don't go away. Voice offers relief."
+    },
+    "solution": {
+      "title": "How Voice Dictation Changes Your Writing",
+      "intro": "Professional writers have used dictation for decades. Now it's free, accurate, and works offline.",
+      "benefit1Title": "First Drafts in Half the Time",
+      "benefit1Desc": "Speak naturally and transcription keeps pace. Your first draft becomes real in one session instead of three.",
+      "benefit2Title": "Capture Ideas Anywhere",
+      "benefit2Desc": "Walking, thinking in bed, in a coffee shop. Your phone's microphone is always ready. Ideas don't fade anymore.",
+      "benefit3Title": "Beat Writer's Block",
+      "benefit3Desc": "Speaking bypasses the internal editor. You just talk—no second-guessing, no perfectionism slowing you down."
+    },
+    "whyWhisperCheap": {
+      "title": "Why Writers Choose Whisper Cheap",
+      "reason1Title": "Free Forever = No Paywall to Overcome",
+      "reason1Desc": "No subscription. No word limits. No 'upgrade to unlock' nonsense. Download and start writing.",
+      "reason2Title": "100% Offline = Write Anywhere, Anytime",
+      "reason2Desc": "No WiFi needed. Airport, road trip, cabin—your AI model is on your computer. Works without internet.",
+      "reason3Title": "Your Stories Stay Yours",
+      "reason3Desc": "Your voice never leaves your computer. No cloud, no data collection, no AI companies training on your unpublished work."
+    },
+    "workflows": {
+      "title": "Real Writing Workflows with Whisper Cheap",
+      "intro": "Different writers use dictation differently. Here's how.",
+      "workflow1Title": "Morning Pages & Journaling",
+      "workflow1Desc": "Capture stream-of-consciousness thoughts first thing. No editing, just voice. 10-15 minutes becomes 2,000+ words.",
+      "workflow2Title": "First Draft Power Sessions",
+      "workflow2Desc": "Dictate 2,000-5,000 words in one sitting. Speaking maintains narrative momentum. Edit later.",
+      "workflow3Title": "Dialogue Writing",
+      "workflow3Desc": "Say your character's lines aloud. Hear how they sound. Natural speech becomes authentic dialogue.",
+      "workflow4Title": "Outlining & Brainstorming",
+      "workflow4Desc": "Talk through your plot. Capture ideas verbally. Organize later. Thinking happens faster than typing.",
+      "workflow5Title": "Research Notes",
+      "workflow5Desc": "Listen to a podcast, article, or video. Narrate key points into Whisper Cheap. Hands-free note-taking."
+    },
+    "tips": {
+      "title": "Tips for Writers Using Voice Dictation",
+      "intro": "A few practices make dictation even more powerful.",
+      "tip1Title": "Speak Your Punctuation",
+      "tip1Desc": "Say 'period', 'comma', 'question mark', 'exclamation point' when you need them. Or edit in a second pass.",
+      "tip2Title": "Keep Sessions Short (15-20 min)",
+      "tip2Desc": "Your voice gets tired. Dictate in focused bursts, then switch to editing or reading.",
+      "tip3Title": "Edit in a Separate Pass",
+      "tip3Desc": "First pass: dictate everything. Second pass: edit. Separating drafting from editing accelerates both.",
+      "tip4Title": "Read Your Dialogue Aloud",
+      "tip4Desc": "Before you dictate, read the character's line. Then speak it naturally into the mic.",
+      "tip5Title": "Minimize Ambient Noise",
+      "tip5Desc": "Quiet room = better accuracy. If you're noisy, Whisper Cheap has VAD (voice detection) to ignore background sound."
+    },
+    "faqWriters": {
+      "title": "Questions Writers Ask",
+      "q1": "Will it understand my accent?",
+      "a1": "Whisper Cheap is trained on 99 languages and accents. It's very tolerant. Test with a short dictation to see how it performs with your voice.",
+      "q2": "Can I dictate directly into Scrivener, Word, or Google Docs?",
+      "a2": "Yes. Press your hotkey (Ctrl+Space), dictate, and release. The text pastes wherever your cursor is—Word, Scrivener, Google Docs, Notion, anywhere.",
+      "q3": "How do I handle punctuation?",
+      "a3": "Say the punctuation word ('period', 'comma', 'dash') or add it in your edit pass. Many writers skip it during dictation and clean up later.",
+      "q4": "Do I need to edit everything?",
+      "a4": "Accuracy is very high, but yes—expect a light edit pass. Whisper Cheap isn't perfect, but it's fast enough that total time is still much less than typing.",
+      "q5": "Can I use it for different genres?",
+      "a5": "Absolutely. Literary fiction, romance, sci-fi, nonfiction, screenplays—your voice works in all of them. Dialogue especially benefits from spoken delivery.",
+      "q6": "What if there's too much background noise?",
+      "a6": "Whisper Cheap includes voice detection (VAD). Turn it on to ignore silence and background noise. Works best in quiet environments."
+    },
+    "cta": {
+      "title": "Stop Losing Ideas. Start Writing Faster.",
+      "subtitle": "Your next draft is waiting. Download Whisper Cheap free.",
+      "button": "Download"
+    }
+  },
+  "students": {
+    "meta": {
+      "title": "Voice Typing for Students - Take Notes Faster | Whisper Cheap",
+      "description": "Free voice typing for students. Take lecture notes, write essays, study faster. Works offline in class. No subscription needed.",
+      "keywords": "voice typing for students, dictation for studying, student note taking app, voice notes app, AI dictation students, speech to text students"
+    },
+    "hero": {
+      "tagline": "FOR STUDENTS",
+      "title": "Study Smarter, Type Less",
+      "subtitle": "Capture lecture notes in real-time. Write essays faster. Focus on learning, not typing.",
+      "cta": "Download",
+      "highlight": "100% free, no subscriptions, works offline"
+    },
+    "problem": {
+      "title": "The Student's Challenge",
+      "intro": "Between classes, assignments, and notes, students spend way too much time typing.",
+      "pain1": "Lecture notes can't keep pace",
+      "pain1Desc": "By the time you finish typing one slide, the professor moved to three more. Your notes become incomplete.",
+      "pain2": "Essays and papers take forever",
+      "pain2Desc": "Staring at a blank page. Typing one sentence at a time. Your thoughts move faster than your fingers.",
+      "pain3": "Hand cramps and wrist pain",
+      "pain3Desc": "Hours of typing every day causes real pain. Your hands hurt before the semester even ends.",
+      "pain4": "No time to actually study",
+      "pain4Desc": "So much time typing notes means less time understanding the material. You're transcribing, not learning."
+    },
+    "solution": {
+      "title": "Voice Typing Changes Everything",
+      "intro": "Dictation helps students focus on learning, not transcribing.",
+      "benefit1": "Capture Complete Notes",
+      "benefit1Desc": "Speak naturally and keep pace with lectures. Your notes are complete and accurate.",
+      "benefit2": "Write Essays 2x Faster",
+      "benefit2Desc": "Thinking faster than typing? Speak your ideas and refine later. First drafts become real.",
+      "benefit3": "Less Physical Pain",
+      "benefit3Desc": "Reduce hand strain and wrist pain. Your body stays healthy during finals season."
+    },
+    "whyWhisperCheap": {
+      "title": "Why Students Love Whisper Cheap",
+      "free": {
+        "title": "Free Forever (No Subscription)",
+        "desc": "Whisper Cheap costs $0. Other apps charge $10-15/month. That's $180/year you can spend on actual textbooks."
+      },
+      "offline": {
+        "title": "Works Offline (Even in Class)",
+        "desc": "No WiFi needed. Your AI model is on your laptop. Lecture hall, dorm, library—dictation works everywhere."
+      },
+      "private": {
+        "title": "Your Notes Stay Yours",
+        "desc": "Your voice never leaves your computer. No cloud servers. No data collection. 100% private."
+      },
+      "easy": {
+        "title": "Dead Simple to Use",
+        "desc": "Press hotkey, speak, release. Text appears. No training, no setup. Works in Word, Google Docs, Notion—anywhere."
+      },
+      "accessible": {
+        "title": "Helps Students with Disabilities",
+        "desc": "Voice typing is essential for students with RSI, dysgraphia, or mobility issues. Whisper Cheap makes it free and accessible."
+      }
+    },
+    "useCases": {
+      "title": "Common Ways Students Use Voice Typing",
+      "cases": [
+        {
+          "icon": "BookOpen",
+          "title": "Lecture Notes",
+          "desc": "Capture every slide in real-time without missing key points. Reviewing your notes is much easier when they're complete."
+        },
+        {
+          "icon": "FileText",
+          "title": "Essay Writing",
+          "desc": "Dictate your ideas for essays, research papers, and written assignments. Separate thinking from editing."
+        },
+        {
+          "icon": "Lightbulb",
+          "title": "Study Notes & Summaries",
+          "desc": "Create study guides by speaking through the material. Reviewing what you said helps you remember."
+        },
+        {
+          "icon": "Brain",
+          "title": "Flashcard Creation",
+          "desc": "Quickly create digital flashcards by voice. Perfect for memorization while walking or commuting."
+        },
+        {
+          "icon": "Search",
+          "title": "Research & Reference Notes",
+          "desc": "Narrate key findings from articles and videos. Voice notes capture context faster than typing."
+        }
+      ]
+    },
+    "accessibility": {
+      "title": "Accessibility for All Students",
+      "intro": "Voice typing isn't just faster—it's essential for students with different needs.",
+      "feature1": "RSI & Hand Pain Relief",
+      "feature1Desc": "Students with repetitive strain injury, carpal tunnel, or arthritis can type without pain. Voice offers immediate relief.",
+      "feature2": "Dysgraphia & Writing Disabilities",
+      "feature2Desc": "Students with dysgraphia or writing-related disabilities can express ideas orally instead of struggling with text input.",
+      "feature3": "ADHD & Focus",
+      "feature3Desc": "Speaking helps ADHD students organize thoughts faster and maintain focus. Fewer keystrokes = better flow.",
+      "feature4": "Motor Control Differences",
+      "feature4Desc": "Students with cerebral palsy, dystonia, or tremors can dictate instead of relying on precise keyboard control."
+    },
+    "tips": {
+      "title": "Pro Tips for Student Dictation",
+      "intro": "A few practices make voice typing even more powerful in school.",
+      "tip1": "Use it for lectures, not formulas",
+      "tip1Desc": "Great for capturing concepts and explanations. Math formulas and code: spell them out or type manually.",
+      "tip2": "Review and edit your notes",
+      "tip2Desc": "Take notes by voice, then spend 5 minutes reviewing. Fix accidental mishearings. Clarify unclear parts.",
+      "tip3": "Combine with traditional notes",
+      "tip3Desc": "Use voice for prose. Draw diagrams by hand. Both together give you the best notes possible.",
+      "tip4": "Create a study vocabulary",
+      "tip4Desc": "Say 'period' or 'comma' for punctuation. Or just punctuate during editing. Most students find this natural quickly.",
+      "tip5": "Study by speaking",
+      "tip5Desc": "Create practice questions aloud. Review notes by speaking them back. Active studying is more effective than passive reading."
+    },
+    "testimonial": {
+      "quote": "I used to miss half of lecture taking notes. Now I can listen fully and capture everything. I actually understand the material better, and my hands don't hurt.",
+      "author": "Sam, Computer Science Student"
+    },
+    "faq": {
+      "title": "Questions Students Ask",
+      "items": [
+        {
+          "q": "Is it really free?",
+          "a": "Yes. 100% free, no subscriptions, no limits. Open source (MIT). All updates and features are free forever."
+        },
+        {
+          "q": "Does it work in Google Docs and Word?",
+          "a": "Absolutely. Press your hotkey (Ctrl+Space), dictate, and release. Text pastes into Google Docs, Word, or any text editor."
+        },
+        {
+          "q": "What about accuracy?",
+          "a": "Very accurate for English, Spanish, and 100+ languages. Accuracy depends on microphone quality and background noise. Quiet study spaces = better results."
+        },
+        {
+          "q": "Does it work offline?",
+          "a": "Yes. Your AI model runs on your computer—no internet needed. Perfect for offline studying or when WiFi isn't available."
+        },
+        {
+          "q": "Will my notes be perfect?",
+          "a": "Not always. Expect to fix 2-5% of words. Homonyms (their/there) and technical terms may need manual correction. Still much faster than typing."
+        },
+        {
+          "q": "Can I use it in all classes?",
+          "a": "Yes. Works in lectures, labs, online classes, group projects—any environment where text input is needed. Some professors appreciate detailed notes."
+        },
+        {
+          "q": "Is there a word limit?",
+          "a": "No word limit. Dictate as much as you want. Unlimited dictation means you're never forced to stop in the middle of class."
+        },
+        {
+          "q": "What about privacy during exams?",
+          "a": "Whisper Cheap is 100% local—your voice never leaves your computer. No data is uploaded or stored anywhere. Your words stay yours."
+        }
+      ]
+    },
+    "comparison": {
+      "title": "Why Students Choose Whisper Cheap",
+      "intro": "Compared to other dictation tools and study apps, here's why Whisper Cheap wins for students.",
+      "rows": [
+        {
+          "feature": "Price",
+          "whisper": "Free forever",
+          "competitors": "$10-15/month"
+        },
+        {
+          "feature": "Works offline",
+          "whisper": "Yes",
+          "competitors": "No (cloud required)"
+        },
+        {
+          "feature": "Subscription",
+          "whisper": "Never",
+          "competitors": "Usually required"
+        },
+        {
+          "feature": "Privacy",
+          "whisper": "100% local",
+          "competitors": "Cloud-stored"
+        },
+        {
+          "feature": "Word limit",
+          "whisper": "Unlimited",
+          "competitors": "2,000-5,000 words/month"
+        },
+        {
+          "feature": "Account required",
+          "whisper": "No",
+          "competitors": "Usually yes"
+        },
+        {
+          "feature": "Works in Google Docs",
+          "whisper": "Yes",
+          "competitors": "Yes"
+        },
+        {
+          "feature": "Works in Word",
+          "whisper": "Yes",
+          "competitors": "Depends"
+        }
+      ]
+    },
+    "study_success": {
+      "title": "Real Results from Students",
+      "stats": [
+        {
+          "stat": "3x faster",
+          "desc": "Students complete essays in half the time compared to typing"
+        },
+        {
+          "stat": "Complete notes",
+          "desc": "No more missing lecture slides. Capture everything."
+        },
+        {
+          "stat": "Better grades",
+          "desc": "Students focus on learning content instead of transcribing. Better understanding = better performance."
+        },
+        {
+          "stat": "Pain relief",
+          "desc": "Students with RSI or hand pain report immediate relief using voice typing."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Ready to Study Smarter?",
+      "subtitle": "Download Whisper Cheap now. It's free, works offline, and requires zero setup.",
+      "button": "Download"
+    }
+  },
+  "developers": {
+    "meta": {
+      "title": "Voice Dictation for Developers | Code Faster, Type Less | Whisper Cheap",
+      "description": "Free voice typing for programmers. Dictate documentation, commit messages, PR descriptions, and Slack messages. Reduce RSI. Works in VS Code, terminal, anywhere.",
+      "keywords": "voice coding software, dictation for developers, voice typing for programmers, voice to text coding, free voice coding tool, code documentation dictation"
+    },
+    "hero": {
+      "tagline": "FOR DEVELOPERS",
+      "title": "Code Faster. Type Less.",
+      "subtitle": "Dictate your documentation, commit messages, and PRs without reaching for the keyboard.",
+      "highlight": "Hands on keyboard? Keep them there."
+    },
+    "pain": {
+      "title": "Why Developers Need Voice Dictation",
+      "items": [
+        {
+          "title": "Documentation is tedious",
+          "desc": "Writing good docs shouldn't mean carpal tunnel."
+        },
+        {
+          "title": "RSI is a real problem",
+          "desc": "Developers spend 8+ hours a day typing. Your wrists will thank you."
+        },
+        {
+          "title": "Commit messages and PRs take time",
+          "desc": "Context-switching between keyboard and voice saves seconds per day—adds up fast."
+        },
+        {
+          "title": "Slack/email while coding",
+          "desc": "Dictate messages without breaking flow."
+        }
+      ]
+    },
+    "useCases": {
+      "title": "What You Can Dictate",
+      "cases": [
+        {
+          "icon": "FileText",
+          "title": "Code Comments & Docstrings",
+          "desc": "Explain your code naturally. Better documentation, faster."
+        },
+        {
+          "icon": "GitBranch",
+          "title": "Git Commit Messages",
+          "desc": "Write meaningful commits without hunting for the right words."
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "PR Descriptions & Code Reviews",
+          "desc": "Explain your changes clearly. Voice flows better than typing."
+        },
+        {
+          "icon": "Slack",
+          "title": "Slack, Discord, Email",
+          "desc": "Reply in real-time without losing focus on your code."
+        },
+        {
+          "icon": "BookOpen",
+          "title": "README & Release Notes",
+          "desc": "Dictate complex explanations. Edit once, publish."
+        },
+        {
+          "icon": "Lightbulb",
+          "title": "TODOs & Bug Reports",
+          "desc": "Capture ideas before they fade."
+        }
+      ]
+    },
+    "tools": {
+      "title": "Works Everywhere You Code",
+      "description": "VS Code, terminal, GitHub, GitLab, Slack, Discord, Notion, Obsidian—any text field.",
+      "howItWorks": "Press Ctrl+Space → Speak → Text appears at your cursor. That's it."
+    },
+    "whyDevs": {
+      "title": "Why Developers Choose Whisper Cheap",
+      "reasons": [
+        {
+          "title": "Open Source (Check the Code)",
+          "desc": "MIT licensed. Hosted on GitHub. Verify exactly what it does. No black box."
+        },
+        {
+          "title": "100% Local (No API Keys)",
+          "desc": "AI runs on your PC. No data sent anywhere. No OpenAI credits needed."
+        },
+        {
+          "title": "Keyboard Shortcut (Ctrl+Space)",
+          "desc": "Lightning-fast. Set it once, use forever. Vim-friendly."
+        },
+        {
+          "title": "Free Forever",
+          "desc": "No premium tier. No limits. Unlimited dictation."
+        }
+      ]
+    },
+    "tips": {
+      "title": "Pro Tips for Dev Dictation",
+      "tips": [
+        "Spell out variable names: 'user underscore id' → user_id",
+        "Use for prose (comments, docs), not code syntax",
+        "Great for rubber duck debugging—explain your problem out loud",
+        "Combine with text editors: dictate, then edit visually",
+        "Works best with clear audio (headset recommended)"
+      ]
+    },
+    "github": {
+      "title": "Open Source on GitHub",
+      "desc": "Fork it. Contribute. Audit the code. It's yours.",
+      "button": "View on GitHub"
+    },
+    "faq": {
+      "title": "Questions for Developers",
+      "items": [
+        {
+          "q": "Does it work in the terminal?",
+          "a": "Yes. Any application with a text input field—terminals, IDEs, chat apps, everything."
+        },
+        {
+          "q": "Can it write actual code?",
+          "a": "No. Use it for prose (comments, docs, commit messages). For code, you still want the keyboard. Dictation excels at documentation."
+        },
+        {
+          "q": "Is the source code available?",
+          "a": "100%. MIT licensed, hosted on GitHub. Read it, modify it, redistribute it. That's the point."
+        },
+        {
+          "q": "Does it need internet?",
+          "a": "No. 100% local. The AI model runs on your PC. Download once, works offline forever."
+        },
+        {
+          "q": "How accurate is it?",
+          "a": "Very accurate for English and Spanish. For technical terms, spell them out. Accuracy improves with clear audio."
+        },
+        {
+          "q": "Can I customize the hotkey?",
+          "a": "Yes. Edit the config or use the settings UI. Change Ctrl+Space to whatever you want."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Skip the Typing.",
+      "subtitle": "Download Free",
+      "note": "Windows only. 100% local. No account needed."
+    }
+  },
+  "privacy": {
+    "meta": {
+      "title": "Private Speech-to-Text - 100% Local AI Dictation | Whisper Cheap",
+      "description": "The only free AI dictation that never uploads your voice. 100% local processing. No accounts, no cloud, no data collection. True privacy.",
+      "keywords": "private speech to text, secure voice dictation, private AI transcription, local speech recognition, speech to text without cloud, dictation that doesn't record"
+    },
+    "hero": {
+      "eyebrow": "Privacy First",
+      "title": "Private Speech-to-Text: Your Voice, Your Computer, No Cloud",
+      "subtitle": "100% local processing. No cloud uploads. No accounts. No data collection.",
+      "cta": "Download"
+    },
+    "problem": {
+      "title": "The Privacy Problem with Cloud Dictation",
+      "reason1": "Every word uploaded to remote servers for processing",
+      "reason2": "Your voice data stored indefinitely (or 'as long as legally required')",
+      "reason3": "Used to train AI models—your voice becomes training data",
+      "reason4": "Data breaches happen. Your audio could be exposed.",
+      "conclusion": "Cloud dictation is convenient but risky. Whisper Cheap runs 100% on your PC."
+    },
+    "how_protects": {
+      "title": "How Whisper Cheap Protects Your Privacy",
+      "local": {
+        "heading": "100% Local Processing",
+        "text": "The AI model runs entirely on your computer. Your voice never leaves your machine. No cloud servers, no uploads, no internet required after installation."
+      },
+      "no_account": {
+        "heading": "No Account Required",
+        "text": "Download, install, and start using immediately. Zero friction, zero data collection. No email, no passwords, no tracking. You own your data completely."
+      },
+      "open_source": {
+        "heading": "Open Source & Auditable",
+        "text": "Source code on GitHub. Anyone can review exactly what the app does. No hidden data collection, no backdoors. Transparency equals trust."
+      }
+    },
+    "use_cases": {
+      "title": "Who Needs Private Dictation?",
+      "intro": "Certain professions require absolute privacy. Whisper Cheap is built for them.",
+      "cases": [
+        {
+          "icon": "Scale",
+          "title": "Lawyers & Legal Professionals",
+          "desc": "Attorney-client privilege is sacred. Dictate sensitive case notes on your PC, not the cloud."
+        },
+        {
+          "icon": "Stethoscope",
+          "title": "Doctors & Healthcare Workers",
+          "desc": "Patient data and medical notes. HIPAA-conscious. Local processing means no risk of cloud storage violations."
+        },
+        {
+          "icon": "FileText",
+          "title": "Journalists & Writers",
+          "desc": "Protect sources. Draft sensitive articles. Your voice stays private, your work stays yours."
+        },
+        {
+          "icon": "Briefcase",
+          "title": "Business Professionals",
+          "desc": "Confidential meetings, strategy notes, proprietary information. Never leaves your computer."
+        },
+        {
+          "icon": "User",
+          "title": "Privacy-Conscious Users",
+          "desc": "You value your privacy. You do not want tech companies training AI on your voice."
+        }
+      ]
+    },
+    "comparison": {
+      "title": "Privacy Comparison: Whisper Cheap vs Cloud Services",
+      "headers": [
+        "Feature",
+        "Whisper Cheap",
+        "Cloud Services"
+      ],
+      "rows": [
+        [
+          "Voice upload",
+          "Never uploaded",
+          "Always uploaded"
+        ],
+        [
+          "Data storage",
+          "Your PC only",
+          "Company servers (6mo-3yr typical)"
+        ],
+        [
+          "Account required",
+          "No",
+          "Yes (email verification)"
+        ],
+        [
+          "Open source",
+          "Yes (MIT license)",
+          "No (proprietary)"
+        ],
+        [
+          "Data collection",
+          "None",
+          "Yes (analytics, usage patterns)"
+        ],
+        [
+          "Training data",
+          "Never used",
+          "Possibly (check terms)"
+        ],
+        [
+          "Internet required",
+          "No (after install)",
+          "Always"
+        ],
+        [
+          "Breach risk",
+          "Local only",
+          "Cloud servers vulnerable"
+        ],
+        [
+          "Third-party access",
+          "No",
+          "Yes (subpoenas, laws)"
+        ],
+        [
+          "Transparency",
+          "Source code auditable",
+          "Black box"
+        ]
+      ]
+    },
+    "faq": {
+      "title": "Privacy Questions",
+      "items": [
+        {
+          "q": "Is my voice really never uploaded?",
+          "a": "100% yes. The AI model runs on your PC. Your microphone input is processed locally and never sent to any server. You can verify this by monitoring your network traffic or reviewing the open source code."
+        },
+        {
+          "q": "What happens to my voice data after transcription?",
+          "a": "You control it completely. Whisper Cheap stores transcriptions in local SQLite database on your PC. You can delete them anytime. We do not keep copies, backups, or access logs."
+        },
+        {
+          "q": "Can my employer monitor my dictation?",
+          "a": "Only if your employer has direct access to your computer or network. Whisper Cheap does not send data to any company server, so no employer dashboard exists. Your dictation is invisible to anyone but you."
+        },
+        {
+          "q": "Is it HIPAA compliant?",
+          "a": "Whisper Cheap itself is HIPAA-friendly because no data leaves your computer. However, HIPAA compliance depends on your overall setup. Consult with your compliance officer. The local nature of the software eliminates the biggest HIPAA risk: cloud storage."
+        },
+        {
+          "q": "Does it collect usage analytics?",
+          "a": "No. We do not track how often you use it, what you dictate, or where you use it. Zero telemetry, zero analytics, zero beacons."
+        },
+        {
+          "q": "What if I uninstall the app?",
+          "a": "All your local data (transcription history, settings, audio files) stays on your PC or gets deleted based on your preference. Nothing is synced to our servers because we do not have servers."
+        },
+        {
+          "q": "How do I verify the app is truly private?",
+          "a": "Check the source code on GitHub. Run a network monitoring tool (Wireshark) while using the app. You will see zero outbound connections to remote servers. The code is MIT licensed and auditable."
+        },
+        {
+          "q": "What about future versions? Will privacy always be guaranteed?",
+          "a": "Yes. Whisper Cheap is open source. If we ever added cloud features, the community would fork the project. Privacy is a core principle, not a feature."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Your Voice, Your Privacy, Your Control",
+      "subtitle": "Download Whisper Cheap. Process audio locally. Keep your data yours.",
+      "button": "Download"
+    }
+  },
+  "lawyers": {
+    "meta": {
+      "title": "Free Legal Dictation Software for Lawyers | Whisper Cheap",
+      "description": "Professional dictation software for lawyers. 100% private, client privilege protected. Free alternative to Dragon Legal. Download now.",
+      "keywords": "legal dictation software free, dictation for lawyers, attorney dictation, private legal dictation, law practice voice dictation, professional legal transcription"
+    },
+    "hero": {
+      "eyebrow": "For Legal Professionals",
+      "title": "Attorney-Client Privilege Protected Dictation",
+      "subtitle": "Confidential legal dictation software. 100% on your PC. No cloud uploads. Free alternative to Dragon Legal.",
+      "cta": "Download"
+    },
+    "privacy": {
+      "title": "Absolute Privacy for Sensitive Client Work",
+      "intro": "Legal practice demands confidentiality. Your client information never leaves your computer.",
+      "point1Title": "Zero Cloud Uploads",
+      "point1Desc": "Every word stays on your device. No servers, no third parties, no compliance risks.",
+      "point2Title": "HIPAA & Legal Compliance Ready",
+      "point2Desc": "100% local processing means zero data leakage. Your practice controls all data.",
+      "point3Title": "Audit-Ready Technology",
+      "point3Desc": "No cloud backend, no external APIs, no data retention policies to worry about.",
+      "point4Title": "Client Privilege Protected",
+      "point4Desc": "Confidential discussions stay confidential. No intercepted uploads, no stored transcripts on external servers."
+    },
+    "useCases": {
+      "title": "Real Workflows: How Attorneys Use Whisper Cheap",
+      "intro": "From case notes to pleadings—dictation speeds up critical legal work.",
+      "case1Title": "Case Notes & Depositions",
+      "case1Desc": "Dictate key points during depositions without typing. Hands free. Focus on the client.",
+      "case2Title": "Legal Memoranda & Briefs",
+      "case2Desc": "Draft arguments verbally first. Capture legal reasoning naturally. Edit later.",
+      "case3Title": "Client Intake & Interview Notes",
+      "case3Desc": "Record client information verbally during intake meetings. Private and immediate.",
+      "case4Title": "Email Correspondence",
+      "case4Desc": "Dictate professional emails quickly. Perfect for responding to opposing counsel.",
+      "case5Title": "Research Notes & Citations",
+      "case5Desc": "Verbally capture research findings without breaking focus. Legal terminology handled accurately.",
+      "case6Title": "Pleadings & Court Documents",
+      "case6Desc": "Draft motions, complaints, and responses by voice. Professional tone, faster drafting."
+    },
+    "whyLawyers": {
+      "title": "Why Attorneys Choose Whisper Cheap",
+      "reason1Title": "Billable Hours Efficiency",
+      "reason1Desc": "Voice dictation saves 30-50% drafting time. More billable hours, same effort. Type 40 WPM, speak 150 WPM.",
+      "reason2Title": "100% Confidential",
+      "reason2Desc": "Your clients trust you. Whisper Cheap keeps that trust intact—zero data leaves your computer.",
+      "reason3Title": "No Subscription Costs",
+      "reason3Desc": "Dragon Legal costs $500+. Whisper Cheap is free. No monthly fees eating into margins."
+    },
+    "comparison": {
+      "title": "Whisper Cheap vs Dragon Legal",
+      "features": [
+        {
+          "label": "Price",
+          "dragon": "$500-1200",
+          "whisper": "Free"
+        },
+        {
+          "label": "Annual cost",
+          "dragon": "$0 (one-time, may require updates)",
+          "whisper": "$0"
+        },
+        {
+          "label": "Setup time",
+          "dragon": "2-3 hours (training, config)",
+          "whisper": "5 minutes"
+        },
+        {
+          "label": "Cloud uploads",
+          "dragon": "Local processing",
+          "whisper": "100% local"
+        },
+        {
+          "label": "Privacy guarantee",
+          "dragon": "Corporate responsibility",
+          "whisper": "No uploads, period"
+        },
+        {
+          "label": "Legal vocabulary",
+          "dragon": "Specialized training",
+          "whisper": "General + customizable"
+        },
+        {
+          "label": "Accuracy",
+          "dragon": "Excellent (after training)",
+          "whisper": "Excellent (no training)"
+        },
+        {
+          "label": "Works in Google Docs",
+          "dragon": "Yes",
+          "whisper": "Yes"
+        },
+        {
+          "label": "Works in Word",
+          "dragon": "Yes",
+          "whisper": "Yes"
+        },
+        {
+          "label": "Works offline",
+          "dragon": "Yes",
+          "whisper": "Yes"
+        },
+        {
+          "label": "Modern AI",
+          "dragon": "Legacy (2012)",
+          "whisper": "Current (2024)"
+        },
+        {
+          "label": "Open source code",
+          "dragon": "No",
+          "whisper": "Yes (MIT)"
+        }
+      ]
+    },
+    "dragonBetter": {
+      "title": "Where Dragon Legal Still Wins",
+      "intro": "Transparency: Dragon has specific advantages for highly specialized legal work.",
+      "features": [
+        {
+          "heading": "Specialized Legal Terminology",
+          "text": "Dragon's legal vocabulary database is trained on decades of court documents and legal briefs. For highly technical motions and statutes, Dragon's accuracy is superior out-of-the-box."
+        },
+        {
+          "heading": "Voice Commands for Court Software",
+          "text": "Dragon supports voice commands for specific legal apps (Westlaw, LexisNexis, specific case management systems). Whisper Cheap does transcription only—no command automation."
+        },
+        {
+          "heading": "Legacy Integration",
+          "text": "If your firm uses proprietary legal software built around Dragon integration, switching has compatibility costs."
+        }
+      ]
+    },
+    "perfFor": {
+      "title": "Perfect For:",
+      "profiles": [
+        "Solo practitioners and small law firms",
+        "Budget-conscious legal practices",
+        "General practice (not hyper-specialized)",
+        "Attorneys who value privacy above all",
+        "Firms tired of licensing Dragon renewals",
+        "Legal professionals who want modern technology"
+      ]
+    },
+    "tips": {
+      "title": "Pro Tips for Legal Dictation",
+      "tips": [
+        "Spell out case names and citations: 'Smith vs Johnson' → SV Johnson (then correct manually)",
+        "Say punctuation words ('period', 'comma') or clean up in editing pass",
+        "Use for memos, emails, notes, briefs—anywhere you dictate prose",
+        "Create custom terminology list in settings for firm-specific jargon",
+        "Keep sessions under 30 minutes—legal focus requires concentration breaks"
+      ]
+    },
+    "faqLawyers": {
+      "title": "FAQ: Legal Dictation",
+      "q1": "Is my client information truly private?",
+      "a1": "Yes. 100% local processing means nothing is uploaded, stored on servers, or shared with third parties. Your client data stays on your device. No cloud backend exists.",
+      "q2": "Does it handle legal terminology accurately?",
+      "a2": "Very well for general legal writing. For highly specialized terms (specific statutes, rare case citations), you'll edit more. You can add custom terms in settings for your firm's jargon.",
+      "q3": "Can I use it for depositions?",
+      "a3": "Yes. Dictate notes during depositions hands-free. Official court transcripts still need a stenographer, but your working notes are quick and confidential.",
+      "q4": "What about attorney-client privilege?",
+      "a4": "Whisper Cheap enforces privilege by design—nothing leaves your computer. No backdoors, no logging, no external access. The data is entirely yours.",
+      "q5": "How does accuracy compare to Dragon for legal work?",
+      "a5": "For general legal writing, accuracy is comparable. For highly technical motions, Dragon's specialized legal vocabulary wins. For most practices, Whisper Cheap is sufficient.",
+      "q6": "Can I dictate into case management software?",
+      "a6": "Yes. Any software with a text field (Word, Google Docs, email, most case management tools). Press Ctrl+Space, dictate, text pastes. No special integration needed."
+    },
+    "complianceNote": {
+      "title": "Compliance & Security",
+      "text": "Whisper Cheap is built for legal confidentiality. No cloud infrastructure means zero compliance risk from third-party data breaches. Your transcriptions, notes, and client information remain entirely under your control on your local machine."
+    },
+    "cta": {
+      "title": "Free Legal Dictation. Private. Secure. Now.",
+      "subtitle": "Stop overpaying for Dragon. Start dictating confidentially.",
+      "button": "Download"
+    }
+  },
+  "blog": {
+    "voiceTypingTips": {
+      "meta": {
+        "title": "Voice Typing Productivity Tips - Write Faster | Whisper Cheap",
+        "description": "Advanced voice typing tips and productivity hacks. Maximize accuracy, speed, and efficiency with AI dictation.",
+        "keywords": "voice typing tips, AI dictation productivity, voice dictation hacks, speech to text optimization"
+      },
+      "hero": {
+        "badge": "PRODUCTIVITY TIPS",
+        "title": "Voice Typing Productivity Tips",
+        "subtitle": "Master advanced techniques to write faster and more accurately",
+        "date": "January 3, 2025",
+        "readingTime": "8 min read",
+        "author": "Whisper Cheap Team",
+        "authorRole": "Software Engineers"
+      },
+      "intro": {
+        "p1": "Coming soon. Advanced productivity tips for voice dictation users.",
+        "p2": "Master the art of voice typing with these expert techniques."
+      },
+      "categories": [],
+      "tips": []
+    },
+    "aiDictationGuide": {
+      "meta": {
+        "title": "How to Use AI Dictation: Complete Beginner's Guide (2025)",
+        "description": "Learn to use AI dictation effectively. Setup, tips, best practices, and common mistakes. Start voice typing in 5 minutes.",
+        "keywords": "how to use AI dictation, AI dictation tutorial, voice typing guide, speech to text tips"
+      },
+      "hero": {
+        "title": "How to Use AI Dictation: Complete Guide for Beginners",
+        "subtitle": "Everything you need to know to start writing by voice effectively, accurately, and productively.",
+        "date": "January 3, 2025",
+        "readingTime": "10 min read",
+        "author": "Whisper Cheap Team",
+        "authorRole": "Software Engineers"
+      },
+      "toc": {
+        "label": "Table of Contents",
+        "items": [
+          {
+            "id": "what-is-ai-dictation",
+            "title": "What is AI Dictation?"
+          },
+          {
+            "id": "benefits",
+            "title": "Benefits of Voice Typing"
+          },
+          {
+            "id": "getting-started",
+            "title": "Getting Started (5 Minutes)"
+          },
+          {
+            "id": "best-practices",
+            "title": "Best Practices"
+          },
+          {
+            "id": "common-mistakes",
+            "title": "Common Mistakes"
+          },
+          {
+            "id": "advanced-tips",
+            "title": "Advanced Tips"
+          },
+          {
+            "id": "faq",
+            "title": "FAQ"
+          }
+        ]
+      },
+      "sections": {
+        "whatIs": {
+          "title": "What is AI Dictation?",
+          "subtitle": "AI dictation is speech recognition technology powered by artificial intelligence that converts your speech into written text instantly.",
+          "content": "Unlike traditional dictation (like Windows Speech Recognition), modern AI dictation uses deep neural networks trained on millions of hours of audio to understand context, accents, and natural language with high accuracy. Whisper Cheap uses the optimized Parakeet V3 architecture, which runs 100% on your computer.",
+          "points": [
+            "Converts your voice to text in real-time",
+            "Works completely local on your PC (no cloud uploads)",
+            "Supports 100+ languages with good accuracy",
+            "Optimized for English and Spanish",
+            "Updates automatically as you speak"
+          ]
+        },
+        "benefits": {
+          "title": "Benefits of Voice Typing",
+          "intro": "Voice dictation is not just faster—it fundamentally changes how you think and work. Here are the key benefits.",
+          "items": [
+            {
+              "title": "Write 3x Faster",
+              "description": "You speak at ~150 words per minute. You type at ~40. Dictation closes that gap dramatically.",
+              "metric": "3x"
+            },
+            {
+              "title": "Reduce RSI & Hand Pain",
+              "description": "Your hands stay relaxed. Less carpal tunnel, less wrist pain, less fatigue from typing.",
+              "metric": "↓100%"
+            },
+            {
+              "title": "Capture Ideas Naturally",
+              "description": "Your voice flows naturally. You don't lose ideas while hunting for the right words on a keyboard.",
+              "metric": "∞"
+            },
+            {
+              "title": "Improve Clarity",
+              "description": "Speaking aloud forces you to organize your thoughts better. False ideas become obvious immediately.",
+              "metric": "+40%"
+            },
+            {
+              "title": "Better Accessibility",
+              "description": "Users with dyslexia, arthritis, or mobility issues can express themselves without pain.",
+              "metric": "✓"
+            },
+            {
+              "title": "Multitask Easier",
+              "description": "Keep dictating while walking, turning your head, or changing positions. Your voice travels with you.",
+              "metric": "✓"
+            }
+          ]
+        },
+        "gettingStarted": {
+          "title": "Getting Started (5 Minutes)",
+          "intro": "Setup is simple. We'll walk you through each step so you're dictating in 5 minutes.",
+          "steps": [
+            {
+              "num": "1",
+              "title": "Choose Your Software",
+              "description": "Download Whisper Cheap (free, no account needed) or choose another dictation tool. We recommend Whisper Cheap because it's completely local and free.",
+              "tips": [
+                "Make sure your software supports your language",
+                "Check compatibility with your apps (Word, Google Docs, etc.)",
+                "Consider privacy: is your voice uploaded to the cloud?"
+              ]
+            },
+            {
+              "num": "2",
+              "title": "Set Up Your Microphone",
+              "description": "Use a decent microphone. Built-in earpieces work, but a USB microphone or headset delivers better accuracy.",
+              "tips": [
+                "Position the microphone 6-8 inches from your mouth",
+                "Clean earpieces regularly to remove dust",
+                "Test in a quiet environment first",
+                "Adjust volume levels in Settings"
+              ]
+            },
+            {
+              "num": "3",
+              "title": "Configure Your Settings",
+              "description": "Open the settings window. Choose your hotkey (Ctrl+Space is default), language, and any advanced settings like VAD (Voice Activity Detection).",
+              "tips": [
+                "Customize your keyboard shortcut to something comfortable",
+                "Enable VAD to ignore background noise",
+                "Test automatic vs manual text conversion modes"
+              ]
+            },
+            {
+              "num": "4",
+              "title": "Your First Dictation",
+              "description": "Open a text editor (Word, Notion, Google Docs). Press your hotkey, speak clearly for 10-15 seconds, release. Text should appear instantly.",
+              "tips": [
+                "Speak at a normal pace, like you're conversing",
+                "Use a natural tone (not too slow or too fast)",
+                "Try different phrases to get comfortable"
+              ]
+            }
+          ]
+        },
+        "bestPractices": {
+          "title": "Best Practices for Accuracy",
+          "intro": "A few simple habits dramatically improve accuracy and your dictation experience.",
+          "practices": [
+            {
+              "title": "Speak Clear and Naturally",
+              "description": "You don't need to shout, but be clear. Articulate well without being robotic. Speak like you'd talk to a friend.",
+              "icon": "📢"
+            },
+            {
+              "title": "Use Good Microphone Quality",
+              "description": "Microphone quality matters. A USB headset or dedicated microphone beats built-in earpieces. Keep it clean.",
+              "icon": "🎙️"
+            },
+            {
+              "title": "Minimize Background Noise",
+              "description": "Dictate in quiet spaces. If there's noise, enable VAD in settings to ignore it. Close windows, turn off TV, silence phone.",
+              "icon": "🔇"
+            },
+            {
+              "title": "Dictate in Short Sessions",
+              "description": "Your voice gets tired. Dictate in short bursts (15-20 min), then take a break. More productive than one long session.",
+              "icon": "⏱️"
+            },
+            {
+              "title": "Edit in a Separate Pass",
+              "description": "Don't try to edit while dictating. Dictate everything first in draft mode, then edit like you would typed text.",
+              "icon": "✏️"
+            },
+            {
+              "title": "Say Punctuation When Needed",
+              "description": "Say \"period\", \"comma\", \"question mark\" or just edit afterward. Most users find editing punctuation is fastest.",
+              "icon": "🗣️"
+            }
+          ]
+        },
+        "commonMistakes": {
+          "title": "Common Mistakes to Avoid",
+          "intro": "Even experienced users make these mistakes. Here's how to avoid them.",
+          "mistakes": [
+            {
+              "title": "Speaking Too Fast",
+              "description": "If you speak too quickly, the AI can't keep up. Words overlap or get missed.",
+              "solution": "Speak at a normal conversation pace. If you make many errors, slow down slightly."
+            },
+            {
+              "title": "Mumbling or Unclear Speech",
+              "description": "AI needs clear sound. Mumbling, dropping sounds, or slurring causes errors.",
+              "solution": "Articulate each word clearly. Be clear without being exaggerated. Practice with short phrases."
+            },
+            {
+              "title": "Stopping Mid-Sentence",
+              "description": "If you stop abruptly, the AI can't process the complete sentence.",
+              "solution": "Complete your thoughts. If you need a pause, make a natural one (a comma or period)."
+            },
+            {
+              "title": "Editing While Dictating",
+              "description": "Trying to correct yourself while speaking breaks your flow and confuses recognition.",
+              "solution": "Dictate everything first. Edit after in a separate pass. Your total speed is faster."
+            },
+            {
+              "title": "Expecting Perfection",
+              "description": "AI isn't perfect. Some errors (homophones, proper names) need manual correction.",
+              "solution": "Expect 2-5% errors. It's still much faster than writing. Edit quickly afterward."
+            },
+            {
+              "title": "Using Poor Microphone",
+              "description": "Built-in earpieces, damaged or dirty microphones significantly affect accuracy.",
+              "solution": "Invest in a decent USB microphone or headset. It's completely worth it."
+            }
+          ]
+        },
+        "advancedTips": {
+          "title": "Advanced Tips",
+          "intro": "Once you master the basics, here are techniques to squeeze even more value from dictation.",
+          "tips": [
+            {
+              "title": "Custom Vocabularies",
+              "description": "Many tools (including Whisper Cheap) let you train custom vocabularies. Add specialized terms, company names, or technical jargon."
+            },
+            {
+              "title": "Combine with Text Expanders",
+              "description": "Use a text expander (like TextExpander) alongside dictation. Type abbreviations that expand to full paragraphs. Save time on repeated phrases."
+            },
+            {
+              "title": "Use Numbers & Symbols Correctly",
+              "description": "Say \"two point five\" for 2.5, \"at sign\" for @, \"hashtag\" for #. Practice to get fast at this."
+            },
+            {
+              "title": "Rubber Duck Debugging",
+              "description": "For developers: explain your code aloud like you're talking to a rubber duck. Dictation captures the thought thread."
+            },
+            {
+              "title": "Dictation for Brainstorming",
+              "description": "Dictation is excellent for brainstorming because you don't edit while thinking. It captures natural flow without self-criticism."
+            }
+          ]
+        },
+        "faq": {
+          "title": "Frequently Asked Questions",
+          "items": [
+            {
+              "q": "What dictation software should I use?",
+              "a": "Several options exist. Whisper Cheap is free, local, and subscription-free. Other options include Wispr Flow (paid), Google Docs voice typing (cloud), and Dragon (expensive). Choose based on your budget, privacy needs, and requirements."
+            },
+            {
+              "q": "Does it work in my language?",
+              "a": "Whisper Cheap is optimized for English and Spanish, but supports 100+ languages with good accuracy. If your language isn't supported, consider Google Docs voice typing or Wispr Flow."
+            },
+            {
+              "q": "How accurate is it really?",
+              "a": "For English and Spanish, accuracy is 95-98% in clear audio. That means 2-5 errors per 100 words, still much faster than typing and editing after. Errors decrease with better microphone and practice."
+            },
+            {
+              "q": "Can I use dictation for professional work?",
+              "a": "Absolutely. Many writers, lawyers, doctors, and professionals rely on dictation. Just ensure you use a private/local tool if handling sensitive information."
+            },
+            {
+              "q": "How long does it take to get comfortable?",
+              "a": "Most users feel comfortable in 1-2 sessions. Your speed increases after a week of regular practice. After a month, many users are faster dictating than typing."
+            },
+            {
+              "q": "Can I use dictation for coding?",
+              "a": "Not for code syntax (that's what keyboards are for). But yes for documentation, comments, commit messages, and technical writing. Extremely useful."
+            },
+            {
+              "q": "Does it work on phone?",
+              "a": "Whisper Cheap is Windows-only. But most phones have built-in dictation (iOS Siri, Android Google Assistant). Some services like Wispr Flow offer mobile apps."
+            },
+            {
+              "q": "Is it safe?",
+              "a": "Depends on your software. Local tools like Whisper Cheap are safest (your voice never leaves your PC). Cloud services like Wispr Flow depend on their privacy policy."
+            }
+          ]
+        },
+        "cta": {
+          "title": "Start Now",
+          "description": "The best way to learn is by doing. Download Whisper Cheap (free, no account) and dictate your first paragraph today.",
+          "buttonText": "Download"
+        }
+      },
+      "relatedArticles": {
+        "label": "Related Articles",
+        "articles": [
+          {
+            "title": "AI Dictation for Writers",
+            "description": "How writers use dictation to write 3x faster",
+            "url": "/en/use-cases/writers"
+          },
+          {
+            "title": "Private Speech-to-Text: Your Privacy Guaranteed",
+            "description": "Why local processing protects your privacy",
+            "url": "/en/features/privacy"
+          }
+        ]
+      }
+    }
+  },
+  "features_offline": {
+    "meta": {
+      "title": "Offline AI Transcription - No Internet Required | Whisper Cheap",
+      "description": "AI speech-to-text that works without internet. Your voice stays on your computer. No cloud, no uploads, 100% private offline dictation.",
+      "keywords": "offline AI transcription, offline speech to text, local voice recognition, no internet dictation, AI voice typing without internet, speech to text offline free, dictation software no internet"
+    },
+    "hero": {
+      "badge": "100% Local AI",
+      "title": "Offline AI Transcription: Your Voice Never Leaves Your Computer",
+      "subtitle": "No internet required. No uploads. No cloud. Your voice stays on your PC. Dictate anywhere, anytime.",
+      "note": "Works completely offline. Download once, dictate forever.",
+      "button": "Download"
+    },
+    "why": {
+      "title": "Why Offline Matters",
+      "privacy": {
+        "title": "Privacy First",
+        "desc": "Your voice contains personal information—accents, habits, private thoughts. Offline processing means no one can intercept, store, or analyze your recordings."
+      },
+      "reliability": {
+        "title": "Always Available",
+        "desc": "No internet dependency. Works during WiFi outages, on airplanes, in areas with poor connectivity. Reliability you can trust."
+      },
+      "speed": {
+        "title": "Instant Transcription",
+        "desc": "No network latency. No API call overhead. Your speech is transcribed on your PC instantly. True real-time performance."
+      }
+    },
+    "howWorks": {
+      "title": "How Whisper Cheap Works Offline",
+      "subtitle": "Technical simplicity meets practical power. The AI model runs locally on your CPU for instant, private transcription.",
+      "step1Title": "Download the Model",
+      "step1Desc": "~200MB of optimized AI (Parakeet V3). Downloaded once during setup.",
+      "step2Title": "Press Your Hotkey",
+      "step2Desc": "Ctrl+Space by default. The AI model activates locally on your PC.",
+      "step3Title": "Speak & Done",
+      "step3Desc": "Your voice is processed entirely on your machine. Text appears instantly at your cursor.",
+      "size": "~200MB installed (app + AI model). No dependencies, no updates needed to work offline."
+    },
+    "comparison": {
+      "title": "Online vs Offline Dictation",
+      "headers": [
+        "Aspect",
+        "Online (Wispr, Otter, Google Docs)",
+        "Offline (Whisper Cheap)"
+      ],
+      "rows": [
+        [
+          "Privacy",
+          "Voice uploaded to servers",
+          "Voice stays local ✓"
+        ],
+        [
+          "Speed",
+          "Network latency (100-500ms)",
+          "Instant (under 100ms) ✓"
+        ],
+        [
+          "Reliability",
+          "Needs internet connection",
+          "Always works ✓"
+        ],
+        [
+          "Cost",
+          "Usually subscription ($10-20/month)",
+          "Free forever ✓"
+        ],
+        [
+          "Data control",
+          "Servers own your data",
+          "You own everything ✓"
+        ],
+        [
+          "Offline capability",
+          "No",
+          "Yes ✓"
+        ],
+        [
+          "Setup required",
+          "Account + login",
+          "Download + run ✓"
+        ],
+        [
+          "Accuracy",
+          "Very good (cloud AI)",
+          "Excellent (local AI) ✓"
+        ]
+      ]
+    },
+    "useCases": {
+      "title": "Perfect For...",
+      "cases": [
+        "Traveling without WiFi or on airplanes",
+        "Sensitive content (legal, medical, personal)",
+        "Areas with poor or unreliable internet",
+        "Privacy-conscious users who don't trust cloud services",
+        "Professionals handling confidential information",
+        "Offline work environments (hospitals, courts, secure facilities)"
+      ]
+    },
+    "technical": {
+      "title": "Technical Details",
+      "architecture": {
+        "title": "Local AI Architecture",
+        "desc": "Uses Parakeet V3 (NVIDIA optimized). Encoder-Decoder ONNX models run on your CPU. No external API calls."
+      },
+      "model": {
+        "title": "Model Details",
+        "desc": "Optimized for English and Spanish. Supports 100+ languages with good accuracy. Models automatically unload when not in use."
+      },
+      "latency": {
+        "title": "Response Time",
+        "desc": "50-200ms per transcription (depending on CPU). Real-time performance without cloud delays."
+      },
+      "disk": {
+        "title": "Disk Space",
+        "desc": "~200MB total (application + AI model). Single download. No updates required to use offline."
+      }
+    },
+    "faq": {
+      "title": "FAQ: Offline Transcription",
+      "q1": "Does offline affect accuracy?",
+      "a1": "No. Whisper Cheap uses the same state-of-the-art AI model whether online or offline. Accuracy is identical. The difference: no network latency, so transcription feels faster.",
+      "q2": "How much disk space does it need?",
+      "a2": "~200MB total installed. The AI model is ~150MB. Application is ~50MB. Once downloaded, no further storage needed.",
+      "q3": "Can I use it on airplane mode?",
+      "a3": "Yes. Completely. Airplane mode, no WiFi, no cellular—doesn't matter. Everything runs on your PC. Your microphone still works.",
+      "q4": "What if my internet comes back? Will it switch modes?",
+      "a4": "No need. Whisper Cheap only uses local processing. Internet availability doesn't affect it. It's always offline by design.",
+      "q5": "Is it really 100% local? Can you prove it?",
+      "a5": "Yes. It's open source (MIT license) on GitHub. Audit the code. No external API calls, no data uploads, no telemetry. Everything is verifiable."
+    },
+    "cta": {
+      "title": "Dictate Anywhere. No Internet Required.",
+      "subtitle": "Download Whisper Cheap now. Fully offline, fully private, fully free.",
+      "button": "Download"
+    }
   }
 }

@@ -1,7 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { type Locale } from '@/dictionaries'
+import Link from 'next/link'
+
+// === CONSTANTES ===
+const GITHUB_OWNER = 'afeding'
+const GITHUB_REPO = 'whisper-cheap'
+const DOWNLOAD_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest/download/WhisperCheapSetup.exe`
+const GITHUB_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}`
+const RELEASES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases`
 
 interface LandingPageProps {
   dict: {
@@ -26,8 +34,8 @@ interface LandingPageProps {
       stat1Label: string
       stat2: string
       stat2Label: string
-      description: string
-      solution: string
+      typing: string
+      speaking: string
     }
     whyThis: {
       title: string
@@ -64,6 +72,8 @@ interface LandingPageProps {
       q2: string; a2: string
       q3: string; a3: string
       q4: string; a4: string
+      q5: string; a5: string
+      q6: string; a6: string
     }
     cta: { title: string; button: string }
     footer: { tagline: string; github: string; releases: string }
@@ -73,284 +83,411 @@ interface LandingPageProps {
 
 export function LandingPage({ dict, lang }: LandingPageProps) {
   const otherLang = lang === 'en' ? 'es' : 'en'
-  const otherLangLabel = lang === 'en' ? 'ES' : 'EN'
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-[#e5e5e5]">
+    <div className="min-h-screen bg-bg-primary text-text-primary bg-noise">
+      {/* Gradiente superior decorativo */}
+      <div className="fixed inset-0 bg-gradient-radial pointer-events-none" />
+
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <MicIcon className="w-7 h-7 text-[#00ff88]" />
-            <span className="font-semibold text-lg">Whisper Cheap</span>
-          </div>
-          <div className="flex items-center gap-5">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-primary/80 backdrop-blur-xl border-b border-border-default/50">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <a href={`/${lang}`} className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+              <MicIcon className="w-4 h-4 text-accent" />
+            </div>
+            <span className="font-display font-semibold text-lg tracking-tight">Whisper Cheap</span>
+          </a>
+
+          <div className="flex items-center gap-2">
+            {/* GitHub link */}
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-lg text-text-dim hover:text-text-secondary hover:bg-bg-elevated transition-all"
+              aria-label="GitHub"
+            >
+              <GitHubIcon className="w-5 h-5" />
+            </a>
+
+            {/* Language switcher con icono */}
             <a
               href={`/${otherLang}`}
-              className="text-base text-[#666] hover:text-[#999] transition-colors"
+              className="p-2.5 rounded-lg text-text-dim hover:text-text-secondary hover:bg-bg-elevated transition-all flex items-center gap-1.5"
+              aria-label={`Switch to ${otherLang === 'en' ? 'English' : 'Spanish'}`}
             >
-              {otherLangLabel}
+              <GlobeIcon className="w-5 h-5" />
+              <span className="text-xs font-medium uppercase">{otherLang}</span>
             </a>
+
+            {/* Download CTA */}
             <a
-              href="#download"
-              className="text-base font-semibold bg-[#00ff88] text-black px-5 py-2.5 rounded-full hover:bg-[#00dd77] transition-colors"
+              href={DOWNLOAD_URL}
+              className="ml-2 btn-glow inline-flex items-center gap-2 bg-accent text-bg-primary font-semibold px-5 py-2.5 rounded-full hover:bg-accent-hover transition-all text-sm"
             >
+              <DownloadIcon className="w-4 h-4" />
               {dict.nav.download}
             </a>
           </div>
         </div>
       </nav>
 
-      {/* Hero - Big Statement */}
-      <section className="pt-36 pb-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-[#00ff88] text-base font-mono mb-6 tracking-wide">
-            {dict.hero.tagline}
-          </p>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold leading-[0.9] tracking-tight mb-8">
-            <span className="text-[#e5e5e5]">{dict.hero.title1}</span>
-            <br />
-            <span className="text-[#00ff88]">{dict.hero.title2}</span>
-          </h1>
-          <p className="text-xl sm:text-2xl text-[#888] max-w-xl leading-relaxed mb-12">
-            {dict.hero.subtitle}
-          </p>
-          <div className="flex flex-col sm:flex-row items-start gap-4">
-            <a
-              href="#download"
-              className="inline-flex items-center gap-3 bg-[#00ff88] text-black font-semibold px-8 py-4 rounded-full hover:bg-[#00dd77] transition-all hover:scale-[1.02] text-lg"
-            >
-              <WindowsIcon className="w-5 h-5" />
-              {dict.hero.cta}
-            </a>
-            <p className="text-sm text-[#555] pt-3">
-              {dict.hero.note}
-            </p>
+      {/* Hero - 2 columnas en desktop */}
+      <section className="relative pt-24 pb-12 px-6 overflow-hidden">
+        {/* Grid pattern decorativo */}
+        <div className="absolute inset-0 grid-pattern opacity-50" />
+
+        <div className="relative max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Columna izquierda: Contenido */}
+            <div>
+              {/* Badge */}
+              <div className="animate-fade-in-up">
+                <span className="badge-glow inline-flex items-center gap-2 text-accent text-sm font-medium px-4 py-1.5 rounded-full mb-6">
+                  <SparklesIcon className="w-3.5 h-3.5" />
+                  {dict.hero.tagline}
+                </span>
+              </div>
+
+              {/* Título principal */}
+              <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-bold leading-[0.95] tracking-tight mb-6">
+                <span className="block animate-fade-in-up animate-delay-100">{dict.hero.title1}</span>
+                <span className="block text-accent animate-fade-in-up animate-delay-200">{dict.hero.title2}</span>
+              </h1>
+
+              {/* Subtítulo */}
+              <p className="text-lg text-text-secondary max-w-xl leading-relaxed mb-8 animate-fade-in-up animate-delay-300">
+                {dict.hero.subtitle}
+              </p>
+
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row items-start gap-4 animate-fade-in-up animate-delay-400">
+                <a
+                  href={DOWNLOAD_URL}
+                  className="btn-glow group inline-flex items-center gap-2.5 bg-accent text-bg-primary font-semibold px-8 py-4 rounded-full hover:bg-accent-hover transition-all text-lg"
+                >
+                  <WindowsIcon className="w-5 h-5" />
+                  {dict.hero.cta}
+                  <ArrowDownIcon className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" />
+                </a>
+                <div className="flex items-center gap-3 text-text-dim text-sm pt-3 sm:pt-4">
+                  <CheckIcon className="w-4 h-4 text-accent" />
+                  <span>{dict.hero.note}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Columna derecha: Demo */}
+            <div className="animate-fade-in-up animate-delay-500">
+              <ProductDemo dict={dict} />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Product Demo - Animated Waveform */}
+      {/* Velocidad - Visual comparison */}
       <section className="py-20 px-6">
         <div className="max-w-3xl mx-auto">
-          <ProductDemo dict={dict} />
-        </div>
-      </section>
-
-      {/* Problem - Speed Comparison */}
-      <section className="py-24 px-6 border-t border-[#1a1a1a]">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-16 text-center">
+          <h2 className="font-display text-2xl sm:text-3xl font-bold mb-12 text-center">
             {dict.problem.title}
           </h2>
 
-          <div className="flex justify-center items-end gap-8 sm:gap-16 mb-12">
-            <div className="text-center">
-              <div className="text-6xl sm:text-8xl font-bold text-[#444] mb-2">
-                {dict.problem.stat1}
+          <div className="space-y-6">
+            {/* Typing bar */}
+            <div className="flex items-center gap-4">
+              <div className="w-24 text-right">
+                <span className="text-text-dim text-sm">{dict.problem.typing}</span>
               </div>
-              <div className="text-sm sm:text-base text-[#555] uppercase tracking-wider">
-                {dict.problem.stat1Label}
+              <div className="flex-1 h-12 bg-bg-card rounded-lg overflow-hidden relative">
+                <div className="h-full bg-text-dim/30 rounded-lg" style={{ width: '27%' }} />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                  <KeyboardIcon className="w-5 h-5 text-text-dim mr-2" />
+                  <span className="font-display font-bold text-text-dim">{dict.problem.stat1}</span>
+                  <span className="text-text-dim/60 text-sm ml-1">{dict.problem.stat1Label}</span>
+                </div>
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-6xl sm:text-8xl font-bold text-[#00ff88] mb-2">
-                {dict.problem.stat2}
+
+            {/* Speaking bar */}
+            <div className="flex items-center gap-4">
+              <div className="w-24 text-right">
+                <span className="text-accent text-sm font-medium">{dict.problem.speaking}</span>
               </div>
-              <div className="text-sm sm:text-base text-[#555] uppercase tracking-wider">
-                {dict.problem.stat2Label}
+              <div className="flex-1 h-12 bg-bg-card rounded-lg overflow-hidden relative">
+                <div className="h-full bg-accent/20 rounded-lg" style={{ width: '100%' }} />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                  <MicIcon className="w-5 h-5 text-accent mr-2" />
+                  <span className="font-display font-bold text-accent">{dict.problem.stat2}</span>
+                  <span className="text-accent/60 text-sm ml-1">{dict.problem.stat2Label}</span>
+                </div>
               </div>
             </div>
           </div>
-
-          <p className="text-lg text-[#888] text-center max-w-xl mx-auto leading-relaxed mb-6">
-            {dict.problem.description}
-          </p>
-          <p className="text-[#00ff88] text-center font-medium text-xl">
-            {dict.problem.solution}
-          </p>
         </div>
       </section>
 
-      {/* Why This Exists */}
-      <section className="py-24 px-6 bg-[#0d0d0d]">
+      {/* Por qué existe */}
+      <section className="py-24 px-6 bg-bg-secondary">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-16">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold mb-16">
             {dict.whyThis.title}
           </h2>
 
-          <div className="space-y-12">
-            <div className="border-l-2 border-[#ff4444] pl-6">
-              <h3 className="font-semibold text-lg mb-2">{dict.whyThis.reason1Title}</h3>
-              <p className="text-[#888] text-base leading-relaxed">{dict.whyThis.reason1Desc}</p>
-            </div>
-            <div className="border-l-2 border-[#ff8844] pl-6">
-              <h3 className="font-semibold text-lg mb-2">{dict.whyThis.reason2Title}</h3>
-              <p className="text-[#888] text-base leading-relaxed">{dict.whyThis.reason2Desc}</p>
-            </div>
-            <div className="border-l-2 border-[#ffaa44] pl-6">
-              <h3 className="font-semibold text-lg mb-2">{dict.whyThis.reason3Title}</h3>
-              <p className="text-[#888] text-base leading-relaxed">{dict.whyThis.reason3Desc}</p>
-            </div>
+          <div className="space-y-10">
+            {[
+              { title: dict.whyThis.reason1Title, desc: dict.whyThis.reason1Desc, color: 'bg-red-500' },
+              { title: dict.whyThis.reason2Title, desc: dict.whyThis.reason2Desc, color: 'bg-orange-500' },
+              { title: dict.whyThis.reason3Title, desc: dict.whyThis.reason3Desc, color: 'bg-yellow-500' },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-4">
+                <div className={`w-1 ${item.color} rounded-full flex-shrink-0`} />
+                <div>
+                  <h3 className="font-display font-semibold text-lg mb-2">{item.title}</h3>
+                  <p className="text-text-secondary leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-16 p-8 bg-[#0a0a0a] rounded-2xl border border-[#1a1a1a]">
-            <p className="text-[#e5e5e5] text-lg leading-relaxed">
+          <div className="mt-14 p-6 sm:p-8 bg-bg-card rounded-2xl border border-border-default">
+            <p className="text-text-primary leading-relaxed">
               {dict.whyThis.conclusion}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Features - Minimal */}
-      <section id="features" className="py-24 px-6 border-t border-[#1a1a1a]">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-12">
-            <div>
-              <div className="w-12 h-12 rounded-full bg-[#00ff88]/10 flex items-center justify-center mb-5">
-                <ShieldIcon className="w-6 h-6 text-[#00ff88]" />
+      {/* Features */}
+      <section id="features" className="py-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              { icon: ShieldIcon, ...dict.features.local },
+              { icon: BoltIcon, ...dict.features.fast },
+              { icon: KeyIcon, ...dict.features.simple },
+            ].map((feature, i) => (
+              <div
+                key={i}
+                className="group p-6 rounded-2xl bg-bg-card border border-border-default hover:border-border-hover transition-all"
+              >
+                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5 group-hover:bg-accent/15 transition-colors">
+                  <feature.icon className="w-6 h-6 text-accent" />
+                </div>
+                <h3 className="font-display font-semibold text-xl mb-3">{feature.title}</h3>
+                <p className="text-text-secondary leading-relaxed">{feature.desc}</p>
               </div>
-              <h3 className="font-semibold text-xl mb-3">{dict.features.local.title}</h3>
-              <p className="text-base text-[#888] leading-relaxed">{dict.features.local.desc}</p>
-            </div>
-            <div>
-              <div className="w-12 h-12 rounded-full bg-[#00ff88]/10 flex items-center justify-center mb-5">
-                <BoltIcon className="w-6 h-6 text-[#00ff88]" />
-              </div>
-              <h3 className="font-semibold text-xl mb-3">{dict.features.fast.title}</h3>
-              <p className="text-base text-[#888] leading-relaxed">{dict.features.fast.desc}</p>
-            </div>
-            <div>
-              <div className="w-12 h-12 rounded-full bg-[#00ff88]/10 flex items-center justify-center mb-5">
-                <KeyIcon className="w-6 h-6 text-[#00ff88]" />
-              </div>
-              <h3 className="font-semibold text-xl mb-3">{dict.features.simple.title}</h3>
-              <p className="text-base text-[#888] leading-relaxed">{dict.features.simple.desc}</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works - Visual Steps */}
-      <section className="py-24 px-6 bg-[#0d0d0d]">
+      {/* How It Works */}
+      <section className="py-24 px-6 bg-bg-secondary">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-16 text-center">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold mb-16 text-center">
             {dict.howItWorks.title}
           </h2>
 
-          <div className="space-y-10">
-            <div className="flex gap-6 items-start">
-              <div className="w-10 h-10 rounded-full bg-[#00ff88] text-black font-bold text-base flex items-center justify-center flex-shrink-0">
-                1
+          <div className="space-y-8">
+            {[
+              { num: '1', title: dict.howItWorks.step1, desc: dict.howItWorks.step1Desc },
+              { num: '2', title: dict.howItWorks.step2, desc: dict.howItWorks.step2Desc },
+              { num: '3', title: dict.howItWorks.step3, desc: dict.howItWorks.step3Desc },
+            ].map((step, i) => (
+              <div key={i} className="flex gap-5 items-start">
+                <div className="w-10 h-10 rounded-full bg-accent text-bg-primary font-display font-bold flex items-center justify-center flex-shrink-0">
+                  {step.num}
+                </div>
+                <div className="pt-1">
+                  <h3 className="font-display font-semibold text-lg mb-1">{step.title}</h3>
+                  <p className="text-text-secondary">{step.desc}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">{dict.howItWorks.step1}</h3>
-                <p className="text-base text-[#888]">{dict.howItWorks.step1Desc}</p>
-              </div>
-            </div>
-            <div className="flex gap-6 items-start">
-              <div className="w-10 h-10 rounded-full bg-[#00ff88] text-black font-bold text-base flex items-center justify-center flex-shrink-0">
-                2
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">{dict.howItWorks.step2}</h3>
-                <p className="text-base text-[#888]">{dict.howItWorks.step2Desc}</p>
-              </div>
-            </div>
-            <div className="flex gap-6 items-start">
-              <div className="w-10 h-10 rounded-full bg-[#00ff88] text-black font-bold text-base flex items-center justify-center flex-shrink-0">
-                3
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-1">{dict.howItWorks.step3}</h3>
-                <p className="text-base text-[#888]">{dict.howItWorks.step3Desc}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Founder Quote */}
-      <section className="py-24 px-6 border-t border-[#1a1a1a]">
+      <section className="py-24 px-6">
         <div className="max-w-3xl mx-auto">
-          <blockquote className="text-xl sm:text-2xl leading-relaxed text-[#ccc] mb-10">
-            "{dict.founder.quote}"
-          </blockquote>
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#00ff88] to-[#00aa55] flex items-center justify-center text-black font-bold text-xl">
+          <div className="relative">
+            <QuoteIcon className="absolute -top-4 -left-2 w-12 h-12 text-accent/20" />
+            <blockquote className="text-xl sm:text-2xl leading-relaxed text-text-primary mb-8 pl-6">
+              {dict.founder.quote}
+            </blockquote>
+          </div>
+          <div className="flex items-center gap-4 pl-6">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-accent-dim flex items-center justify-center text-bg-primary font-display font-bold text-lg">
               A
             </div>
             <div>
-              <div className="font-semibold text-lg">{dict.founder.name}</div>
-              <div className="text-base text-[#888]">{dict.founder.role}</div>
+              <div className="font-display font-semibold">{dict.founder.name}</div>
+              <div className="text-sm text-text-secondary">{dict.founder.role}</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FAQ - Minimal */}
-      <section className="py-24 px-6 bg-[#0d0d0d]">
+      {/* FAQ */}
+      <section className="py-24 px-6 bg-bg-secondary">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-12 text-center">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold mb-12 text-center">
             {dict.faq.title}
           </h2>
 
-          <div className="space-y-10">
-            <div>
-              <h3 className="font-semibold text-lg mb-2">{dict.faq.q1}</h3>
-              <p className="text-base text-[#888]">{dict.faq.a1}</p>
+          <div className="space-y-8">
+            {[
+              { q: dict.faq.q1, a: dict.faq.a1 },
+              { q: dict.faq.q2, a: dict.faq.a2 },
+              { q: dict.faq.q3, a: dict.faq.a3 },
+              { q: dict.faq.q4, a: dict.faq.a4 },
+              { q: dict.faq.q5, a: dict.faq.a5 },
+              { q: dict.faq.q6, a: dict.faq.a6 },
+            ].map((item, i) => (
+              <div key={i} className="border-b border-border-default pb-6 last:border-0">
+                <h3 className="font-display font-semibold text-lg mb-2">{item.q}</h3>
+                <p className="text-text-secondary leading-relaxed">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Resources & Links Section */}
+      <section className="py-24 px-6 bg-bg-secondary">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-text-primary mb-4">
+              {lang === 'es' ? 'Más Recursos' : 'Learn More'}
+            </h2>
+            <p className="text-xl text-text-secondary">
+              {lang === 'es'
+                ? 'Guías, comparaciones y casos de uso para maximizar tu productividad'
+                : 'Guides, comparisons, and use cases to maximize your productivity'}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Blog & Guides */}
+            <div className="bg-bg-card p-6 rounded-lg border border-border-default hover:border-border-hover transition-all">
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-display font-semibold text-text-primary mb-2">
+                {lang === 'es' ? 'Guías y Tutoriales' : 'Guides & Tutorials'}
+              </h3>
+              <p className="text-text-secondary mb-4">
+                {lang === 'es'
+                  ? 'Aprende consejos y mejores prácticas para dictado por IA'
+                  : 'Learn tips and best practices for AI dictation'}
+              </p>
+              <Link
+                href={`/${lang}/blog`}
+                className="text-accent font-medium hover:text-accent/80 inline-flex items-center gap-1"
+              >
+                {lang === 'es' ? 'Ver Blog' : 'View Blog'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
             </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">{dict.faq.q2}</h3>
-              <p className="text-base text-[#888]">{dict.faq.a2}</p>
+
+            {/* Use Cases */}
+            <div className="bg-bg-card p-6 rounded-lg border border-border-default hover:border-border-hover transition-all">
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-display font-semibold text-text-primary mb-2">
+                {lang === 'es' ? 'Casos de Uso' : 'Use Cases'}
+              </h3>
+              <p className="text-text-secondary mb-4">
+                {lang === 'es'
+                  ? 'Descubre cómo escritores, desarrolladores y abogados usan Whisper Cheap'
+                  : 'See how writers, developers, and lawyers use Whisper Cheap'}
+              </p>
+              <div className="space-y-2">
+                <Link href={`/${lang}/use-cases/writers`} className="block text-accent hover:text-accent/80">
+                  {lang === 'es' ? '→ Para Escritores' : '→ For Writers'}
+                </Link>
+                <Link href={`/${lang}/use-cases/developers`} className="block text-accent hover:text-accent/80">
+                  {lang === 'es' ? '→ Para Desarrolladores' : '→ For Developers'}
+                </Link>
+                <Link href={`/${lang}/use-cases/lawyers`} className="block text-accent hover:text-accent/80">
+                  {lang === 'es' ? '→ Para Abogados' : '→ For Lawyers'}
+                </Link>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">{dict.faq.q3}</h3>
-              <p className="text-base text-[#888]">{dict.faq.a3}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg mb-2">{dict.faq.q4}</h3>
-              <p className="text-base text-[#888]">{dict.faq.a4}</p>
+
+            {/* Comparisons */}
+            <div className="bg-bg-card p-6 rounded-lg border border-border-default hover:border-border-hover transition-all">
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-display font-semibold text-text-primary mb-2">
+                {lang === 'es' ? 'Comparaciones' : 'Comparisons'}
+              </h3>
+              <p className="text-text-secondary mb-4">
+                {lang === 'es'
+                  ? 'Compara Whisper Cheap con otras herramientas de dictado'
+                  : 'Compare Whisper Cheap with other dictation tools'}
+              </p>
+              <div className="space-y-2">
+                <Link href={`/${lang}/vs/wispr-flow`} className="block text-accent hover:text-accent/80">
+                  {lang === 'es' ? '→ vs Wispr Flow' : '→ vs Wispr Flow'}
+                </Link>
+                <Link href={`/${lang}/vs/dragon`} className="block text-accent hover:text-accent/80">
+                  {lang === 'es' ? '→ vs Dragon' : '→ vs Dragon'}
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Final CTA */}
-      <section id="download" className="py-32 px-6 border-t border-[#1a1a1a]">
+      <section id="download" className="py-32 px-6">
         <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-8">
+          <h2 className="font-display text-4xl sm:text-5xl font-bold mb-8">
             {dict.cta.title}
           </h2>
           <a
-            href="https://github.com/user/whisper-cheap/releases/latest"
-            className="inline-flex items-center gap-3 bg-[#00ff88] text-black font-semibold px-8 py-4 rounded-full hover:bg-[#00dd77] transition-all hover:scale-[1.02] text-lg"
+            href={DOWNLOAD_URL}
+            className="btn-glow group inline-flex items-center gap-3 bg-accent text-bg-primary font-semibold px-8 py-4 rounded-full hover:bg-accent-hover transition-all text-lg"
           >
             <WindowsIcon className="w-5 h-5" />
             {dict.cta.button}
+            <ArrowDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
           </a>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-[#1a1a1a]">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-base text-[#555]">
-            <MicIcon className="w-5 h-5 text-[#00ff88]" />
-            <span>{dict.footer.tagline}</span>
+      <footer className="py-10 px-6 border-t border-border-default">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5 text-text-dim">
+            <MicIcon className="w-4 h-4 text-accent" />
+            <span className="text-sm">{dict.footer.tagline}</span>
           </div>
-          <div className="flex items-center gap-6 text-base">
+          <div className="flex items-center gap-6 text-sm">
             <a
-              href="https://github.com/user/whisper-cheap"
-              className="text-[#555] hover:text-[#888] transition-colors"
+              href={GITHUB_URL}
+              className="text-text-dim hover:text-text-secondary transition-colors link-underline"
               target="_blank"
               rel="noopener noreferrer"
             >
               {dict.footer.github}
             </a>
             <a
-              href="https://github.com/user/whisper-cheap/releases"
-              className="text-[#555] hover:text-[#888] transition-colors"
+              href={RELEASES_URL}
+              className="text-text-dim hover:text-text-secondary transition-colors link-underline"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -363,76 +500,123 @@ export function LandingPage({ dict, lang }: LandingPageProps) {
   )
 }
 
-// Animated Product Demo Component
+// === DEMO COMPONENT - Animación cinematográfica ===
 function ProductDemo({ dict }: { dict: LandingPageProps['dict'] }) {
-  const [phase, setPhase] = useState<'idle' | 'recording' | 'done'>('idle')
+  const [phase, setPhase] = useState<'idle' | 'recording' | 'processing' | 'done'>('idle')
   const [displayText, setDisplayText] = useState('')
+  const [audioLevel, setAudioLevel] = useState<number[]>(Array(30).fill(0.1))
+  const animationRef = useRef<number>()
 
   useEffect(() => {
     const sequence = async () => {
-      // Idle
+      // Reset
       setPhase('idle')
       setDisplayText('')
-      await sleep(2000)
+      await sleep(1800)
 
-      // Recording
+      // Recording con audio reactivo
       setPhase('recording')
-      await sleep(3000)
 
-      // Done - typewriter effect
+      // Simular niveles de audio cambiantes - más rápido y fluido
+      let frame = 0
+      const animateAudio = () => {
+        const levels = Array(30).fill(0).map((_, i) => {
+          const center = 15
+          const dist = Math.abs(i - center) / center
+          const base = 1 - dist * 0.5
+          const noise = Math.sin(frame * 0.2 + i * 0.4) * 0.4 + Math.random() * 0.25
+          return Math.max(0.15, Math.min(1, base * (0.4 + noise)))
+        })
+        setAudioLevel(levels)
+        frame++
+        animationRef.current = requestAnimationFrame(animateAudio)
+      }
+      animateAudio()
+
+      await sleep(2500)
+      cancelAnimationFrame(animationRef.current!)
+
+      // Processing breve
+      setPhase('processing')
+      await sleep(400)
+
+      // Typewriter INSTANTÁNEO - como IA generando texto
       setPhase('done')
       const text = dict.demo.output
-      for (let i = 0; i <= text.length; i++) {
-        setDisplayText(text.slice(0, i))
-        await sleep(30)
+      const lines = text.split('\n')
+
+      // Mostrar línea por línea muy rápido
+      for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+        const currentText = lines.slice(0, lineIdx + 1).join('\n')
+        setDisplayText(currentText)
+        // Pausa breve entre líneas para efecto de "generación"
+        await sleep(lines[lineIdx] === '' ? 30 : 80)
       }
-      await sleep(3000)
+
+      await sleep(4000)
     }
 
     sequence()
-    const interval = setInterval(sequence, 10000)
-    return () => clearInterval(interval)
+    const interval = setInterval(sequence, 16000)
+    return () => {
+      clearInterval(interval)
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
+    }
   }, [dict.demo.output])
 
   return (
-    <div className="bg-[#111] rounded-2xl border border-[#222] overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-[#222]">
-        <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
-        <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
-        <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+    <div className="card-border-gradient overflow-hidden glow-accent">
+      {/* Header estilo terminal */}
+      <div className="flex items-center gap-2 px-5 py-3.5 bg-bg-elevated/50 border-b border-border-default">
+        <div className="flex gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
+          <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+          <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+        </div>
+        <div className="flex-1 text-center">
+          <span className="text-xs text-text-dim font-mono">Whisper Cheap</span>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="p-8 min-h-[220px] flex flex-col justify-center">
+      <div className="p-8 sm:p-10 min-h-[200px] flex flex-col justify-center bg-bg-card">
         {phase === 'idle' && (
-          <div className="flex items-center gap-3 text-[#888]">
-            <span className="text-base">{dict.demo.press}</span>
-            <kbd className="px-3 py-1.5 bg-[#1a1a1a] rounded text-sm text-[#00ff88] border border-[#333]">
-              Ctrl
-            </kbd>
-            <span className="text-sm">+</span>
-            <kbd className="px-3 py-1.5 bg-[#1a1a1a] rounded text-sm text-[#00ff88] border border-[#333]">
-              Space
-            </kbd>
+          <div className="flex items-center gap-3 text-text-secondary animate-fade-in-up">
+            <span className="text-sm">{dict.demo.press}</span>
+            <div className="flex items-center gap-1">
+              <kbd className="px-2.5 py-1.5 bg-bg-elevated rounded-md text-xs font-mono text-accent border border-border-default">
+                Ctrl
+              </kbd>
+              <span className="text-text-dim text-xs">+</span>
+              <kbd className="px-2.5 py-1.5 bg-bg-elevated rounded-md text-xs font-mono text-accent border border-border-default">
+                Space
+              </kbd>
+            </div>
           </div>
         )}
 
         {phase === 'recording' && (
-          <div className="flex flex-col gap-5">
-            <div className="flex items-center gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-base text-[#888]">{dict.demo.recording}</span>
+          <div className="space-y-5 animate-fade-in-up">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse-soft" />
+              <span className="text-sm text-text-secondary">{dict.demo.recording}</span>
             </div>
-            <Waveform />
+            <AudioWaveform levels={audioLevel} />
+          </div>
+        )}
+
+        {phase === 'processing' && (
+          <div className="flex items-center gap-3 animate-fade-in-up">
+            <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-text-secondary">Processing...</span>
           </div>
         )}
 
         {phase === 'done' && (
-          <div className="font-mono text-base">
-            <span className="text-[#00ff88]">→ </span>
-            <span className="text-[#e5e5e5]">{displayText}</span>
-            <span className="animate-blink">|</span>
+          <div className="font-mono text-sm animate-fade-in-up whitespace-pre-wrap">
+            <span className="text-accent">{">"}</span>
+            <span className="text-text-primary ml-2">{displayText}</span>
+            <span className="text-accent animate-blink">|</span>
           </div>
         )}
       </div>
@@ -440,29 +624,20 @@ function ProductDemo({ dict }: { dict: LandingPageProps['dict'] }) {
   )
 }
 
-// Animated Waveform - matches the app's overlay
-function Waveform() {
-  const bars = 18
-
+// === AUDIO WAVEFORM - Más fluido y orgánico ===
+function AudioWaveform({ levels }: { levels: number[] }) {
   return (
-    <div className="flex items-center justify-center gap-[3px] h-8">
-      {Array.from({ length: bars }).map((_, i) => {
-        const center = (bars - 1) / 2
-        const distance = Math.abs(i - center) / center
-        const baseHeight = 1 - distance * 0.7
-
-        return (
-          <div
-            key={i}
-            className="w-[3px] rounded-full bg-[#00ff88]"
-            style={{
-              height: `${baseHeight * 100}%`,
-              animation: `waveform 0.8s ease-in-out infinite`,
-              animationDelay: `${i * 0.05}s`,
-            }}
-          />
-        )
-      })}
+    <div className="flex items-center justify-center gap-[3px] h-12">
+      {levels.map((level, i) => (
+        <div
+          key={i}
+          className="w-[3px] rounded-full bg-accent transition-all duration-75"
+          style={{
+            height: `${level * 100}%`,
+            opacity: 0.4 + level * 0.6,
+          }}
+        />
+      ))}
     </div>
   )
 }
@@ -471,7 +646,7 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-// Icons
+// === ICONS ===
 function MicIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -489,26 +664,90 @@ function WindowsIcon({ className }: { className?: string }) {
   )
 }
 
+function GitHubIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+    </svg>
+  )
+}
+
+function GlobeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+    </svg>
+  )
+}
+
+function DownloadIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+  )
+}
+
+function ArrowDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+    </svg>
+  )
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  )
+}
+
 function ShieldIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
     </svg>
   )
 }
 
 function BoltIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
     </svg>
   )
 }
 
 function KeyIcon({ className }: { className?: string }) {
   return (
-    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+    </svg>
+  )
+}
+
+function QuoteIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+    </svg>
+  )
+}
+
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 22.5l-.394-1.933a2.25 2.25 0 00-1.423-1.423L12.75 18.75l1.933-.394a2.25 2.25 0 001.423-1.423l.394-1.933.394 1.933a2.25 2.25 0 001.423 1.423l1.933.394-1.933.394a2.25 2.25 0 00-1.423 1.423z" />
+    </svg>
+  )
+}
+
+function KeyboardIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 3.75H6A2.25 2.25 0 003.75 6v1.5M16.5 3.75H18A2.25 2.25 0 0120.25 6v1.5m0 9V18A2.25 2.25 0 0118 20.25h-1.5m-9 0H6A2.25 2.25 0 013.75 18v-1.5M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   )
 }

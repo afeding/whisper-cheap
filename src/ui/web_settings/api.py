@@ -26,6 +26,26 @@ LLM_SYSTEM_PROMPT = (
     "- Preserve meaning strictly. Do NOT add new ideas, facts, steps, names, or assumptions.\n"
 )
 
+# Default prompt template for LLM post-processing
+DEFAULT_PROMPT_TEMPLATE = """Improve this voice transcription to make it more readable and natural.
+
+Allowed improvements:
+- Add periods, commas, and semicolons where natural
+- Separate into paragraphs when the topic changes
+- Remove accidentally repeated words (e.g., "and and" → "and")
+- Convert spoken lists into bulleted format with dashes (-)
+- Paraphrase slightly for clarity if needed
+- Adjust vocabulary if it improves understanding
+
+Important limits:
+- Keep the original message and meaning
+- Do not add information that isn't in the transcription
+- If something is confusing or ambiguous, leave it as is
+- ALWAYS respond in the same language as the original transcription
+
+Transcription:
+${output}"""
+
 def _resource_base() -> Path:
     if getattr(sys, "frozen", False):
         return Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
@@ -152,6 +172,10 @@ class SettingsAPI:
 
         self._default_models = fallback
         return self._default_models
+
+    def get_default_prompt_template(self) -> str:
+        """Return the default prompt template for LLM post-processing."""
+        return DEFAULT_PROMPT_TEMPLATE
 
     def test_llm_connection(self, api_key: str, model: str) -> Dict[str, Any]:
         """Test LLM connection to OpenRouter."""
@@ -433,6 +457,11 @@ class SettingsAPI:
 
     def open_folder(self, folder_type: str) -> Dict[str, Any]:
         """Open data or recordings folder."""
+        # Security: whitelist of allowed folder types to prevent path traversal
+        ALLOWED_FOLDER_TYPES = {"data", "recordings", "logs"}
+        if folder_type not in ALLOWED_FOLDER_TYPES:
+            return {"success": False, "error": f"Invalid folder type: {folder_type}"}
+
         try:
             config = self.get_config()
             app_data = config.get("paths", {}).get("app_data", ".data")
@@ -444,7 +473,9 @@ class SettingsAPI:
 
             if folder_type == "recordings":
                 folder = os.path.join(app_data, "recordings")
-            else:
+            elif folder_type == "logs":
+                folder = os.path.join(app_data, "logs")
+            else:  # folder_type == "data"
                 folder = app_data
 
             if not os.path.exists(folder):

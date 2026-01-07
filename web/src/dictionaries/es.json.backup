@@ -1,0 +1,725 @@
+{
+  "meta": {
+    "title": "Whisper Cheap - Dictado por Voz Gratuito y Local para Windows",
+    "description": "Escribe 10 veces más rápido hablando. 100% local, sin nube, sin suscripciones. Reconocimiento de voz gratuito que funciona en tu PC.",
+    "keywords": "voz a texto, reconocimiento de voz, transcripción, Windows, sin conexión, local, gratis, STT, dictado, productividad"
+  },
+  "nav": {
+    "features": "Características",
+    "download": "Descargar"
+  },
+  "hero": {
+    "tagline": "Transcripción de voz local",
+    "title1": "Deja de teclear.",
+    "title2": "Empieza a hablar.",
+    "subtitle": "Tu voz se convierte en texto al instante. Justo donde está tu cursor. Sin nube. Sin suscripción. Solo tú y tu ordenador.",
+    "cta": "Descargar para Windows",
+    "note": "Gratis para siempre. ~200MB. Sin cuenta necesaria."
+  },
+  "demo": {
+    "press": "Pulsa",
+    "recording": "Grabando",
+    "output": "La reunión es mañana a las 10, por favor confirma asistencia."
+  },
+  "problem": {
+    "title": "El problema de teclear",
+    "stat1": "40",
+    "stat1Label": "palabras/min tecleando",
+    "stat2": "150",
+    "stat2Label": "palabras/min hablando",
+    "description": "Piensas a 150 palabras por minuto. Tus dedos llegan a 40. Para cuando terminas de escribir, ya olvidaste la mitad de tus ideas.",
+    "solution": "Hablando capturas todo."
+  },
+  "whyThis": {
+    "title": "Por qué existe esto",
+    "reason1Title": "Las alternativas gratis son basura",
+    "reason1Desc": "Las probé todas. Imprecisas, lentas, interfaces horribles. No valen la frustración.",
+    "reason2Title": "Las buenas cuestan 15€/mes",
+    "reason2Desc": "¿Por algo que mi CPU puede hacer localmente? Son 180€/año por funcionalidad básica.",
+    "reason3Title": "Nube = tu voz en el servidor de alguien",
+    "reason3Desc": "Cada palabra que dices, subida y almacenada. No es para mí.",
+    "conclusion": "Así que construí Whisper Cheap. Funciona 100% en tu PC. Es rápido. Es preciso. Y es gratis porque no me cuesta nada compartirlo."
+  },
+  "features": {
+    "local": {
+      "title": "100% Local",
+      "desc": "Tu voz nunca sale de tu ordenador. Funciona sin internet tras la descarga."
+    },
+    "fast": {
+      "title": "Instantáneo",
+      "desc": "Potenciado por Parakeet V3. Transcribe mientras aún hablas."
+    },
+    "simple": {
+      "title": "Un Atajo",
+      "desc": "Pulsa, habla, suelta. El texto aparece en tu cursor. Funciona en todas partes."
+    }
+  },
+  "howItWorks": {
+    "title": "Cómo funciona",
+    "step1": "Pulsa tu atajo",
+    "step1Desc": "Ctrl+Espacio por defecto. Personalízalo.",
+    "step2": "Habla con naturalidad",
+    "step2Desc": "Un pequeño indicador muestra que grabas.",
+    "step3": "El texto aparece al instante",
+    "step3Desc": "Justo donde estaba tu cursor. Listo."
+  },
+  "founder": {
+    "quote": "Me cansé de dos cosas: software caro para funcionalidad básica, y herramientas gratis que eran una basura absoluta. Lo mejor de hablar vs teclear es que no pierdes el contexto. Cuando escribes, para cuando terminas una frase, ya olvidaste las siguientes tres ideas. Hablando todo fluye.",
+    "name": "Andrés",
+    "role": "Creador de Whisper Cheap"
+  },
+  "faq": {
+    "title": "Preguntas comunes",
+    "q1": "¿Es realmente gratis?",
+    "a1": "Sí. Open source, licencia MIT. Sin niveles de pago, sin funciones premium, sin recolección de datos.",
+    "q2": "¿Funciona sin internet?",
+    "a2": "100%. Después de descargarlo, nunca necesitas internet de nuevo. La IA corre en tu CPU.",
+    "q3": "¿Qué idiomas?",
+    "a3": "Optimizado para inglés y español. Más próximamente.",
+    "q4": "¿Mac o Linux?",
+    "a4": "Solo Windows por ahora. Multiplataforma está en el roadmap."
+  },
+  "cta": {
+    "title": "¿Listo?",
+    "button": "Descargar Whisper Cheap"
+  },
+  "footer": {
+    "tagline": "Hecho para pensadores rápidos que odian teclear",
+    "github": "GitHub",
+    "releases": "Releases"
+  },
+  "vs_dragon": {
+    "meta": {
+      "title": "Alternativa a Dragon NaturallySpeaking - IA Gratuita de Voz a Texto | Whisper Cheap",
+      "description": "Alternativa gratuita a Dragon NaturallySpeaking. Dictado profesional por IA sin el precio de $500+. Preciso, local, ilimitado. Descarga gratis.",
+      "keywords": "alternativa dragon gratis, alternativa dragon naturally speaking, dictado dragon gratis, alternativa speech to text dragon, alternativa dragon professional, alternativa dragon barata"
+    },
+    "hero": {
+      "eyebrow": "Alternativa a Dragon",
+      "title": "Alternativa Gratuita a Dragon NaturallySpeaking",
+      "subtitle": "Dictado Profesional por IA sin el Precio de $500+",
+      "cta": "Descargar Gratis"
+    },
+    "problem": {
+      "title": "¿Por Qué los Usuarios de Dragon Buscan Alternativas?",
+      "reason1": "$500+ es una inversión grande para dictado de voz",
+      "reason2": "Dragon fue construido en los 90—su interfaz lo muestra",
+      "reason3": "Características excesivas que no necesitas (comandos de voz, macros)",
+      "conclusion": "Solo quieres dictar texto. Gratis. Local. Hecho."
+    },
+    "comparison": {
+      "title": "Dragon vs Whisper Cheap",
+      "features": [
+        {
+          "label": "Precio",
+          "dragon": "$500+",
+          "whisper": "Gratis para Siempre"
+        },
+        {
+          "label": "Costo por Año",
+          "dragon": "$0 (de una sola vez, pero desactualizado)",
+          "whisper": "$0"
+        },
+        {
+          "label": "Límite de Palabras",
+          "dragon": "Ilimitado",
+          "whisper": "Ilimitado"
+        },
+        {
+          "label": "Privacidad",
+          "dragon": "En tu PC",
+          "whisper": "100% local, nunca se sube"
+        },
+        {
+          "label": "IA Moderna",
+          "dragon": "Modelo heredado de 2012",
+          "whisper": "Parakeet V3 más reciente (2024)"
+        },
+        {
+          "label": "Interfaz de Usuario",
+          "dragon": "Compleja, curva de aprendizaje pronunciada",
+          "whisper": "Mínima, solo presiona atajo"
+        },
+        {
+          "label": "Tiempo de Configuración",
+          "dragon": "2-3 horas (entrenamiento, configuración)",
+          "whisper": "5 minutos"
+        },
+        {
+          "label": "Comandos de Voz",
+          "dragon": "Sí",
+          "whisper": "No (solo dictado)"
+        },
+        {
+          "label": "Precisión",
+          "dragon": "Muy buena (después del entrenamiento)",
+          "whisper": "Muy buena (sin necesidad de entrenamiento)"
+        },
+        {
+          "label": "Personalización",
+          "dragon": "Extensa",
+          "whisper": "Configuración simple"
+        },
+        {
+          "label": "Curva de Aprendizaje",
+          "dragon": "Pronunciada",
+          "whisper": "Ninguna"
+        },
+        {
+          "label": "Soporte Técnico",
+          "dragon": "De pago",
+          "whisper": "Comunidad (código abierto)"
+        }
+      ]
+    },
+    "whisper_strengths": {
+      "title": "¿Por Qué Elegir Whisper Cheap?",
+      "free": {
+        "heading": "Es Gratis",
+        "text": "Dragon cuesta $500+. Whisper Cheap es $0. No hay trampa: es código abierto, y el código es público."
+      },
+      "modern": {
+        "heading": "IA Moderna (2024)",
+        "text": "Dragon utiliza tecnología heredada. Whisper Cheap usa Parakeet V3, entrenado en conjuntos de datos masivos de NVIDIA. Mejor precisión, sin necesidad de entrenamiento."
+      },
+      "simple": {
+        "heading": "Extremadamente Simple",
+        "text": "Dragon tiene comandos de voz, macros, entrenamiento de vocabulario. Whisper Cheap hace una cosa: Presiona atajo → habla → aparece el texto. Hecho."
+      },
+      "local": {
+        "heading": "Procesamiento 100% Local",
+        "text": "Tu voz nunca toca internet. El modelo de IA se ejecuta en tu PC. Dragon también es local, pero cuesta 100 veces más."
+      },
+      "fast": {
+        "heading": "Sin Configuración",
+        "text": "Descarga, instala (2 min), presiona Ctrl+Espacio. Dragon requiere 2-3 horas de entrenamiento y configuración. Whisper Cheap funciona inmediatamente."
+      }
+    },
+    "dragon_better": {
+      "title": "¿Qué Hace Mejor Dragon?",
+      "intro": "Siendo honesto: Dragon tiene ventajas en escenarios específicos.",
+      "features": [
+        {
+          "heading": "Vocabulario Médico/Legal",
+          "text": "Dragon tiene vocabularios especializados entrenados en años de terminología médica y legal. Whisper Cheap usa lenguaje general. Si dictas documentos legales complejos, Dragon es más preciso."
+        },
+        {
+          "heading": "Comandos de Voz y Macros",
+          "text": "Dragon te permite crear comandos de voz ('Formato negrita', 'Abrir archivo') y macros. Whisper Cheap solo transcribe texto—sin automatización."
+        },
+        {
+          "heading": "Puntuación Automática Después del Entrenamiento",
+          "text": "Dragon aprende tu estilo de habla y puntúa automáticamente. Whisper Cheap requiere que digas 'punto' o añadas puntuación manualmente (generalmente bien para la mayoría de usuarios)."
+        }
+      ]
+    },
+    "who": {
+      "title": "¿Quién Debería Elegir Whisper Cheap?",
+      "perfect_for": [
+        "Usuarios conscientes del presupuesto (sin presupuesto de $500)",
+        "Escritores generales, desarrolladores, usuarios de negocios",
+        "Cualquiera frustrado con la complejidad de Dragon",
+        "Usuarios que valoran la privacidad y el procesamiento sin conexión",
+        "Personas que desean IA moderna y actualizada",
+        "Quienes solo necesitan dictado preciso y básico"
+      ]
+    },
+    "switch": {
+      "title": "¿Cómo Cambiar desde Dragon?",
+      "steps": [
+        {
+          "num": "1",
+          "title": "Descarga Whisper Cheap",
+          "desc": "Obtén la versión más reciente de nuestro sitio web."
+        },
+        {
+          "num": "2",
+          "title": "Instala (5 minutos)",
+          "desc": "Ejecuta el instalador, haz clic en finalizar. No se necesita configuración."
+        },
+        {
+          "num": "3",
+          "title": "Desinstala Dragon",
+          "desc": "Libera ~200MB de espacio en disco. Recupera tu decisión de $500."
+        },
+        {
+          "num": "4",
+          "title": "Empieza a Usar Ctrl+Espacio",
+          "desc": "Presiona en Word, Chrome, Notion, VS Code, email—en todas partes. Funciona."
+        }
+      ]
+    },
+    "faq": {
+      "title": "Preguntas Frecuentes: Dragon vs Whisper Cheap",
+      "items": [
+        {
+          "q": "¿Qué tan preciso es Whisper Cheap en comparación con Dragon?",
+          "a": "Comparable para dictado general. Whisper Cheap usa Parakeet V3 (2024), mientras que Dragon usa modelos heredados. Para escritura diaria, no notarás la diferencia. Dragon gana en vocabularios especializados (médico, legal)."
+        },
+        {
+          "q": "¿Whisper Cheap soporta comandos de voz?",
+          "a": "No. Whisper Cheap solo transcribe texto. Si necesitas comandos de voz y macros, Dragon es mejor. Para dictado simple, Whisper Cheap es perfecto."
+        },
+        {
+          "q": "¿Puedo importar mis datos de Dragon?",
+          "a": "Los datos de Dragon son propietarios. Pero Whisper Cheap comienza sin necesidad de entrenamiento, así que la migración es simple: solo cambia tus atajos."
+        },
+        {
+          "q": "¿Funciona Whisper Cheap en las mismas aplicaciones que Dragon?",
+          "a": "Sí. Word, Chrome, Notion, Slack, VS Code, email, Obsidian—cualquier aplicación donde puedas pegar texto. Solo presiona Ctrl+Espacio."
+        },
+        {
+          "q": "¿Whisper Cheap es realmente 100% local?",
+          "a": "Sí. El modelo de IA se ejecuta completamente en tu PC. Tu entrada de micrófono nunca sale de tu computadora. Sin subidas, sin nube, sin análisis."
+        },
+        {
+          "q": "¿Qué si necesito vocabulario médico/legal?",
+          "a": "Para términos altamente especializados, Dragon es más preciso después del entrenamiento. Para escritura médica/legal general, Whisper Cheap es suficiente. Puedes añadir términos personalizados en la configuración."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Deja de Overpagar por Dictado de Voz",
+      "subtitle": "Dragon cuesta $500. Whisper Cheap es gratis. Pruébalo.",
+      "button": "Descargar Gratis"
+    }
+  },
+  "vs_wispr_flow": {
+    "meta": {
+      "title": "Alternativa a Wispr Flow - Dictado de IA Ilimitado y Gratuito",
+      "description": "¿Buscas alternativa a Wispr Flow? Whisper Cheap es 100% gratis con palabras ilimitadas. Sin límite de 2,000/semana. Funciona sin internet. Descarga ahora.",
+      "keywords": "alternativa wispr flow, wispr alternativa, alternativa wispr flow gratuita, mejor que wispr flow, competidor wispr flow, wispr flow vs whisper cheap, alternativa wispr flow ilimitada, alternativa wispr flow offline"
+    },
+    "hero": {
+      "badge": "Mejor Alternativa",
+      "title": "Alternativa a Wispr Flow: Ilimitado, Gratis, Para Siempre",
+      "subtitle": "Deja de pagar 15€/mes. Whisper Cheap ofrece palabras ilimitadas, cero costo y funciona completamente sin internet."
+    },
+    "problem": {
+      "title": "Por Qué Usuarios de Wispr Flow Buscan Alternativas",
+      "issue1Title": "Frustración por Límite de Palabras",
+      "issue1Desc": "El nivel gratuito de 2,000 palabras/semana no es suficiente. ¿Alcanzar el límite a mitad de una oración? Espera hasta la próxima semana.",
+      "issue2Title": "Los Costos de Suscripción Se Acumulan",
+      "issue2Desc": "12-15€/mes = 180€/año. Son 1,800€ en una década por una funcionalidad básica.",
+      "issue3Title": "Tu Voz en la Nube",
+      "issue3Desc": "Cada palabra que dices se sube a los servidores de Wispr. ¿Dónde se almacena? ¿Cuánto tiempo? Nadie lo sabe."
+    },
+    "comparison": {
+      "title": "Whisper Cheap vs Wispr Flow: Comparación Completa",
+      "headers": [
+        "Función",
+        "Whisper Cheap",
+        "Wispr Flow"
+      ],
+      "rows": [
+        [
+          "Precio",
+          "Gratis para siempre",
+          "12-15€/mes"
+        ],
+        [
+          "Límite de palabras",
+          "Ilimitado",
+          "2,000/semana nivel gratuito"
+        ],
+        [
+          "Procesamiento",
+          "100% local (sin internet)",
+          "En la nube"
+        ],
+        [
+          "Cuenta requerida",
+          "No",
+          "Sí"
+        ],
+        [
+          "Auto-edición con IA",
+          "Próximamente",
+          "Sí"
+        ],
+        [
+          "Sincronización multi-dispositivo",
+          "No necesaria (local)",
+          "Sí"
+        ],
+        [
+          "Funciona sin internet",
+          "Sí",
+          "No"
+        ],
+        [
+          "Privacidad",
+          "100% local",
+          "Almacenado en servidor"
+        ],
+        [
+          "Código abierto",
+          "Sí",
+          "No"
+        ],
+        [
+          "Carga de voz",
+          "Nunca",
+          "Siempre"
+        ]
+      ]
+    },
+    "differences": {
+      "title": "Diferencias Clave",
+      "diff1Title": "Ilimitado vs 2,000 Palabras/Semana",
+      "diff1Desc": "El nivel gratuito de Wispr Flow está limitado a 2,000 palabras/semana. Son aproximadamente 8 minutos de dictado continuo. Whisper Cheap no tiene límites. Dicta durante horas si quieres.",
+      "diff2Title": "Gratis Para Siempre vs 180€/Año",
+      "diff2Desc": "Con Whisper Cheap no pagas nada, nunca. Sin capas ocultas, sin funciones 'Pro'. Todo está incluido. Con Wispr, eventualmente alcanzarás el límite y tendrás que pagar.",
+      "diff3Title": "100% Local vs Carga en la Nube",
+      "diff3Desc": "Tu voz nunca sale de tu computadora con Whisper Cheap. Wispr sube cada palabra a sus servidores. Para contenido sensible, eso es un problema.",
+      "diff4Title": "Sin Cuenta vs Registro Obligatorio",
+      "diff4Desc": "Descarga, instala, usa. Cero fricción. Wispr requiere email, contraseña y verificación telefónica. Más fricción = más abandonos."
+    },
+    "wispr": {
+      "title": "¿Qué Hace Bien Wispr Flow?",
+      "desc": "Somos honestos. Wispr tiene algunas ventajas:",
+      "features": [
+        "Sincronización multi-dispositivo (teléfono, web, escritorio)",
+        "La IA auto-corrige gramática y formato",
+        "App móvil para dictado sobre la marcha",
+        "Base de usuarios existente e integraciones"
+      ]
+    },
+    "whoShouldChoose": {
+      "title": "¿Quién Debería Elegir Whisper Cheap?",
+      "profiles": [
+        {
+          "name": "Usuarios de Dictado Pesado",
+          "desc": "Alcanzas regularmente el límite de palabras de Wispr. Necesitas dictado ilimitado, no un techo de 2,000 palabras."
+        },
+        {
+          "name": "Usuarios Conscientes de la Privacidad",
+          "desc": "Tu voz es personal. No quieres que se almacene en servidores en la nube o que se use para entrenar modelos de IA."
+        },
+        {
+          "name": "Usuarios con Presupuesto Limitado",
+          "desc": "No puedes justificar 180€/año para una herramienta que debería ser gratuita. Tienes cosas más importantes en las que gastar dinero."
+        },
+        {
+          "name": "Usuarios Principalmente en Windows",
+          "desc": "Trabajas principalmente en escritorio/laptop. No necesitas sincronización móvil. Local es más simple y rápido."
+        },
+        {
+          "name": "Trabajadores Offline",
+          "desc": "Viajas, trabajas en lugares sin WiFi, o tienes internet poco confiable. Wispr no funcionará. Whisper Cheap siempre funciona."
+        }
+      ]
+    },
+    "switch": {
+      "title": "Cómo Cambiar desde Wispr Flow",
+      "step1Title": "1. Descarga Whisper Cheap",
+      "step1Desc": "Obtén el instalador gratuito desde GitHub. Sin email, sin registro.",
+      "step2Title": "2. Instala (2 Minutos)",
+      "step2Desc": "Ejecuta el instalador, elige ubicación de instalación, listo. Descarga el modelo de IA automáticamente.",
+      "step3Title": "3. Configura Tu Atajo",
+      "step3Desc": "Configura Ctrl+Espacio o tu atajo preferido en Configuración.",
+      "step4Title": "4. Comienza a Dictar",
+      "step4Desc": "Abre cualquier editor de texto, presiona tu atajo, habla y observa cómo aparece el texto.",
+      "step5Title": "5. Opcionalmente Exporta de Wispr",
+      "step5Desc": "Exporta tu historial de Wispr e impórtalo en Whisper Cheap para continuidad."
+    },
+    "faq": {
+      "title": "Preguntas Sobre el Cambio",
+      "q1": "¿Whisper Cheap es realmente gratis para siempre?",
+      "a1": "Sí. 100% gratis, sin trampas, sin capas premium. Código abierto (licencia MIT). El código está en GitHub—cualquiera puede verificar que es verdaderamente gratis.",
+      "q2": "¿Qué tan preciso es Whisper Cheap comparado con Wispr?",
+      "a2": "Muy preciso. Usa la misma arquitectura de IA subyacente (Parakeet/Whisper). La precisión varía según la calidad del micrófono y el ruido de fondo, igual que Wispr. Para la mayoría de usuarios, la diferencia es insignificante.",
+      "q3": "¿Funciona en las mismas aplicaciones?",
+      "a3": "Sí. Whisper Cheap funciona en cualquier lugar—Word, Google Docs, Notion, Slack, email, Discord. En cualquier lugar donde puedas pegar texto.",
+      "q4": "¿Perderé mi historial de Wispr?",
+      "a4": "Exporta desde Wispr como archivo CSV/JSON, luego importa en Whisper Cheap. Tus transcripciones se transfieren.",
+      "q5": "¿Qué si necesito sincronización multi-dispositivo?",
+      "a5": "Whisper Cheap es solo local, así que la sincronización multi-dispositivo no está integrada. Pero tu historial permanece en tu PC. Si absolutamente necesitas sincronización, mantén Wispr. Para la mayoría de usuarios, solo-local es más rápido y privado.",
+      "q6": "¿Whisper Cheap tiene auto-edición?",
+      "a6": "Aún no, pero está en la hoja de ruta. Por ahora, dictas y editas manualmente si es necesario. La mayoría de usuarios encuentra este es un pequeño compromiso por palabras ilimitadas y costo cero."
+    },
+    "cta": {
+      "title": "¿Listo para Cambiar?",
+      "subtitle": "Obtén dictado ilimitado. Gratis para siempre. Sin límites de palabras. Sin suscripciones.",
+      "button": "Descargar Whisper Cheap Gratis"
+    }
+  },
+  "developers": {
+    "meta": {
+      "title": "Dictado por Voz para Desarrolladores | Codifica Más Rápido, Escribe Menos | Whisper Cheap",
+      "description": "Escritura por voz gratuita para programadores. Dicta documentación, mensajes de commit, descripciones de PR y mensajes de Slack. Reduce RSI. Funciona en VS Code, terminal y en todas partes.",
+      "keywords": "software de dictado por voz para código, dictado para desarrolladores, escritura por voz para programadores, voz a texto para codificación, herramienta de dictado gratuita para código, dictado de documentación de código"
+    },
+    "hero": {
+      "tagline": "PARA DESARROLLADORES",
+      "title": "Codifica Más Rápido. Escribe Menos.",
+      "subtitle": "Dicta tu documentación, mensajes de commit y PRs sin alcanzar el teclado.",
+      "highlight": "¿Manos en el teclado? Mantenlas ahí."
+    },
+    "pain": {
+      "title": "Por Qué los Desarrolladores Necesitan Dictado por Voz",
+      "items": [
+        {
+          "title": "La documentación es tediosa",
+          "desc": "Escribir buena documentación no debería significar síndrome del túnel carpiano."
+        },
+        {
+          "title": "RSI es un problema real",
+          "desc": "Los desarrolladores pasan 8+ horas al día escribiendo. Tus muñecas lo agradecerán."
+        },
+        {
+          "title": "Los mensajes de commit y PRs toman tiempo",
+          "desc": "Cambiar contexto entre teclado y voz ahorra segundos por día—rápidamente se suma."
+        },
+        {
+          "title": "Slack/email mientras codificas",
+          "desc": "Dicta mensajes sin romper tu flujo."
+        }
+      ]
+    },
+    "useCases": {
+      "title": "Qué Puedes Dictar",
+      "cases": [
+        {
+          "icon": "FileText",
+          "title": "Comentarios de Código & Docstrings",
+          "desc": "Explica tu código naturalmente. Mejor documentación, más rápido."
+        },
+        {
+          "icon": "GitBranch",
+          "title": "Mensajes de Git Commit",
+          "desc": "Escribe commits significativos sin buscar las palabras correctas."
+        },
+        {
+          "icon": "MessageSquare",
+          "title": "Descripciones de PR & Code Reviews",
+          "desc": "Explica tus cambios claramente. La voz fluye mejor que el teclado."
+        },
+        {
+          "icon": "Slack",
+          "title": "Slack, Discord, Email",
+          "desc": "Responde en tiempo real sin perder el enfoque en tu código."
+        },
+        {
+          "icon": "BookOpen",
+          "title": "README & Notas de Release",
+          "desc": "Dicta explicaciones complejas. Edita una vez, publica."
+        },
+        {
+          "icon": "Lightbulb",
+          "title": "TODOs & Reportes de Bugs",
+          "desc": "Captura ideas antes de que se desvanezcan."
+        }
+      ]
+    },
+    "tools": {
+      "title": "Funciona en Todos Lados Donde Codifiques",
+      "description": "VS Code, terminal, GitHub, GitLab, Slack, Discord, Notion, Obsidian—cualquier campo de texto.",
+      "howItWorks": "Presiona Ctrl+Espacio → Habla → El texto aparece en tu cursor. Así de simple."
+    },
+    "whyDevs": {
+      "title": "Por Qué los Desarrolladores Eligen Whisper Cheap",
+      "reasons": [
+        {
+          "title": "Código Abierto (Verifica el Código)",
+          "desc": "Licencia MIT. Alojado en GitHub. Verifica exactamente qué hace. Sin caja negra."
+        },
+        {
+          "title": "100% Local (Sin API Keys)",
+          "desc": "La IA se ejecuta en tu PC. Ningún dato se envía a ningún lado. Sin créditos de OpenAI necesarios."
+        },
+        {
+          "title": "Atajo de Teclado (Ctrl+Espacio)",
+          "desc": "Velocidad de rayo. Configura una vez, usa siempre. Compatible con Vim."
+        },
+        {
+          "title": "Gratis Para Siempre",
+          "desc": "Sin nivel premium. Sin límites. Dictado ilimitado."
+        }
+      ]
+    },
+    "tips": {
+      "title": "Consejos Profesionales para Dictado de Desarrolladores",
+      "tips": [
+        "Deletrea nombres de variables: 'usuario guion bajo id' → user_id",
+        "Úsalo para prosa (comentarios, documentos), no sintaxis de código",
+        "Excelente para rubber duck debugging—explica tu problema en voz alta",
+        "Combina con editores: dicta, luego edita visualmente",
+        "Funciona mejor con audio claro (headset recomendado)"
+      ]
+    },
+    "github": {
+      "title": "Código Abierto en GitHub",
+      "desc": "Forquea. Contribuye. Audita el código. Es tuyo.",
+      "button": "Ver en GitHub"
+    },
+    "faq": {
+      "title": "Preguntas para Desarrolladores",
+      "items": [
+        {
+          "q": "¿Funciona en la terminal?",
+          "a": "Sí. Cualquier aplicación con campo de entrada de texto—terminales, IDEs, apps de chat, todo."
+        },
+        {
+          "q": "¿Puede escribir código real?",
+          "a": "No. Úsalo para prosa (comentarios, documentos, mensajes de commit). Para código, sigues queriendo el teclado. El dictado es excelente para documentación."
+        },
+        {
+          "q": "¿El código fuente está disponible?",
+          "a": "100%. Licencia MIT, alojado en GitHub. Léelo, modifícalo, redistribuye. Ese es el punto."
+        },
+        {
+          "q": "¿Necesita internet?",
+          "a": "No. 100% local. El modelo de IA se ejecuta en tu PC. Descarga una vez, funciona sin conexión para siempre."
+        },
+        {
+          "q": "¿Qué tan preciso es?",
+          "a": "Muy preciso para inglés y español. Para términos técnicos, deletrea. La precisión mejora con audio claro."
+        },
+        {
+          "q": "¿Puedo personalizar el hotkey?",
+          "a": "Sí. Edita la configuración o usa la UI de configuración. Cambia Ctrl+Espacio por lo que quieras."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Sáltate el Tipeo.",
+      "subtitle": "Descarga Whisper Cheap Gratis",
+      "note": "Solo Windows. 100% local. Sin cuenta necesaria."
+    }
+  },
+  "vs_wispr_flow": {
+    "meta": {
+      "title": "Alternativa a Wispr Flow - Dictado IA Gratis Sin Límites",
+      "description": "¿Buscas una alternativa a Wispr Flow? Whisper Cheap es 100% gratis con palabras ilimitadas. Sin límite de 2,000/semana. Funciona sin conexión. Descarga ahora.",
+      "keywords": "alternativa wispr flow, alternativa wispr, alternativa gratis wispr flow, mejor que wispr flow, competidor wispr flow, wispr flow vs whisper cheap, alternativa ilimitada wispr flow, alternativa offline wispr flow"
+    },
+    "hero": {
+      "badge": "Mejor Alternativa",
+      "title": "Alternativa a Wispr Flow: Ilimitado, Gratis, Para Siempre",
+      "subtitle": "Deja de pagar $15/mes. Whisper Cheap ofrece palabras ilimitadas, costo cero y funciona completamente sin conexión."
+    },
+    "problem": {
+      "title": "Por Qué Los Usuarios de Wispr Flow Buscan Alternativas",
+      "issue1Title": "Frustración con el Límite de Palabras",
+      "issue1Desc": "El nivel gratuito de 2,000 palabras/semana no es suficiente. ¿Alcanzas el límite a mitad de frase? Empieza de nuevo la próxima semana.",
+      "issue2Title": "Los Costos de Suscripción Se Acumulan",
+      "issue2Desc": "$12-15/mes = $180/año. Eso son $1,800 en una década por una función básica.",
+      "issue3Title": "Tu Voz en la Nube",
+      "issue3Desc": "Cada palabra que dices se sube a los servidores de Wispr. ¿Dónde se queda? ¿Por cuánto tiempo? Quién sabe."
+    },
+    "comparison": {
+      "title": "Whisper Cheap vs Wispr Flow: Comparación Completa",
+      "headers": [
+        "Característica",
+        "Whisper Cheap",
+        "Wispr Flow"
+      ],
+      "rows": [
+        ["Precio", "Gratis para siempre", "$12-15/mes"],
+        ["Límite de palabras", "Ilimitado", "2,000/semana gratis"],
+        ["Procesamiento", "100% local (sin conexión)", "Basado en nube"],
+        ["Requiere cuenta", "No", "Sí"],
+        ["Auto-edición con IA", "Aún no", "Sí"],
+        ["Sincronización multi-dispositivo", "No necesaria (local)", "Sí"],
+        ["Funciona sin internet", "Sí", "No"],
+        ["Privacidad", "100% local", "Almacenado en servidor"],
+        ["Código abierto", "Sí", "No"],
+        ["Subida de voz", "Nunca", "Siempre"]
+      ]
+    },
+    "differences": {
+      "title": "Diferencias Clave",
+      "diff1Title": "Ilimitado vs 2,000 Palabras/Semana",
+      "diff1Desc": "El nivel gratuito de Wispr Flow tiene un límite de 2,000 palabras/semana. Eso son ~8 minutos de dictado continuo. Whisper Cheap no tiene límites. Dicta durante horas si quieres.",
+      "diff2Title": "Gratis Para Siempre vs $180/Año",
+      "diff2Desc": "No pagues nada con Whisper Cheap, nunca. Sin niveles ocultos, sin funciones 'Pro'. Todo está incluido. Con Wispr, eventualmente alcanzarás el límite y tendrás que pagar.",
+      "diff3Title": "100% Local vs Subida a la Nube",
+      "diff3Desc": "Tu voz nunca sale de tu ordenador con Whisper Cheap. Wispr sube cada palabra a sus servidores. Para contenido sensible, eso es un factor decisivo.",
+      "diff4Title": "Sin Cuenta vs Registro Obligatorio",
+      "diff4Desc": "Descarga, instala, usa. Cero fricción. Wispr requiere email, contraseña y verificación telefónica. Más fricción = más abandono."
+    },
+    "wispr": {
+      "title": "En Qué Wispr Flow Es Mejor",
+      "desc": "Seamos honestos. Wispr tiene algunas ventajas:",
+      "features": [
+        "Sincronización multi-dispositivo (teléfono, web, escritorio)",
+        "IA auto-corrige gramática y formato",
+        "Aplicación móvil para dictado sobre la marcha",
+        "Base de usuarios existente e integraciones"
+      ]
+    },
+    "whoShouldChoose": {
+      "title": "¿Quién Debería Elegir Whisper Cheap?",
+      "profiles": [
+        {
+          "name": "Usuarios Intensivos de Dictado",
+          "desc": "Alcanzas el límite de palabras de Wispr regularmente. Necesitas dictado ilimitado, no un techo de 2,000 palabras."
+        },
+        {
+          "name": "Usuarios Conscientes de la Privacidad",
+          "desc": "Tu voz es personal. No quieres que se almacene en servidores en la nube o se use para entrenar modelos de IA."
+        },
+        {
+          "name": "Usuarios con Presupuesto Ajustado",
+          "desc": "No puedes justificar $180/año por una herramienta que debería ser gratis. Tienes mejores cosas en qué gastar dinero."
+        },
+        {
+          "name": "Usuarios Principalmente de Windows",
+          "desc": "Trabajas principalmente en escritorio/portátil. No necesitas sincronización móvil. Local es más simple y rápido."
+        },
+        {
+          "name": "Trabajadores Sin Conexión",
+          "desc": "Viajas, trabajas en lugares sin WiFi, o tienes internet poco confiable. Wispr no funcionará. Whisper Cheap siempre funciona."
+        }
+      ]
+    },
+    "switch": {
+      "title": "Cómo Cambiar desde Wispr Flow",
+      "step1Title": "1. Descarga Whisper Cheap",
+      "step1Desc": "Obtén el instalador gratuito desde GitHub. Sin email, sin registro.",
+      "step2Title": "2. Instala (2 Minutos)",
+      "step2Desc": "Ejecuta el instalador, elige la ubicación de instalación, listo. Descarga el modelo de IA automáticamente.",
+      "step3Title": "3. Configura Tu Hotkey",
+      "step3Desc": "Configura Ctrl+Espacio o tu hotkey preferido en Configuración.",
+      "step4Title": "4. Empieza a Dictar",
+      "step4Desc": "Abre cualquier editor de texto, presiona tu hotkey, habla y observa cómo aparece el texto.",
+      "step5Title": "5. Opcionalmente Exporta desde Wispr",
+      "step5Desc": "Exporta tu historial desde Wispr e impórtalo en Whisper Cheap para continuidad."
+    },
+    "faq": {
+      "title": "Preguntas Sobre el Cambio",
+      "items": [
+        {
+          "q": "¿Whisper Cheap es realmente gratis para siempre?",
+          "a": "Sí. 100% gratis, sin trampas, sin niveles premium. Código abierto (licencia MIT). El código está en GitHub—cualquiera puede verificar que es verdaderamente gratis."
+        },
+        {
+          "q": "¿Qué tan preciso es Whisper Cheap comparado con Wispr?",
+          "a": "Muy preciso. Usa la misma arquitectura de IA subyacente (Parakeet/Whisper). La precisión varía según la calidad del micrófono y el ruido de fondo, igual que Wispr. Para la mayoría de usuarios, la diferencia es insignificante."
+        },
+        {
+          "q": "¿Funciona en las mismas aplicaciones?",
+          "a": "Sí. Whisper Cheap funciona en cualquier lugar—Word, Google Docs, Notion, Slack, email, Discord. Cualquier lugar donde puedas pegar texto."
+        },
+        {
+          "q": "¿Perderé mi historial de Wispr?",
+          "a": "Exporta desde Wispr como un archivo CSV/JSON, luego impórtalo en Whisper Cheap. Tus transcripciones se transfieren."
+        },
+        {
+          "q": "¿Qué pasa si necesito sincronización multi-dispositivo?",
+          "a": "Whisper Cheap es solo local, así que la sincronización multi-dispositivo no está integrada. Pero tu historial permanece en tu PC. Si absolutamente necesitas sincronización, mantén Wispr. Para la mayoría de usuarios, solo local es más rápido y más privado."
+        },
+        {
+          "q": "¿Whisper Cheap tiene auto-edición?",
+          "a": "Aún no, pero está en la hoja de ruta. Por ahora, dictas y editas manualmente si es necesario. La mayoría de usuarios encuentran que esto es un pequeño compromiso por palabras ilimitadas y costo cero."
+        }
+      ]
+    },
+    "cta": {
+      "title": "¿Listo para Cambiar?",
+      "subtitle": "Obtén dictado ilimitado. Gratis para siempre. Sin límites de palabras. Sin suscripciones.",
+      "button": "Descargar Whisper Cheap Gratis"
+    }
+  },
+}

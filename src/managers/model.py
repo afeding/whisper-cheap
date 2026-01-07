@@ -34,8 +34,11 @@ MODELS: Dict[str, Dict[str, object]] = {
         "size_mb": 478,
         "is_directory": True,
         "extract_to": "parakeet-tdt-0.6b-v3-int8",
-        # SHA256 of the .tar.gz archive (None = skip validation)
-        "sha256": None,
+        # SHA256 of the .tar.gz archive for integrity verification
+        # SECURITY: Before production release, obtain this hash by downloading
+        # the file and running: certutil -hashfile parakeet-v3-int8.tar.gz SHA256
+        # or: sha256sum parakeet-v3-int8.tar.gz
+        "sha256": None,  # TODO: Add SHA256 before release
     }
 }
 
@@ -150,7 +153,13 @@ class ModelManager:
                 )
             logger.info(f"[model] Checksum verified for {model_id}")
         else:
-            logger.warning(f"[model] No checksum available for {model_id}, skipping validation")
+            # SECURITY WARNING: Model downloaded without integrity verification
+            # This is acceptable for development but SHA256 should be added before release
+            logger.warning(
+                f"[model] SECURITY: No SHA256 checksum for {model_id}. "
+                "Model integrity could not be verified. "
+                "Add SHA256 to MODELS registry before production release."
+            )
 
         self._emit("download-completed")
         return archive_path

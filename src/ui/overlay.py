@@ -82,10 +82,10 @@ class _BaseOverlay:
         self.window.setWindowOpacity(opacity)
 
         self.layout = QtWidgets.QVBoxLayout()
-        self.layout.setContentsMargins(10, 10, 10, 10)
+        self.layout.setContentsMargins(8, 8, 8, 8)
         self.label = QtWidgets.QLabel(text)
         font = QtGui.QFont()
-        font.setPointSize(21)
+        font.setPointSize(16)
         font.setBold(True)
         self.label.setFont(font)
         self.label.setStyleSheet("color: white;")
@@ -98,7 +98,7 @@ class _BaseOverlay:
             """
         )
         self.container_layout = QtWidgets.QVBoxLayout()
-        self.container_layout.setContentsMargins(10, 8, 10, 8)
+        self.container_layout.setContentsMargins(8, 6, 8, 6)
         self.container_layout.addWidget(self.label)
         self.container.setLayout(self.container_layout)
 
@@ -177,17 +177,17 @@ class RecordingOverlay(_BaseOverlay):
         self.level = QtWidgets.QProgressBar()
         self.level.setRange(0, 100)
         self.level.setTextVisible(False)
-        self.level.setFixedHeight(14)
+        self.level.setFixedHeight(10)
         self.level.setStyleSheet(
             """
             QProgressBar {
                 background-color: rgba(255, 255, 255, 40);
                 border: 0px;
-                border-radius: 7px;
+                border-radius: 5px;
             }
             QProgressBar::chunk {
                 background-color: rgb(0, 255, 136);
-                border-radius: 7px;
+                border-radius: 5px;
             }
             """
         )
@@ -220,7 +220,7 @@ class StatusOverlay(_BaseOverlay):
                 border-radius: 999px;
                 """
             )
-            self.window.setMinimumWidth(400)
+            self.window.setMinimumWidth(300)
             self._place()
             self.window.show()
             # Enable mouse tracking and install event filter for click-to-dismiss

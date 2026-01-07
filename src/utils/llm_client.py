@@ -69,10 +69,13 @@ class LLMClient:
         """
         if not prompt_template:
             raise ValueError("prompt_template is required")
+        if "${output}" not in prompt_template:
+            raise ValueError("prompt_template must contain ${output} placeholder")
         active_model = model or self.default_model
         if not active_model:
             raise ValueError("model is required")
 
+        # Replace placeholder with actual transcription text
         prompt_filled = prompt_template.replace("${output}", text)
         messages = []
         if system_prompt:

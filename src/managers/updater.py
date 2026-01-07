@@ -296,10 +296,11 @@ class UpdateManager:
         installer_path = temp_dir / INSTALLER_ASSET_NAME
 
         # Download with streaming
+        # Note: 60s timeout is per-chunk read, not total download time
         response = requests.get(
             update_info.download_url,
             stream=True,
-            timeout=300,  # 5 min timeout for large files
+            timeout=(10, 60),  # (connect timeout, read timeout per chunk)
             headers={"User-Agent": f"WhisperCheap/{self.current_version}"},
         )
         response.raise_for_status()
@@ -322,20 +323,24 @@ class UpdateManager:
                         except Exception:
                             pass
 
-        # Verify SHA256 if available
-        if update_info.sha256:
-            actual_hash = hasher.hexdigest()
-            expected_hash = update_info.sha256.lower()
-            if actual_hash.lower() != expected_hash:
-                # Delete corrupted file
-                installer_path.unlink(missing_ok=True)
-                raise ValueError(
-                    f"SHA256 mismatch: expected {expected_hash[:16]}..., "
-                    f"got {actual_hash[:16]}..."
-                )
-            logging.info("[updater] SHA256 verified successfully")
-        else:
-            logging.warning("[updater] No SHA256 provided, skipping verification")
+        # Security: ALWAYS verify SHA256 - reject updates without it
+        if not update_info.sha256:
+            installer_path.unlink(missing_ok=True)
+            raise ValueError(
+                "Security: Update rejected - no SHA256 checksum provided. "
+                "Cannot verify installer integrity."
+            )
+
+        actual_hash = hasher.hexdigest()
+        expected_hash = update_info.sha256.lower()
+        if actual_hash.lower() != expected_hash:
+            # Delete corrupted file
+            installer_path.unlink(missing_ok=True)
+            raise ValueError(
+                f"SHA256 mismatch: expected {expected_hash[:16]}..., "
+                f"got {actual_hash[:16]}..."
+            )
+        logging.info("[updater] SHA256 verified successfully")
 
         logging.info(f"[updater] Downloaded to {installer_path}")
         return installer_path

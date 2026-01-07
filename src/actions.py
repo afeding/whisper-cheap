@@ -60,8 +60,21 @@ def stop(
     paste_method: Optional[str] = None,
     clipboard_policy: Optional[str] = None,
 ) -> dict:
-    """Stop recording, optionally transcribe, postprocess, save, and paste."""
+    """Stop recording, optionally transcribe, postprocess, save, and paste.
+
+    Returns dict with keys:
+        - audio: captured samples
+        - text: final transcription (post-processed or raw)
+        - file_name: saved audio file name
+        - timestamp: save timestamp
+        - model_ready: whether model was available
+        - status: "success", "empty", "timeout", "error", or "no_model"
+        - error_message: human-readable error description (if status != "success")
+    """
     samples = None
+    status = "success"
+    error_message = None
+
     if audio_manager:
         samples = audio_manager.stop_recording(binding_id)
         logger.info(f"Audio capturado: {getattr(samples, 'shape', None)}")
@@ -80,6 +93,12 @@ def stop(
 
     if samples is None or getattr(samples, "size", 0) == 0:
         logger.warning("No se capturo audio; nada que transcribir.")
+        status = "empty"
+        error_message = "No se capturó audio. Mantén presionado el hotkey mientras hablas."
+
+    if not model_ready:
+        status = "no_model"
+        error_message = "Modelo no descargado. Abre Settings para descargarlo."
 
     if transcription_manager and samples is not None and samples.size > 0 and model_ready:
         try:
@@ -93,9 +112,20 @@ def stop(
                 text = str(res)
             if text:
                 logger.info(f"[stt] Texto base ({len(text)} chars): {text[:100]}...")
+                status = "success"
+            else:
+                status = "empty"
+                error_message = "Transcripción vacía. ¿Hablaste lo suficientemente alto?"
+        except TimeoutError as exc:
+            logger.error(f"Transcripción timeout: {exc}")
+            text = None
+            status = "timeout"
+            error_message = "Timeout: la transcripción tardó demasiado. Intenta con audio más corto."
         except Exception as exc:
             logger.exception(f"Error transcribiendo: {exc}")
             text = None
+            status = "error"
+            error_message = f"Error en transcripción: {type(exc).__name__}"
 
         if llm_enabled and llm_client and text:
             try:
@@ -114,7 +144,9 @@ def stop(
                 else:
                     logger.warning("[llm] Respuesta vacia o sin texto; se usara la transcripcion original.")
             except Exception as exc:
-                logger.exception(f"Post-proceso LLM fallo: {exc}")
+                # Use error() instead of exception() to avoid full stack trace
+                # which might contain sensitive info in HTTP error details
+                logger.error(f"Post-proceso LLM fallo: {type(exc).__name__}: {exc}")
                 post_text = None
         elif llm_enabled and not llm_client and text:
             logger.warning("Post-proceso LLM omitido: cliente no disponible.")
@@ -165,7 +197,15 @@ def stop(
         except Exception:
             pass
 
-    return {"audio": samples, "text": post_text or text, "file_name": fname, "timestamp": timestamp, "model_ready": model_ready}
+    return {
+        "audio": samples,
+        "text": post_text or text,
+        "file_name": fname,
+        "timestamp": timestamp,
+        "model_ready": model_ready,
+        "status": status,
+        "error_message": error_message,
+    }
 
 
 def cancel(

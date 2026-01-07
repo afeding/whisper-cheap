@@ -1,0 +1,281 @@
+================================================================================
+ERROR HANDLING ANALYSIS - WHISPER CHEAP
+================================================================================
+
+ANÁLISIS COMPLETO DE PATRONES DE MANEJO DE ERRORES
+Fecha: 2026-01-06
+Criticidad General: MEDIA-ALTA
+
+================================================================================
+HALLAZGOS PRINCIPALES
+================================================================================
+
+1. BARE `pass` AFTER EXCEPTION (35+ LOCATIONS)
+
+   Problema: Errores completamente silenciados sin trazabilidad
+   Ejemplos críticos:
+   - src/actions.py:31-37 (Preload, sonidos)
+   - src/audio.py:225-226 (Stream close fail → device bloqueado)
+   - src/history.py:154,185,211 (File cleanup fail → disk leak)
+   - src/tray.py:176 (Tray dies → no exit UI) **CRÍTICO**
+   - src/win_overlay.py:36+ locations (UI desaparece sin notificar)
+
+   Impacto: Errores ocultos, experiencia degradada, memory/disk leaks
+   Fix: Cambiar todos a `logger.exception()` o `logger.warning()`
+
+2. `except Exception:` GENÉRICOS SIN ACCIÓN (15+ LOCATIONS)
+
+   Problema: Errores capturados pero no registrados
+   Ejemplos:
+   - src/web_settings/api.py:115-116 (Config no se carga → vuelve a defaults)
+   - src/web_settings/api.py:170-171 (Models no se cargan)
+   - src/audio.py:143-145 (VAD fallback silencioso)
+
+   Impacto: Silencia problemas reales, usuario confundido
+   Fix: Añadir logging con contexto
+
+3. `print()` EN LUGAR DE LOGGING (8+ LOCATIONS)
+
+   Problema: Logs no persisten en archivo
+   Ejemplos:
+   - src/utils/llm_client.py:100
+   - src/ui/web_settings/api.py:85,146
+   - src/ui/win_overlay.py:83,90
+
+   Impacto: Imposible debuggear sin console abierta
+   Fix: Reemplazar con `logger.error()` o `logger.debug()`
+
+4. FALTA DE USER FEEDBACK (10+ CRITICAL PATHS)
+
+   Problema: Usuario no sabe cuándo algo falla crítico
+   Ejemplos:
+   - Audio device no disponible
+   - Model download falla
+   - LLM timeout
+   - Paste automático falla
+
+   Impacto: User experience confuso
+   Fix: Mostrar error en overlay UI
+
+5. CLEANUP INCOMPLETO (5+ LOCATIONS)
+
+   Problema: Recursos no se liberan en caso de error
+   Ejemplos:
+   - Model download: Archivo incompleto no se borra
+   - Updater: .exe installer queda en temp si verif falla
+   - Audio stream: Close() puede fallar sin retry
+
+   Impacto: Memory/disk leaks, estado corrupto
+   Fix: Añadir finally blocks, temp files, cleanup en error
+
+6. RACE CONDITIONS POTENCIALES (3+ LOCATIONS)
+
+   Problema: Múltiples threads accediendo a estado
+   Ejemplos:
+   - Audio callback vs close stream (sin lock en algunos paths)
+   - Win_overlay queue state
+
+   Impacto: State mismatch, crashes intermitentes
+   Fix: Auditar y proteger con locks
+
+7. THREAD DEATH SILENCIOSA (2+ LOCATIONS)
+
+   Problema: Threads mueren sin notificación a main
+   Ejemplos:
+   - Tray thread exception → No hay forma de salir
+   - Worker thread crash → No se reintenta
+
+   Impacto: App "muere" parcialmente
+   Fix: Logging en thread exception, signal a main
+
+================================================================================
+TOP 10 BUGS CRÍTICOS POR SEVERIDAD
+================================================================================
+
+CRÍTICO:
+1. src/ui/tray.py:172-176 - Tray muere sin notificar (no exit UI)
+2. src/managers/audio.py:225-226 - Stream close falla (device bloqueado)
+3. src/ui/web_settings/api.py:115-116 - Config loss silenciosa
+
+ALTO:
+4. src/ui/win_overlay.py:36+ - Overlay dies without UI feedback
+5. src/managers/history.py:154,185,211 - Disk space leak (files no se borran)
+6. src/actions.py:31-37 - Preload silent fail (1ª transcripción lenta)
+7. src/managers/model.py:112-137 - Model corruption (incomplete download)
+8. src/managers/updater.py:313-339 - Leftover installer on verify fail
+
+MEDIO:
+9. src/managers/recording_state.py:529-530 - Paste/clipboard fail silent
+10. src/ui/web_settings/api.py:30+ - Settings persistence issues
+
+================================================================================
+IMPACTO POR USUARIO
+================================================================================
+
+ESCENARIO 1: Audio Device Missing
+Actual: RuntimeError raised pero ¿quién lo captura en main?
+Usuario ve: App cierra sin explicación
+Debería: Mostrar overlay "Micrófono no disponible"
+
+ESCENARIO 2: Tray Exception
+Actual: Tray thread muere con Exception pass
+Usuario ve: No hay ícono en system tray, no hay forma de salir
+Debería: Log exception, signal main para graceful exit
+
+ESCENARIO 3: Config File Corrupted
+Actual: get_config() retorna {}, app usa defaults
+Usuario ve: Settings cambian a defaults sin notificar
+Debería: Mostrar error, backup corrupted file, notificar UI
+
+ESCENARIO 4: Model Download Fails Mid-Stream
+Actual: Partial file queda, no se retinta
+Usuario ve: "Model not found" en próximo uso
+Debería: Clean temp file, retry on next start
+
+ESCENARIO 5: First Recording After Start
+Actual: Preload exception silenciada
+Usuario ve: 2-5s delay en primera transcripción
+Debería: Show "loading model" overlay
+
+================================================================================
+RECOMENDACIONES DE FIXES
+================================================================================
+
+TIER 1 (Esta semana) - CRÍTICO:
+- [ ] Fix tray thread protection + exit signal
+- [ ] Fix audio stream close retry
+- [ ] Fix history file cleanup error handling
+- [ ] Fix config corruption recovery
+
+TIER 2 (2 semanas) - IMPORTANTE:
+- [ ] Replace all bare `pass` with logging
+- [ ] Consolidate print() → logging
+- [ ] Add user error notifications (overlay)
+- [ ] Add finally blocks for cleanup
+- [ ] Model/updater temp file cleanup
+
+TIER 3 (Next sprint) - MEJORA:
+- [ ] Race condition auditing
+- [ ] Callback timeout protection
+- [ ] Graceful degradation patterns
+- [ ] Retry logic for network ops
+- [ ] Error recovery tests
+
+================================================================================
+FILES PRIORITARIOS PARA REVISAR
+================================================================================
+
+1. src/main.py - Entry point, shutdown logic
+   Issues: 31, 681-683, 823-825, 974-977, 1031, 1057-1138
+
+2. src/ui/tray.py - System tray, exit mechanism **CRITICAL**
+   Issues: 172-176 (bare except)
+
+3. src/ui/web_settings/api.py - Settings UI **MANY ISSUES**
+   Issues: 30+ bare pass, logging missing
+
+4. src/managers/audio.py - Audio I/O
+   Issues: 225-226 (stream cleanup), 143-145 (VAD fallback)
+
+5. src/managers/history.py - Recording storage
+   Issues: 154, 185, 211 (file deletion fail)
+
+6. src/ui/win_overlay.py - Native overlay
+   Issues: 36+ bare pass, no logging
+
+7. src/managers/model.py - Model management
+   Issues: 112-137 (incomplete download)
+
+8. src/managers/updater.py - Auto-updates
+   Issues: 313-339 (installer cleanup)
+
+================================================================================
+TESTING RECOMMENDATIONS
+================================================================================
+
+Add tests para error paths:
+- test_tray_thread_exception()
+- test_config_corruption_recovery()
+- test_stream_close_on_error()
+- test_model_download_cleanup_on_failure()
+- test_preload_failure_doesnt_crash()
+- test_history_cleanup_with_permission_error()
+- test_updater_installer_verification_failure()
+- test_win_overlay_exception_handling()
+
+================================================================================
+PATTERNS TO ADOPT
+================================================================================
+
+GOOD PATTERN:
+try:
+    result = operation()
+except SpecificException as e:
+    logger.warning(f"[context] {e}")
+except Exception as e:
+    logger.exception(f"[context] Unexpected: {e}")
+
+BAD PATTERN:
+try:
+    result = operation()
+except Exception:  # ← Generic, silent
+    pass
+
+CALLBACK PATTERN:
+if self._callback:
+    try:
+        self._callback()
+    except Exception as e:
+        logger.error(f"[context] Callback failed: {e}")
+        # Don't re-raise: callbacks can't crash app
+
+CLEANUP PATTERN:
+resource = None
+try:
+    resource = acquire()
+    use(resource)
+finally:
+    if resource:
+        try:
+            resource.cleanup()
+        except Exception as e:
+            logger.warning(f"[context] Cleanup failed: {e}")
+
+================================================================================
+REFERENCIA RÁPIDA - ARCHIVOS GENERADOS
+================================================================================
+
+ERROR_HANDLING_ANALYSIS.md
+  - Análisis detallado de todos los issues
+  - Impact matrix completa
+  - 50+ bugs documentados
+  - Recomendaciones por prioridad
+
+ERROR_HANDLING_FIXES.md
+  - Código actual vs fixes sugeridos
+  - Ejemplos de implementación
+  - Patrones recomendados
+  - Test cases para error paths
+  - Checklist de implementación
+
+ERROR_HANDLING_SUMMARY.txt (este archivo)
+  - Resumen ejecutivo
+  - Quick reference
+  - Top 10 bugs
+  - Recomendaciones rápidas
+
+================================================================================
+PRÓXIMOS PASOS
+================================================================================
+
+1. Revisar los 3 documentos
+2. Priorizar fixes según TIER
+3. Crear subtasks en tracker
+4. Implementar TIER 1 fixes (2-3 horas)
+5. Implementar TIER 2 fixes (8-12 horas)
+6. Escribir tests para error paths
+7. Validar que no hay regresiones
+
+Total estimado: 2-3 días de trabajo
+
+================================================================================

@@ -1,0 +1,421 @@
+================================================================================
+QUICK FIX REFERENCE - ERROR HANDLING ISSUES
+================================================================================
+
+TABLA DE BÚSQUEDA Y REEMPLAZO RÁPIDA
+
+================================================================================
+ISSUE 1: BARE `pass` AFTER EXCEPTION - 35+ LOCATIONS
+================================================================================
+
+BUSCA ESTAS LÍNEAS:
+  except Exception:
+      pass
+
+REEMPLAZA CON:
+  except Exception as e:
+      logger.exception(f"[context] Unexpected error: {e}")
+
+O SI ES INTENCIONAL (fallback):
+  except Exception as e:
+      logger.debug(f"[context] Fallback triggered: {e}")
+
+ARCHIVOS Y LÍNEAS ESPECÍFICAS:
+
+1. src/actions.py
+   ├─ Línea 31-32 (Preload)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[actions] Preload failed (optional): {e}")
+   │
+   ├─ Línea 36-37 (Sound play start)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[sound] Play start failed: {e}")
+   │
+   └─ Línea 165-166 (Sound play end)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.debug(f"[sound] Play end failed: {e}")
+
+2. src/managers/audio.py
+   ├─ Línea 143-145 (VAD fallback)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[vad] VAD inference failed, using RMS: {e}")
+   │
+   └─ Línea 225-226 (Stream close)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.warning(f"[audio] Stream close failed: {e}")
+
+3. src/managers/history.py
+   ├─ Línea 154-155 (Delete on insert)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.warning(f"[history] Could not delete {wav_path}: {e}")
+   │
+   ├─ Línea 185-186 (Delete on clear)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.warning(f"[history] Could not delete {wav}: {e}")
+   │
+   └─ Línea 211-212 (Delete on prune)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.warning(f"[history] Could not delete {wav}: {e}")
+
+4. src/managers/transcription.py
+   ├─ Línea 420-423 (Warmup)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[transcription] Warmup failed: {e}")
+   │
+   └─ Línea 625-626 (Event callback)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.warning(f"[transcription] Event callback failed: {e}")
+
+5. src/ui/tray.py
+   └─ Línea 176 (CRITICAL - Tray dies)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.exception(f"[tray] Fatal error: {e}")
+                 raise SystemExit(1)  # Signal to main
+
+6. src/ui/overlay.py
+   └─ Línea 41-42 (Qt callback)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.exception(f"[overlay] Callback failed: {e}")
+
+7. src/ui/win_overlay.py (36+ LOCATIONS!)
+   ├─ Línea 171-177
+   ├─ Línea 197-198
+   ├─ Línea 266-267
+   ├─ Línea 307-308
+   ├─ Línea 332-333
+   ├─ Línea 361-362
+   ├─ Línea 365-366
+   ├─ Línea 375-376
+   ├─ Línea 383-384
+   ├─ Línea 389-390
+   │  PATTERN PARA TODOS:
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[win_overlay] Operation failed: {e}")
+   │  (Use 'debug' for non-critical UI operations)
+
+8. src/managers/recording_state.py
+   ├─ Línea 529-530 (Clipboard)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.warning(f"[paste] Clipboard failed: {e}")
+   │
+   └─ Línea 541-542 (Sound end)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.debug(f"[sound] Play end failed: {e}")
+
+9. src/managers/model.py
+   ├─ Línea 133-134 (Progress callback)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[model] Progress callback failed: {e}")
+   │
+   └─ Línea 220-221 (Event callback)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.warning(f"[model] Event callback failed: {e}")
+
+================================================================================
+ISSUE 2: `except Exception:` SIN LOGGING - 15+ LOCATIONS
+================================================================================
+
+BUSCA ESTAS LÍNEAS:
+  except Exception:
+      return something  # Sin logging
+
+REEMPLAZA CON:
+  except Exception as e:
+      logger.error(f"[context] Failed: {e}")
+      return something
+
+ARCHIVOS Y LÍNEAS ESPECÍFICAS:
+
+1. src/ui/web_settings/api.py (CRÍTICA)
+   ├─ Línea 115-116 (get_config)
+   │  ACTUAL:    except Exception:
+   │             return {}
+   │  FIX:       except json.JSONDecodeError as e:
+   │             logger.error(f"[api] Config corrupted: {e}")
+   │             # Backup corrupted file
+   │             try:
+   │                 shutil.copy(self._config_path_str,
+   │                             self._config_path_str + '.corrupted')
+   │             except: pass
+   │             return {}
+   │             except Exception as e:
+   │             logger.error(f"[api] Failed to load config: {e}")
+   │             return {}
+   │
+   ├─ Línea 170-171 (get_default_models)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.warning(f"[api] Could not load default models: {e}")
+   │             return fallback_list
+   │
+   ├─ Línea 334-335 (load_cache)
+   │  ACTUAL:    except Exception:
+   │             pass
+   │  FIX:       except Exception as e:
+   │             logger.debug(f"[api] Cache load failed: {e}")
+   │             return None
+   │
+   └─ Línea 340-341 (load_pricing)
+      ACTUAL:    except Exception:
+                 pass
+      FIX:       except Exception as e:
+                 logger.debug(f"[api] Pricing load failed: {e}")
+                 return None
+
+2. src/managers/audio.py
+   └─ Línea 143-145 (VAD fallback)
+      ACTUAL:    except Exception:
+                 pass  # Fall back to RMS
+      FIX:       except Exception as e:
+                 logger.debug(f"[vad] VAD failed, using RMS: {e}")
+
+================================================================================
+ISSUE 3: `print()` EN LUGAR DE `logging` - 8+ LOCATIONS
+================================================================================
+
+BUSCA ESTAS LÍNEAS:
+  print(f"[...] error")
+
+REEMPLAZA CON:
+  logger.error(f"[...] error")  # o .debug(), .warning() según severidad
+
+ARCHIVOS Y LÍNEAS ESPECÍFICAS:
+
+1. src/utils/llm_client.py
+   └─ Línea 100
+      ACTUAL:    print(f"[openrouter] postprocess failed: {last_error}")
+      FIX:       logger.error(f"[openrouter] postprocess failed: {last_error}")
+
+2. src/ui/web_settings/api.py
+   ├─ Línea 85-86 (HistoryManager creation)
+   │  ACTUAL:    print(f"[SettingsAPI] Failed to create HistoryManager: {e}")
+   │  FIX:       logger.error(f"[api] HistoryManager creation failed: {e}")
+   │
+   └─ Línea 146-147 (Audio devices)
+      ACTUAL:    print(f"[SettingsAPI] Error getting audio devices: {e}")
+      FIX:       logger.error(f"[api] Error getting audio devices: {e}")
+
+3. src/ui/win_overlay.py
+   ├─ Línea 83 (DEBUG)
+   │  ACTUAL:    print("[win_overlay] Iniciando thread...")
+   │  FIX:       logger.debug("[win_overlay] Starting thread...")
+   │
+   └─ Línea 90 (ERROR)
+      ACTUAL:    print(f"[win_overlay] ERROR: {err}")
+      FIX:       logger.error(f"[win_overlay] ERROR: {err}")
+
+================================================================================
+ISSUE 4: MISSING FINALLY BLOCKS - 5+ LOCATIONS
+================================================================================
+
+BUSCA ESTAS LÍNEAS:
+  resource = allocate()
+  try:
+      use(resource)
+  except Exception:
+      pass  # No cleanup guarantee
+
+REEMPLAZA CON:
+  resource = None
+  try:
+      resource = allocate()
+      use(resource)
+  finally:
+      if resource:
+          try:
+              resource.cleanup()
+          except Exception as e:
+              logger.warning(f"[context] Cleanup failed: {e}")
+
+ARCHIVOS Y LÍNEAS ESPECÍFICAS:
+
+1. src/managers/audio.py (stream close)
+   ├─ Línea 217-228
+   │  ACTUAL:    stream = sd.InputStream(...)
+   │             try:
+   │                 stream.start()
+   │             except Exception as e:
+   │                 logger.error(...)
+   │                 try:
+   │                     stream.close()
+   │                 except Exception:
+   │                     pass
+   │                 raise
+   │
+   │  FIX:       stream = None
+   │             try:
+   │                 stream = sd.InputStream(...)
+   │                 stream.start()
+   │             except Exception as e:
+   │                 logger.error(...)
+   │                 raise
+   │             finally:
+   │                 if stream and not started:
+   │                     try:
+   │                         stream.close()
+   │                     except Exception as e:
+   │                         logger.warning(...)
+
+2. src/managers/model.py (download with temp file)
+   └─ Línea 112-137
+      ACTUAL:    for url in urls:
+                     try:
+                         with requests.get(...) as resp:
+                             with open(self.model_path, "wb") as f:
+                                 f.write(...)
+                         return
+                     except Exception:
+                         continue
+
+      FIX:       for url in urls:
+                     temp_path = self.model_path.with_suffix('.tmp')
+                     try:
+                         with requests.get(...) as resp:
+                             with open(temp_path, "wb") as f:
+                                 f.write(...)
+                         temp_path.replace(self.model_path)
+                         return
+                     except Exception as e:
+                         logger.warning(f"[model] Download failed from {url}: {e}")
+                         try:
+                             temp_path.unlink()
+                         except: pass
+                         continue
+
+3. src/managers/updater.py (installer cleanup)
+   └─ Línea 307-339
+      ACTUAL:    with open(installer_path, "wb") as f:
+                     # ... download ...
+                     # If SHA256 fails after, file is left
+
+      FIX:       installer_path = Path(...)
+                 try:
+                     with open(installer_path, "wb") as f:
+                         # ... download ...
+
+                     # Verify SHA256
+                     if sha256_expected:
+                         actual = compute_sha256(installer_path)
+                         if actual != sha256_expected:
+                             raise ValueError("SHA256 mismatch")
+
+                     # Execute
+                     subprocess.run([str(installer_path), "/S"], check=True)
+                 finally:
+                     try:
+                         installer_path.unlink()
+                     except Exception as e:
+                         logger.warning(f"[updater] Could not delete installer: {e}")
+
+================================================================================
+ISSUE 5: NO USER FEEDBACK - 10+ CRITICAL PATHS
+================================================================================
+
+AÑADE NOTIFICACIÓN A USUARIO EN ESTOS PATHS:
+
+1. Audio Device Missing
+   File: src/main.py (load config / init audio)
+   Add: show_error_to_user("Microphone not found. Check settings.")
+
+2. Model Download Fails
+   File: src/managers/model.py
+   Add: if on_error: on_error(f"Failed to download {model_id}")
+
+3. Post-Processing Timeout
+   File: src/actions.py:100-120
+   ACTUAL: except Exception: logger.exception(...) [silent]
+   FIX:    on_error(f"LLM timeout, pasting original text")
+
+4. Paste Fails
+   File: src/actions.py:148-155
+   ACTUAL: except Exception: print("No se pudo pegar")
+   FIX:    show_error_to_user("Could not paste. Text copied to clipboard.")
+
+5. Stream Close Fails
+   File: src/managers/audio.py:225-226
+   Add: logger.warning() + maybe retry
+
+6. Config Corrupted
+   File: src/ui/web_settings/api.py:115-116
+   Add: show_error_to_user("Configuration corrupted. Resetting to defaults.")
+
+================================================================================
+IMPLEMENTATION CHECKLIST
+================================================================================
+
+[ ] STEP 1: Audit all `except Exception: pass` patterns
+    Command: grep -n "except Exception:" src/**/*.py | grep -v "logger\|print\|raise"
+    Expected: ~35 matches to fix
+
+[ ] STEP 2: Add logging to all bare pass statements
+    Time: 1-2 hours
+    Files affected: ~15 files, ~35 locations
+
+[ ] STEP 3: Consolidate print() to logger
+    Time: 30 minutes
+    Files affected: ~5 files, 8 locations
+
+[ ] STEP 4: Add finally blocks to resource cleanup
+    Time: 1-2 hours
+    Files affected: ~5 files, 5 locations
+
+[ ] STEP 5: Add user-facing error notifications
+    Time: 2-3 hours
+    Integration: Main loop, overlay manager
+
+[ ] STEP 6: Write error path tests
+    Time: 2-3 hours
+    Coverage: Critical error scenarios
+
+[ ] STEP 7: Verify no regressions
+    Time: 1 hour
+    Test: Full end-to-end flow
+
+Total estimated time: 8-12 hours
+
+================================================================================
+REFERENCES
+================================================================================
+
+For full analysis, see:
+- ERROR_HANDLING_ANALYSIS.md (Detailed breakdown, 50+ bugs)
+- ERROR_HANDLING_FIXES.md (Code examples, patterns)
+- ERROR_HANDLING_ARCHITECTURE.txt (Flow diagrams, strategies)
+- ERROR_HANDLING_SUMMARY.txt (Executive summary)
+
+================================================================================

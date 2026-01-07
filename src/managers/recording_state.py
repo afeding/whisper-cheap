@@ -66,6 +66,9 @@ class ProcessingResult:
     file_name: Optional[str]
     timestamp: Optional[int]
     samples: Any = None
+    # Status: "success", "empty", "timeout", "error"
+    status: str = "success"
+    error_message: Optional[str] = None
 
 
 class RecordingStateMachine:
@@ -338,6 +341,23 @@ class RecordingStateMachine:
                 )
                 return False
 
+    def force_idle(self) -> None:
+        """
+        Force state to IDLE unconditionally.
+        Use for error recovery when normal state transitions aren't possible.
+        """
+        with self._lock:
+            old_state = self._state
+            self._state = State.IDLE
+            self._show_level = False
+            if old_state != State.IDLE:
+                logger.warning(f"[state] Forced IDLE from {old_state.name}")
+                if self._on_state_change:
+                    try:
+                        self._on_state_change(old_state, State.IDLE)
+                    except Exception as e:
+                        logger.error(f"[state] Error in state change callback: {e}")
+
     def toggle(self, job_factory: Callable[[], ProcessingJob]) -> str:
         """
         Toggle recording state (for toggle mode).
@@ -396,14 +416,22 @@ class RecordingStateMachine:
 
         progress = job.on_progress or (lambda *_: None)
         samples = job.samples
+        status = "success"
+        error_message = None
 
         try:
             # Check if we have audio to process
             if samples is None or getattr(samples, "size", 0) == 0:
                 logger.warning(f"[worker] No audio in job seq={job.seq_id}, skipping")
-                self._complete_job(job, None)
-                if job.on_complete:
-                    job.on_complete({"text": None, "audio": None})
+                result = ProcessingResult(
+                    seq_id=job.seq_id,
+                    text=None,
+                    file_name=None,
+                    timestamp=None,
+                    status="empty",
+                    error_message="No se capturó audio. Mantén presionado el hotkey mientras hablas.",
+                )
+                self._queue_result_and_paste(result, job)
                 return
 
             # Transcribe
@@ -423,8 +451,16 @@ class RecordingStateMachine:
                         logger.info(f"[worker] Transcription complete seq={job.seq_id}: {len(text)} chars")
                     else:
                         logger.warning(f"[worker] Empty transcription seq={job.seq_id}")
+                        status = "empty"
+                        error_message = "Transcripción vacía. ¿Hablaste lo suficientemente alto?"
+                except TimeoutError as e:
+                    logger.error(f"[worker] Transcription timeout seq={job.seq_id}: {e}")
+                    status = "timeout"
+                    error_message = "Timeout: la transcripción tardó demasiado. Intenta con audio más corto."
                 except Exception as e:
                     logger.exception(f"[worker] Transcription error seq={job.seq_id}: {e}")
+                    status = "error"
+                    error_message = f"Error en transcripción: {type(e).__name__}"
 
             # Post-process with LLM
             post_text = None
@@ -443,7 +479,8 @@ class RecordingStateMachine:
                         post_text = llm_res["text"]
                         logger.info(f"[worker] LLM complete seq={job.seq_id}: {len(post_text)} chars")
                 except Exception as e:
-                    logger.exception(f"[worker] LLM error seq={job.seq_id}: {e}")
+                    # Use error() to avoid stack traces with potential sensitive HTTP details
+                    logger.error(f"[worker] LLM error seq={job.seq_id}: {type(e).__name__}: {e}")
 
             # Save to history
             fname = None
@@ -451,17 +488,25 @@ class RecordingStateMachine:
             if job.history_manager and samples is not None:
                 import numpy as np
                 timestamp = int(time.time())
-                fname = job.history_manager.save_audio(
-                    np.asarray(samples, dtype=np.float32), timestamp
-                )
-                job.history_manager.insert_entry(
-                    file_name=fname,
-                    timestamp=timestamp,
-                    transcription_text=text or "",
-                    saved=False,
-                    post_processed_text=post_text,
-                    post_process_prompt=job.postprocess_prompt,
-                )
+                try:
+                    fname = job.history_manager.save_audio(
+                        np.asarray(samples, dtype=np.float32), timestamp
+                    )
+                    job.history_manager.insert_entry(
+                        file_name=fname,
+                        timestamp=timestamp,
+                        transcription_text=text or "",
+                        saved=False,
+                        post_processed_text=post_text,
+                        post_process_prompt=job.postprocess_prompt,
+                    )
+                except OSError as e:
+                    # Disk full or write error - log but don't fail the transcription
+                    logger.error(f"[worker] Failed to save audio seq={job.seq_id}: {e}")
+                    # Set warning status but keep text (transcription still worked)
+                    if status == "success":
+                        status = "warning"
+                        error_message = f"Audio no guardado: {e}"
 
             # Create result and queue for FIFO paste
             final_text = post_text or text
@@ -471,6 +516,8 @@ class RecordingStateMachine:
                 file_name=fname,
                 timestamp=timestamp,
                 samples=samples,
+                status=status,
+                error_message=error_message,
             )
 
             # Liberar samples del job (ya están en result)
@@ -563,6 +610,8 @@ class RecordingStateMachine:
                 "text": result.text,
                 "file_name": result.file_name,
                 "timestamp": result.timestamp,
+                "status": result.status,
+                "error_message": result.error_message,
             })
 
         # Liberar samples del result (ya no se necesitan)
