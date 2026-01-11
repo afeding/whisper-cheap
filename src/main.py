@@ -898,14 +898,18 @@ def main():
             chunk_transcriber=chunk_transcriber,
         )
 
-        # Clear ChunkTranscriber reference from audio_manager
-        audio_manager._chunk_transcriber = None
-        audio_manager._on_chunk_ready = None
-
         # Queue job to worker thread (returns immediately!)
+        # NOTE: This calls audio_manager.stop_recording() which emits the final chunk
         if not state_machine.try_stop_recording(job):
             logging.warning("[hotkey] on_release ignored (state machine rejected)")
+            # Clear references even on failure
+            audio_manager._chunk_transcriber = None
+            audio_manager._on_chunk_ready = None
             return
+
+        # Clear ChunkTranscriber reference AFTER stop_recording emitted final chunk
+        audio_manager._chunk_transcriber = None
+        audio_manager._on_chunk_ready = None
 
         logging.info("[hotkey] Processing job queued")
 

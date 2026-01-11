@@ -24,7 +24,7 @@ Ingeniero Python senior especializado en aplicaciones desktop Windows, procesami
 - Configuración via JSON + ventana de settings moderna
 - Empaquetable a .exe standalone con PyInstaller
 
-**Estado actual:** Fase de implementación completa. Managers, UI y flujo end-to-end funcionando. Tests unitarios implementados.
+**Estado actual:** v1.5.0 - Sistema completo y en producción. Arquitectura concurrente con transcripción incremental, máquina de estados thread-safe, y procesamiento paralelo con paste ordenado FIFO.
 
 ---
 
@@ -42,7 +42,10 @@ whisper-cheap/
 │   │   ├── transcription.py # TranscriptionManager: Parakeet V3 pipeline
 │   │   ├── history.py       # HistoryManager: SQLite + almacenamiento audios .wav
 │   │   ├── hotkey.py        # HotkeyManager: pynput para hotkeys globales
-│   │   └── updater.py       # UpdateManager: check/download/install updates via GitHub
+│   │   ├── updater.py       # UpdateManager: check/download/install updates via GitHub
+│   │   ├── sound.py         # SoundPlayer: audio cues para inicio/fin grabación
+│   │   ├── chunk_transcriber.py  # ChunkTranscriber: transcripción incremental en background
+│   │   └── recording_state.py    # RecordingStateMachine: estado thread-safe + worker concurrente
 │   ├── ui/
 │   │   ├── tray.py          # TrayManager: icono system tray con pystray
 │   │   ├── overlay.py       # RecordingOverlay + StatusOverlay (PyQt6 frameless)
@@ -220,7 +223,10 @@ Edita `config.json` manualmente o usa la ventana de settings (abre automáticame
 ### Error Handling
 - **Graceful degradation**: si falta una librería opcional (ej: `sounddevice`), fallar solo en uso, no en import
 - **Try/except** en callbacks de UI (tray, hotkeys) para no crashear la app
-- **Print** para logging (TODO: migrar a `logging` module)
+- **Logging completo**: `logging` module con rotation (10MB x5 archivos)
+  - Console: INFO+ (conciso)
+  - File: DEBUG+ (detallado con thread names)
+  - Path: `%APPDATA%/whisper-cheap/logs/app.log` (prod) o `.data/logs/app.log` (dev)
 
 ### Testing
 - Mocks para dependencias externas (sounddevice, onnxruntime, keyboard)
@@ -237,6 +243,64 @@ Cada manager es una clase autocontenida que recibe sus dependencias en `__init__
 **Razón:** Facilita testing (inyección de mocks) y permite instanciar múltiples configuraciones si es necesario.
 
 **Ejemplo:** `TranscriptionManager` recibe `ModelManager` como argumento, no lo importa globalmente.
+
+### Arquitectura concurrente (v1.5.0+)
+**Problema resuelto:** En versiones anteriores, el hotkey callback bloqueaba durante la transcripción (5-30s), causando pulsaciones perdidas.
+
+**Solución:** Máquina de estados con worker thread + cola FIFO.
+
+**Componentes clave:**
+1. **RecordingStateMachine** (`recording_state.py`): Estados thread-safe (IDLE ↔ RECORDING)
+   - Hotkey callback retorna INMEDIATAMENTE después de encolar el job
+   - Worker thread procesa jobs en paralelo (transcripción + LLM)
+   - Resultados se pegan en orden FIFO (primera grabación → primer paste)
+
+2. **ChunkTranscriber** (`chunk_transcriber.py`): Transcripción incremental
+   - Transcribe chunks de audio MIENTRAS se graba (background thread)
+   - Reduce latencia: cuando sueltas el hotkey, la transcripción ya está 50-80% completa
+   - Resultados se concatenan en orden al final
+
+3. **ProcessingJob** (dataclass en `recording_state.py`):
+   - Contiene audio capturado + config + callbacks
+   - Se encola al worker thread
+   - `seq_id` asegura orden FIFO de paste
+
+**Flujo concurrente:**
+```
+User: Press hotkey #1
+  → State: IDLE → RECORDING
+  → Audio: start capturing
+  → ChunkTranscriber: start background transcription
+
+User: Release hotkey #1 (job seq=1 enqueued)
+  → State: RECORDING → IDLE
+  → Hotkey callback returns IMMEDIATELY (< 10ms)
+  → Worker thread: processing job seq=1 (transcription + LLM)
+
+User: Press hotkey #2 (NEW RECORDING mientras #1 se procesa!)
+  → State: IDLE → RECORDING
+  → Audio: start capturing (no espera a que #1 termine)
+
+User: Release hotkey #2 (job seq=2 enqueued)
+  → State: RECORDING → IDLE
+  → Worker thread: processing job seq=2 IN PARALLEL with seq=1
+
+Worker: Job seq=2 finishes BEFORE seq=1 (más corto)
+  → Waits in paste queue until seq=1 completes
+  → FIFO: seq=1 pastes first, then seq=2
+
+UI: Badge shows "2 pending" while processing
+```
+
+**Beneficios:**
+- Hotkey nunca bloquea (≤ 10ms response time)
+- Múltiples grabaciones rápidas sin perder pulsaciones
+- Transcripciones largas + LLM (30s) no impiden nuevas grabaciones
+- Resultados siempre se pegan en orden grabado (predecible)
+
+**Trade-offs:**
+- Mayor complejidad (state machine + worker + FIFO queue)
+- Memoria: múltiples jobs en cola consumen RAM (limitado a 120s/grabación)
 
 ### Audio: siempre 16kHz mono float32
 Parakeet V3 requiere audio a 16kHz. `sounddevice` captura a `sample_rate=16000`, `channels=1`, `dtype=float32`.
@@ -283,10 +347,39 @@ Con VAD activado, solo se bufferean chunks donde `silero_vad.process()` > `vad_t
 - `OVERWRITE`: escribe en clipboard y pega
 - `APPEND`: añade a clipboard existente
 
-### Post-procesamiento LLM: plantillas con `${output}`
-`prompt_template` en config.json puede incluir `${output}` que se reemplaza con la transcripción raw.
+### Post-procesamiento LLM: prompt directo (v1.5.0+)
+**Cambio importante:** Se eliminó `system_prompt` separado. El prompt de config.json se usa DIRECTAMENTE como system message.
 
-**Ejemplo:** `"Corrige errores y formatea: ${output}"`
+**Antes (< v1.5.0):**
+- `system_prompt`: instrucciones generales ("Eres un editor de transcripciones...")
+- `prompt_template`: placeholder `${output}` reemplazado con texto
+
+**Ahora (v1.5.0+):**
+- `prompt_template` en config.json = system message completo
+- La transcripción se envía como user message
+- Más simple, menos tokens, mejor control
+
+**Prompt por defecto** (ver `DEFAULT_PROMPT_TEMPLATE` en `ui/web_settings/api.py`):
+```
+You are a transcription editor. Clean up the voice transcription provided by the user.
+
+Rules:
+- Fix punctuation and capitalization
+- Fix speech-to-text errors when obvious from context
+- Remove filler words (um, uh, like) and stutters
+- Convert spoken punctuation to symbols
+- Create bullet lists when speaker enumerates items
+- Split into paragraphs when topic changes
+- Keep the same language - do NOT translate
+- Preserve original meaning - do NOT add or invent information
+- Output ONLY the cleaned text, nothing else
+```
+
+**Provider preference:** Modelos específicos tienen providers fijos para mejor throughput:
+- `openai/gpt-oss-20b` → `groq` (rápido, gratis)
+- `google/gemini-2.5-flash-lite` → `google-ai-studio`, `google-vertex`
+- `mistralai/mistral-small-3.2-24b-instruct` → `mistral`
+- Otros modelos usan `{"sort": "throughput", "allow_fallbacks": true}`
 
 **Timeout:** 30s para llamadas a OpenRouter (configurable en `LLMClient`).
 
@@ -311,16 +404,41 @@ Ver `build_config.spec` para `hiddenimports` y `binaries`. El spec usa `collect_
 
 ## Key Files Reference
 
-- **src/main.py:58** — `main()`: entry point, inicializa todos los managers
-- **src/actions.py:16** — `start()`: inicia grabación + preload modelo
-- **src/actions.py:37** — `stop()`: detiene grabación, transcribe, pega
-- **src/managers/audio.py:95** — `AudioRecordingManager`: captura + VAD
-- **src/managers/transcription.py:76** — `TranscriptionManager.load_model()`: carga ONNX
-- **src/managers/transcription.py:200** — `TranscriptionManager.transcribe()`: pipeline Parakeet V3
-- **src/managers/model.py** — `ModelManager`: descarga/extracción modelos
+### Core Architecture (v1.5.0+)
+- **src/main.py:312** — `main()`: entry point, inicializa state machine + workers
+- **src/managers/recording_state.py** — `RecordingStateMachine`: estado thread-safe + worker concurrente
+  - `RecordingStateMachine.__init__()`: inicialización de locks, queues, state
+  - `try_start_recording()`: transición IDLE → RECORDING (hotkey press)
+  - `try_stop_recording()`: encola ProcessingJob y retorna INMEDIATAMENTE
+  - `_worker_loop()`: procesa jobs en background (transcripción + LLM + paste)
+  - `_queue_result_and_paste()`: asegura orden FIFO de paste
+- **src/managers/chunk_transcriber.py** — `ChunkTranscriber`: transcripción incremental
+  - `submit_chunk()`: encola chunk desde audio callback (thread-safe)
+  - `get_merged_text()`: concatena resultados en orden
+- **src/actions.py** — Capa glue legacy (usado por worker thread, no directamente por hotkey)
+
+### Managers
+- **src/managers/audio.py** — `AudioRecordingManager`: captura + VAD
+  - `start_recording()`: inicia stream y ChunkTranscriber
+  - `stop_recording()`: emite chunk final, retorna samples
+  - `_on_chunk_ready`: callback para enviar chunks a ChunkTranscriber
+- **src/managers/transcription.py** — `TranscriptionManager`: pipeline Parakeet V3
+- **src/managers/model.py** — `ModelManager`: descarga/extracción modelos ONNX
 - **src/managers/history.py** — `HistoryManager`: SQLite + almacenamiento .wav
-- **src/ui/settings_modern.py** — Ventana de settings con tabs (PyQt6)
-- **src/utils/paste.py** — `paste_text()`: SendInput para pegar
+- **src/managers/sound.py** — `SoundPlayer`: audio cues (preload, gain control)
+- **src/managers/hotkey.py** — `HotkeyManager`: registro de hotkeys globales
+- **src/managers/updater.py** — `UpdateManager`: auto-updates via GitHub
+
+### UI
+- **src/ui/web_settings/** — Ventana de settings (pywebview)
+  - `api.py`: `SettingsAPI` expuesta a JavaScript (test LLM, config save/load)
+  - `index.html` + `app.js`: UI moderna con tabs
+- **src/ui/win_overlay.py** — `WinOverlayBar`: overlay Win32 nativo (bars mode + loader + error)
+- **src/ui/tray.py** — `TrayManager`: system tray icon
+
+### Utils
+- **src/utils/paste.py** — `paste_text()`: SendInput para pegar (policies: DONT_MODIFY, OVERWRITE, APPEND)
+- **src/utils/llm_client.py** — `LLMClient`: llamadas a OpenRouter con provider preference
 
 ---
 
@@ -353,6 +471,42 @@ Ver `build_config.spec` para `hiddenimports` y `binaries`. El spec usa `collect_
 - Modo `--onedir` más rápido para desarrollo
 - Excluir módulos no usados con `--exclude-module` (ej: matplotlib si no se usa)
 
+### Debuggear arquitectura concurrente (v1.5.0+)
+**Estado bloqueado / hotkey no responde:**
+1. Verificar logs: `%APPDATA%\whisper-cheap\logs\app.log` (o `.data/logs/app.log` en dev)
+2. Buscar `[state]` en logs → verificar transiciones IDLE ↔ RECORDING
+3. Si state machine está en RECORDING pero no hay audio capturándose:
+   - Llamar `state_machine.force_idle()` para reset manual
+   - Verificar que `audio_manager.stop_recording()` se llamó correctamente
+
+**Jobs no se procesan / badge muestra pending count pero nada pasa:**
+1. Verificar worker thread vivo: buscar `[worker]` en logs
+2. Si worker murió sin logs: exception en `_process_job()` (revisar exception logging)
+3. Verificar queue: `state_machine._job_queue.qsize()` vs `state_machine.pending_count`
+
+**Resultados se pegan en orden incorrecto:**
+1. NUNCA debe pasar (FIFO garantizado por `_paste_queue`)
+2. Si pasa: verificar que `seq_id` se asigna correctamente en `try_stop_recording()`
+3. Logs: buscar `[paste] Queued result seq=X, next_paste=Y`
+
+**Transcripción incremental no funciona / ChunkTranscriber error:**
+1. Verificar que `audio_manager._on_chunk_ready` se asigna en `on_press()`
+2. Verificar que `chunk_transcriber.stop()` se llama con timeout suficiente (30s)
+3. Si timeout: chunks muy largos o modelo muy lento (usar fallback a transcripción full)
+4. Logs: buscar `[chunking]` para ver chunks procesados
+
+**Memoria alta / leaks:**
+1. Verificar que `job.samples = None` se ejecuta después de usar samples
+2. Verificar que `result.samples = None` se ejecuta en `_complete_job()`
+3. Limit de 120s/grabación protege contra recordings infinitos
+4. Si múltiples jobs encolados: normal tener varios audios en RAM temporalmente
+
+**Worker thread no se detiene al cerrar app:**
+1. Timeout de 10s en `stop_worker()` es intencional (LLM puede tardar)
+2. Si worker aún vivo después de 10s: thread daemon → Python lo mata en sys.exit()
+3. No es un error crítico, pero indica job en progreso muy lento
+4. Logs: buscar `[shutdown]` para ver qué paso tardó
+
 ---
 
 ## Versionado y Releases
@@ -362,7 +516,7 @@ Ver `build_config.spec` para `hiddenimports` y `binaries`. El spec usa `collect_
 **Punto único de verdad:** `src/__version__.py`
 
 ```python
-__version__ = "1.0.0"
+__version__ = "1.5.0"  # Versión actual (v1.5.0 = arquitectura concurrente)
 ```
 
 Este archivo es importado por:

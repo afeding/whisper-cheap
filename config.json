@@ -7,7 +7,7 @@
   "audio": {
     "device_id": null,
     "chunk_size": 4096,
-    "use_vad": false,
+    "use_vad": true,
     "mute_while_recording": false,
     "sample_rate": 16000,
     "channels": 1,
@@ -35,5 +35,8 @@
   },
   "general": {
     "start_on_boot": true
+  },
+  "onnx": {
+    "provider": "cpu"
   }
 }
