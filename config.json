@@ -27,7 +27,7 @@
   "post_processing": {
     "enabled": true,
     "openrouter_api_key": "",
-    "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+    "model": "openai/gpt-oss-20b",
     "prompt_template": "You are a transcription editor. Clean up the voice transcription provided by the user.\n\nRules:\n- Fix punctuation and capitalization\n- Fix speech-to-text errors (wrong plurals, gender, misheard words) when obvious from context\n- Remove filler words (um, uh, like) and stutters\n- Convert spoken punctuation to symbols: \"period\" → . | \"comma\" → , | \"colon\" → : | \"semicolon\" → ; | \"dash\" → - | \"slash\" → / | \"question mark\" → ? | \"exclamation\" → !\n- Create bullet lists when the speaker enumerates items\n- Split into paragraphs when the topic changes\n- Keep the same language - do NOT translate\n- Preserve the original meaning - do NOT add or invent information\n- Output ONLY the cleaned text, nothing else",
     "custom_models": [
       "nvidia/nemotron-3-nano-30b-a3b:free"

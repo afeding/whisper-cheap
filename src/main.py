@@ -43,6 +43,7 @@ from src.managers.history import HistoryManager
 from src.managers.hotkey import HotkeyManager
 from src.managers.model import ModelManager
 from src.managers.transcription import TranscriptionManager
+from src.managers.chunk_transcriber import ChunkTranscriber
 from src.managers.recording_state import (
     RecordingStateMachine,
     ProcessingJob,
@@ -729,6 +730,18 @@ def main():
                     model_id=cfg.get("model", {}).get("default_model", "parakeet-v3-int8"),
                     device_id=audio_cfg.get("device_id"),
                 )
+
+                # Create ChunkTranscriber for incremental transcription
+                model_id = cfg.get("model", {}).get("default_model", "parakeet-v3-int8")
+                chunk_transcriber = ChunkTranscriber(
+                    transcription_manager=transcription_manager,
+                    model_id=model_id,
+                )
+                chunk_transcriber.start()
+                audio_manager._on_chunk_ready = chunk_transcriber.submit_chunk
+                audio_manager._chunk_transcriber = chunk_transcriber
+                logging.debug("[chunking] ChunkTranscriber initialized")
+
             except RuntimeError as audio_err:
                 # Audio stream failed - reset state and show error
                 logging.error(f"[hotkey] Audio error: {audio_err}")
@@ -861,6 +874,9 @@ def main():
                 error_msg = error_msg[:77] + "..."
             show_error_overlay(f"Error: {error_msg}")
 
+        # Get ChunkTranscriber from audio_manager (may be None for short recordings)
+        chunk_transcriber = getattr(audio_manager, '_chunk_transcriber', None)
+
         # Create processing job
         job = ProcessingJob(
             binding_id="main",
@@ -879,7 +895,12 @@ def main():
             on_progress=on_progress,
             on_complete=on_complete,
             on_error=on_error,
+            chunk_transcriber=chunk_transcriber,
         )
+
+        # Clear ChunkTranscriber reference from audio_manager
+        audio_manager._chunk_transcriber = None
+        audio_manager._on_chunk_ready = None
 
         # Queue job to worker thread (returns immediately!)
         if not state_machine.try_stop_recording(job):

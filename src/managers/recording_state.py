@@ -48,7 +48,6 @@ class ProcessingJob:
     llm_model_id: Optional[str]
     llm_providers: Optional[list[str]]
     postprocess_prompt: Optional[str]
-    system_prompt: Optional[str]
     paste_method: Optional[str]
     clipboard_policy: Optional[str]
     on_progress: Optional[Callable[[str], None]] = None

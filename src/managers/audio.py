@@ -192,8 +192,9 @@ class AudioRecordingManager:
         self._on_chunk_ready: Optional[Callable[[np.ndarray, int], None]] = None
 
         # Chunking config
-        self._chunk_silence_threshold_ms: float = 300.0  # Emit chunk after this silence
-        self._chunk_max_duration_sec: float = 5.0  # Emit chunk after this duration
+        self._chunk_min_duration_sec: float = 3.0  # Never cut before this duration
+        self._chunk_silence_threshold_ms: float = 400.0  # Emit chunk after this silence
+        self._chunk_max_duration_sec: float = 6.0  # Emit chunk after this IF there's silence
 
     # --------- Public API ---------
     def list_input_devices(self):
@@ -385,16 +386,25 @@ class AudioRecordingManager:
         # Decide if we should emit the current chunk
         should_emit = False
 
-        # Condition 1: Prolonged silence (natural pause) AND we have speech content
-        if silence_duration_ms >= self._chunk_silence_threshold_ms:
-            if self._last_speech_time > self._chunk_start_time:
-                should_emit = True
-                logger.debug(f"[chunking] Emit trigger: silence {silence_duration_ms:.0f}ms")
+        # Never cut before minimum duration (prevents cutting short phrases)
+        if chunk_duration_sec < self._chunk_min_duration_sec:
+            return
 
-        # Condition 2: Max duration reached
-        if chunk_duration_sec >= self._chunk_max_duration_sec:
+        # Only cut if we have speech content in this chunk
+        has_speech = self._last_speech_time > self._chunk_start_time
+        if not has_speech:
+            return
+
+        # Condition 1: Natural pause (prolonged silence after speech)
+        if silence_duration_ms >= self._chunk_silence_threshold_ms:
             should_emit = True
-            logger.debug(f"[chunking] Emit trigger: duration {chunk_duration_sec:.1f}s")
+            logger.debug(f"[chunking] Emit trigger: pause {silence_duration_ms:.0f}ms")
+
+        # Condition 2: Max duration reached BUT only if there's some silence
+        # This prevents cutting in the middle of a word
+        if chunk_duration_sec >= self._chunk_max_duration_sec and silence_duration_ms > 50:
+            should_emit = True
+            logger.debug(f"[chunking] Emit trigger: duration {chunk_duration_sec:.1f}s (silence: {silence_duration_ms:.0f}ms)")
 
         if should_emit and self._on_chunk_ready:
             self._emit_current_chunk()
