@@ -393,29 +393,20 @@
                         <button onclick="resetPromptTemplate()" class="px-3 py-1.5 text-xs bg-bg-input border border-border-default text-text-secondary rounded-md hover:text-text-primary hover:border-border-hover">Reset to Default</button>
                     </div>
 
-                    <!-- Variables info -->
+                    <!-- Info box -->
                     <div class="mb-3 p-3 bg-bg-input rounded-lg border border-border-default">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <code class="px-2 py-1 bg-bg-secondary rounded text-xs text-accent font-mono">${output}</code>
-                            <span class="text-xs text-text-dim">— Raw transcription (required)</span>
+                            <span class="text-xs text-text-dim">These instructions tell the AI how to clean up your transcriptions.</span>
                         </div>
                     </div>
 
                     <!-- Prompt textarea -->
-                    <textarea id="prompt-template" onchange="validateAndSavePrompt()" oninput="validatePromptLive()"
+                    <textarea id="prompt-template" onchange="validateAndSavePrompt()" oninput="validateAndSavePrompt()"
                         class="w-full h-48 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary focus:border-accent resize-y"
-                        placeholder="Enter your prompt template here..."></textarea>
-
-                    <!-- Validation message -->
-                    <div id="prompt-validation" class="mt-2 hidden">
-                        <div class="flex items-center gap-2 text-xs">
-                            <svg id="prompt-validation-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"></svg>
-                            <span id="prompt-validation-text"></span>
-                        </div>
-                    </div>
+                        placeholder="Enter instructions for the AI..."></textarea>
 
                     <!-- Help section (collapsible) -->
                     <details class="mt-4">
@@ -425,19 +416,19 @@
                         <div class="mt-3 p-3 bg-bg-input rounded-lg border border-border-default text-xs text-text-secondary space-y-3">
                             <div>
                                 <p class="font-medium text-text-primary mb-1">How it works:</p>
-                                <p>The prompt is sent to the LLM after transcription. <code class="text-accent">${output}</code> is replaced with the raw transcribed text.</p>
+                                <p>These instructions are sent as "system prompt" to the AI. The transcription is sent separately in a user message wrapped in <code class="text-accent">&lt;transcription&gt;</code> tags.</p>
                             </div>
                             <div>
                                 <p class="font-medium text-text-primary mb-1">Example: Clean formatting</p>
-                                <pre class="bg-bg-secondary p-2 rounded text-text-dim overflow-x-auto">Fix punctuation and formatting:\n${output}</pre>
+                                <pre class="bg-bg-secondary p-2 rounded text-text-dim overflow-x-auto">Fix punctuation and capitalization. Remove filler words. Keep the same language.</pre>
                             </div>
                             <div>
                                 <p class="font-medium text-text-primary mb-1">Example: Translation</p>
-                                <pre class="bg-bg-secondary p-2 rounded text-text-dim overflow-x-auto">Translate to English:\n${output}</pre>
+                                <pre class="bg-bg-secondary p-2 rounded text-text-dim overflow-x-auto">Translate the transcription to English. Output only the translation.</pre>
                             </div>
                             <div>
                                 <p class="font-medium text-text-primary mb-1">Example: Summary</p>
-                                <pre class="bg-bg-secondary p-2 rounded text-text-dim overflow-x-auto">Summarize in 2 sentences:\n${output}</pre>
+                                <pre class="bg-bg-secondary p-2 rounded text-text-dim overflow-x-auto">Summarize the transcription in 2-3 sentences. Keep it concise.</pre>
                             </div>
                         </div>
                     </details>

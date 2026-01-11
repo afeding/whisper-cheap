@@ -135,10 +135,9 @@ function populateUI() {
     document.getElementById('ai-enabled').checked = config.post_processing?.enabled || false;
     document.getElementById('api-key').value = config.post_processing?.openrouter_api_key || '';
 
-    // Prompt Template
-    const promptTemplate = config.post_processing?.prompt_template || defaultPromptTemplate || 'Transcript:\n${output}';
+    // Prompt Template (used as system instructions)
+    const promptTemplate = config.post_processing?.prompt_template || defaultPromptTemplate || '';
     document.getElementById('prompt-template').value = promptTemplate;
-    validatePromptLive(); // Initial validation
 
     // Sound cues
     document.getElementById('enable-cues').checked = config.audio?.enable_cues !== false;
@@ -826,48 +825,8 @@ function escapeJS(str) {
 // PROMPT TEMPLATE
 // =============================================================================
 
-const REQUIRED_VARIABLE = '${output}';
-
-function validatePromptLive() {
-    const textarea = document.getElementById('prompt-template');
-    const validationDiv = document.getElementById('prompt-validation');
-    const iconEl = document.getElementById('prompt-validation-icon');
-    const textEl = document.getElementById('prompt-validation-text');
-
-    if (!textarea || !validationDiv) return;
-
-    const prompt = textarea.value;
-    const hasRequired = prompt.includes(REQUIRED_VARIABLE);
-
-    if (!hasRequired) {
-        // Show warning
-        validationDiv.classList.remove('hidden');
-
-        // Clear and rebuild icon using DOM methods
-        while (iconEl.firstChild) iconEl.removeChild(iconEl.firstChild);
-        const warningPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        warningPath.setAttribute('stroke-linecap', 'round');
-        warningPath.setAttribute('stroke-linejoin', 'round');
-        warningPath.setAttribute('stroke-width', '2');
-        warningPath.setAttribute('d', 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z');
-        iconEl.appendChild(warningPath);
-
-        iconEl.classList.remove('text-accent');
-        iconEl.classList.add('text-yellow-400');
-        textEl.className = 'text-yellow-400';
-        textEl.textContent = 'Missing required variable: ${output}';
-        textarea.classList.add('border-yellow-400');
-        textarea.classList.remove('border-accent', 'border-border-default');
-    } else {
-        // Hide validation when valid
-        validationDiv.classList.add('hidden');
-        textarea.classList.remove('border-yellow-400');
-        textarea.classList.add('border-border-default');
-    }
-}
-
 function validateAndSavePrompt() {
-    validatePromptLive();
+    // No validation needed - prompt is used as system instructions
     updateConfig();
 }
 
@@ -875,11 +834,8 @@ async function resetPromptTemplate() {
     const textarea = document.getElementById('prompt-template');
     if (!textarea) return;
 
-    // Use default from API or fallback
-    const defaultPrompt = defaultPromptTemplate || 'Transcript:\n${output}';
-    textarea.value = defaultPrompt;
-
-    validatePromptLive();
+    // Use default from API
+    textarea.value = defaultPromptTemplate || '';
     updateConfig();
 }
 

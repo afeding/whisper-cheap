@@ -61,26 +61,24 @@ class LLMClient:
         prompt_template: str,
         model: Optional[str] = None,
         timeout: Optional[float] = 30.0,
-        system_prompt: Optional[str] = None,
+        system_prompt: Optional[str] = None,  # Deprecated, ignored
         providers: Optional[list[str]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        Call OpenRouter (OpenAI-compatible) with a prompt template and return text + usage info.
+        Call OpenRouter (OpenAI-compatible) with prompt_template as system prompt.
+        The user message is just the transcription wrapped in XML tags.
         """
         if not prompt_template:
             raise ValueError("prompt_template is required")
-        if "${output}" not in prompt_template:
-            raise ValueError("prompt_template must contain ${output} placeholder")
         active_model = model or self.default_model
         if not active_model:
             raise ValueError("model is required")
 
-        # Replace placeholder with actual transcription text
-        prompt_filled = prompt_template.replace("${output}", text)
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt_filled})
+        # prompt_template = system instructions, user message = transcription in XML
+        messages = [
+            {"role": "system", "content": prompt_template},
+            {"role": "user", "content": f"<transcription>\n{text}\n</transcription>"},
+        ]
 
         provider_body = self._build_provider_body(providers)
         last_error: Optional[Exception] = None

@@ -10,6 +10,7 @@ import logging
 from typing import Any, Callable, Optional
 
 from src.managers.audio import AudioRecordingManager
+from src.ui.web_settings.api import DEFAULT_PROMPT_TEMPLATE
 
 logger = logging.getLogger(__name__)
 
@@ -133,9 +134,8 @@ def stop(
                 logger.info(f"[llm] Ejecutando post-proceso con modelo: {llm_model_id or llm_client.default_model}")
                 llm_res = llm_client.postprocess(
                     text,
-                    postprocess_prompt or "${output}",
+                    postprocess_prompt or DEFAULT_PROMPT_TEMPLATE,
                     model=llm_model_id or None,
-                    system_prompt=system_prompt,
                     providers=llm_providers,
                 )
                 if llm_res and llm_res.get("text"):

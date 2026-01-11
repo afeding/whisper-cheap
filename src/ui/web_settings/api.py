@@ -15,36 +15,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# LLM System prompt (from settings_helpers.py)
-LLM_SYSTEM_PROMPT = (
-    "You are \"Transcription 2.0\": a real-time dictation post-editor.\n\n"
-    "Task:\n"
-    "- Take the user's raw speech-to-text transcript and return the same content as clean written text.\n\n"
-    "Absolute output rules:\n"
-    "- Output ONLY the transformed text. No titles, no prefixes, no explanations, no markdown wrappers.\n"
-    "- Keep the SAME language as the transcript. Do NOT translate.\n"
-    "- Preserve meaning strictly. Do NOT add new ideas, facts, steps, names, or assumptions.\n"
-)
+# Default prompt template for LLM post-processing (used as system prompt)
+DEFAULT_PROMPT_TEMPLATE = """You are a transcription editor. Clean up the voice transcription provided by the user.
 
-# Default prompt template for LLM post-processing
-DEFAULT_PROMPT_TEMPLATE = """Improve this voice transcription to make it more readable and natural.
-
-Allowed improvements:
-- Add periods, commas, and semicolons where natural
-- Separate into paragraphs when the topic changes
-- Remove accidentally repeated words (e.g., "and and" → "and")
-- Convert spoken lists into bulleted format with dashes (-)
-- Paraphrase slightly for clarity if needed
-- Adjust vocabulary if it improves understanding
-
-Important limits:
-- Keep the original message and meaning
-- Do not add information that isn't in the transcription
-- If something is confusing or ambiguous, leave it as is
-- ALWAYS respond in the same language as the original transcription
-
-Transcription:
-${output}"""
+Rules:
+- Fix punctuation and capitalization
+- Fix speech-to-text errors (wrong plurals, gender, misheard words) when obvious from context
+- Remove filler words (um, uh, like) and stutters
+- Convert spoken punctuation to symbols: "period" → . | "comma" → , | "colon" → : | "semicolon" → ; | "dash" → - | "slash" → / | "question mark" → ? | "exclamation" → !
+- Create bullet lists when the speaker enumerates items
+- Split into paragraphs when the topic changes
+- Keep the same language - do NOT translate
+- Preserve the original meaning - do NOT add or invent information
+- Output ONLY the cleaned text, nothing else"""
 
 def _resource_base() -> Path:
     if getattr(sys, "frozen", False):
@@ -197,7 +180,7 @@ class SettingsAPI:
             payload = {
                 "model": model,
                 "messages": [
-                    {"role": "system", "content": LLM_SYSTEM_PROMPT},
+                    {"role": "system", "content": DEFAULT_PROMPT_TEMPLATE},
                     {"role": "user", "content": "Hello, this is a test."}
                 ],
                 "max_tokens": 50

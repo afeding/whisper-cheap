@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any, Callable, Optional
 
+from src.ui.web_settings.api import DEFAULT_PROMPT_TEMPLATE
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,6 +58,8 @@ class ProcessingJob:
     seq_id: int = 0
     # Audio samples captured (set by state machine before queueing)
     samples: Any = None
+    # ChunkTranscriber for incremental transcription (optional)
+    chunk_transcriber: Any = None
 
 
 @dataclass
@@ -437,30 +441,48 @@ class RecordingStateMachine:
             # Transcribe
             text = None
             if job.transcription_manager:
-                logger.info(f"[worker] Transcribing seq={job.seq_id}...")
                 progress("transcribing")
-                try:
-                    if hasattr(job.transcription_manager, "load_model"):
-                        job.transcription_manager.load_model(job.model_id)
-                    res = job.transcription_manager.transcribe(samples)
-                    if isinstance(res, dict):
-                        text = res.get("text")
-                    else:
-                        text = str(res)
-                    if text:
-                        logger.info(f"[worker] Transcription complete seq={job.seq_id}: {len(text)} chars")
-                    else:
-                        logger.warning(f"[worker] Empty transcription seq={job.seq_id}")
-                        status = "empty"
-                        error_message = "Transcripción vacía. ¿Hablaste lo suficientemente alto?"
-                except TimeoutError as e:
-                    logger.error(f"[worker] Transcription timeout seq={job.seq_id}: {e}")
-                    status = "timeout"
-                    error_message = "Timeout: la transcripción tardó demasiado. Intenta con audio más corto."
-                except Exception as e:
-                    logger.exception(f"[worker] Transcription error seq={job.seq_id}: {e}")
-                    status = "error"
-                    error_message = f"Error en transcripción: {type(e).__name__}"
+
+                # Check if we have pre-transcribed chunks from ChunkTranscriber
+                if job.chunk_transcriber and job.chunk_transcriber.completed_count > 0:
+                    try:
+                        # Wait for any pending chunks to complete
+                        job.chunk_transcriber.stop(timeout=30.0)
+                        text = job.chunk_transcriber.get_merged_text()
+                        chunk_count = job.chunk_transcriber.completed_count
+                        logger.info(
+                            f"[worker] Using {chunk_count} pre-transcribed chunks "
+                            f"seq={job.seq_id}: {len(text)} chars"
+                        )
+                    except Exception as e:
+                        logger.warning(f"[worker] ChunkTranscriber error, falling back: {e}")
+                        text = None
+
+                # Fallback: transcribe full audio if no chunk results
+                if not text:
+                    logger.info(f"[worker] Transcribing full audio seq={job.seq_id}...")
+                    try:
+                        if hasattr(job.transcription_manager, "load_model"):
+                            job.transcription_manager.load_model(job.model_id)
+                        res = job.transcription_manager.transcribe(samples)
+                        if isinstance(res, dict):
+                            text = res.get("text")
+                        else:
+                            text = str(res)
+                        if text:
+                            logger.info(f"[worker] Transcription complete seq={job.seq_id}: {len(text)} chars")
+                        else:
+                            logger.warning(f"[worker] Empty transcription seq={job.seq_id}")
+                            status = "empty"
+                            error_message = "Transcripción vacía. ¿Hablaste lo suficientemente alto?"
+                    except TimeoutError as e:
+                        logger.error(f"[worker] Transcription timeout seq={job.seq_id}: {e}")
+                        status = "timeout"
+                        error_message = "Timeout: la transcripción tardó demasiado. Intenta con audio más corto."
+                    except Exception as e:
+                        logger.exception(f"[worker] Transcription error seq={job.seq_id}: {e}")
+                        status = "error"
+                        error_message = f"Error en transcripción: {type(e).__name__}"
 
             # Post-process with LLM
             post_text = None
@@ -470,9 +492,8 @@ class RecordingStateMachine:
                 try:
                     llm_res = job.llm_client.postprocess(
                         text,
-                        job.postprocess_prompt or "${output}",
+                        job.postprocess_prompt or DEFAULT_PROMPT_TEMPLATE,
                         model=job.llm_model_id,
-                        system_prompt=job.system_prompt,
                         providers=job.llm_providers,
                     )
                     if llm_res and llm_res.get("text"):

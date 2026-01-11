@@ -17,10 +17,11 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Deque, Optional
+from typing import Callable, Deque, List, Optional
 
 import numpy as np
 
@@ -182,6 +183,18 @@ class AudioRecordingManager:
         self._stream: Optional["sd.InputStream"] = None
         self._stream_lock = threading.Lock()
 
+        # Chunking state (for incremental transcription)
+        self._current_chunk: List[np.ndarray] = []
+        self._chunk_start_time: float = 0.0
+        self._silence_start_time: Optional[float] = None
+        self._last_speech_time: float = 0.0
+        self._chunk_counter: int = 0
+        self._on_chunk_ready: Optional[Callable[[np.ndarray, int], None]] = None
+
+        # Chunking config
+        self._chunk_silence_threshold_ms: float = 300.0  # Emit chunk after this silence
+        self._chunk_max_duration_sec: float = 5.0  # Emit chunk after this duration
+
     # --------- Public API ---------
     def list_input_devices(self):
         if sd is None:
@@ -243,6 +256,13 @@ class AudioRecordingManager:
             self._is_recording = True
             self._binding_id = binding_id
 
+            # Reset chunking state
+            self._current_chunk = []
+            self._chunk_start_time = time.time()
+            self._silence_start_time = None
+            self._last_speech_time = time.time()
+            self._chunk_counter = 0
+
         # Always ensure the stream is open at recording time.
         if self._stream is None:
             try:
@@ -277,6 +297,10 @@ class AudioRecordingManager:
             chunk_count = len(self._buffer)
             data = np.concatenate(list(self._buffer)) if self._buffer else np.array([], dtype=np.float32)
             self._buffer.clear()
+
+        # Emit final chunk if there's remaining audio
+        if self._current_chunk and self._on_chunk_ready:
+            self._emit_current_chunk()
 
         duration = len(data) / self.config.sample_rate if len(data) > 0 else 0
         logger.info(f"[audio] Recording stopped: {chunk_count} chunks, {len(data)} samples, {duration:.2f}s")
@@ -325,12 +349,76 @@ class AudioRecordingManager:
                 self.on_rms(rms)
             except Exception:
                 pass
+
         with self._recording_lock:
             if not self._is_recording:
                 return
-        if not self.config.use_vad:
-            self._buffer.append(chunk.copy())
-            return
-        is_speech = self.vad.is_speech(chunk, self.config.vad_threshold)
+
+        # Always append to main buffer (fallback for full transcription)
+        self._buffer.append(chunk.copy())
+
+        # VAD check
+        is_speech = True
+        if self.config.use_vad:
+            is_speech = self.vad.is_speech(chunk, self.config.vad_threshold)
+
+        # === Chunking logic ===
+        now = time.time()
+
+        # Add to current chunk
+        self._current_chunk.append(chunk.copy())
+
+        # Track speech/silence
         if is_speech:
-            self._buffer.append(chunk.copy())
+            self._last_speech_time = now
+            self._silence_start_time = None
+        else:
+            if self._silence_start_time is None:
+                self._silence_start_time = now
+
+        # Calculate durations
+        chunk_duration_sec = now - self._chunk_start_time
+        silence_duration_ms = 0.0
+        if self._silence_start_time is not None:
+            silence_duration_ms = (now - self._silence_start_time) * 1000
+
+        # Decide if we should emit the current chunk
+        should_emit = False
+
+        # Condition 1: Prolonged silence (natural pause) AND we have speech content
+        if silence_duration_ms >= self._chunk_silence_threshold_ms:
+            if self._last_speech_time > self._chunk_start_time:
+                should_emit = True
+                logger.debug(f"[chunking] Emit trigger: silence {silence_duration_ms:.0f}ms")
+
+        # Condition 2: Max duration reached
+        if chunk_duration_sec >= self._chunk_max_duration_sec:
+            should_emit = True
+            logger.debug(f"[chunking] Emit trigger: duration {chunk_duration_sec:.1f}s")
+
+        if should_emit and self._on_chunk_ready:
+            self._emit_current_chunk()
+
+    def _emit_current_chunk(self) -> None:
+        """Emit the current chunk for background transcription."""
+        if not self._current_chunk:
+            return
+
+        chunk_audio = np.concatenate(self._current_chunk)
+        chunk_index = self._chunk_counter
+        duration_sec = len(chunk_audio) / self.config.sample_rate
+
+        # Reset chunking state for next chunk
+        self._chunk_counter += 1
+        self._current_chunk = []
+        self._chunk_start_time = time.time()
+        self._silence_start_time = None
+
+        logger.info(f"[chunking] Emitting chunk {chunk_index} ({duration_sec:.1f}s)")
+
+        # Notify callback (must be thread-safe)
+        if self._on_chunk_ready:
+            try:
+                self._on_chunk_ready(chunk_audio, chunk_index)
+            except Exception as e:
+                logger.error(f"[chunking] Error in on_chunk_ready callback: {e}")

@@ -28,7 +28,7 @@
     "enabled": true,
     "openrouter_api_key": "",
     "model": "nvidia/nemotron-3-nano-30b-a3b:free",
-    "prompt_template": "Improve this voice transcription to make it more readable and natural.\n\nAllowed improvements:\n- Add periods, commas, and semicolons where natural\n- Separate into paragraphs when the topic changes\n- Remove accidentally repeated words (e.g., \"and and\" → \"and\")\n- Convert spoken lists into bulleted format with dashes (-)\n- Paraphrase slightly for clarity if needed\n- Adjust vocabulary if it improves understanding\n\nImportant limits:\n- Keep the original message and meaning\n- Do not add information that isn't in the transcription\n- If something is confusing or ambiguous, leave it as is\n- ALWAYS respond in the same language as the original transcription\n\nTranscription:\n${output}",
+    "prompt_template": "You are a transcription editor. Clean up the voice transcription provided by the user.\n\nRules:\n- Fix punctuation and capitalization\n- Fix speech-to-text errors (wrong plurals, gender, misheard words) when obvious from context\n- Remove filler words (um, uh, like) and stutters\n- Convert spoken punctuation to symbols: \"period\" → . | \"comma\" → , | \"colon\" → : | \"semicolon\" → ; | \"dash\" → - | \"slash\" → / | \"question mark\" → ? | \"exclamation\" → !\n- Create bullet lists when the speaker enumerates items\n- Split into paragraphs when the topic changes\n- Keep the same language - do NOT translate\n- Preserve the original meaning - do NOT add or invent information\n- Output ONLY the cleaned text, nothing else",
     "custom_models": [
       "nvidia/nemotron-3-nano-30b-a3b:free"
     ]
