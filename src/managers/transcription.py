@@ -137,8 +137,13 @@ def _create_onnx_session(path: str, providers: list = None):
         sess_opts.inter_op_num_threads = 1
         sess_opts.intra_op_num_threads = 1
     else:
-        sess_opts.inter_op_num_threads = 2
-        sess_opts.intra_op_num_threads = 2
+        # Use half of available cores for CPU inference
+        import os
+        cpu_count = os.cpu_count() or 4
+        num_threads = max(2, cpu_count // 2)
+        sess_opts.inter_op_num_threads = num_threads
+        sess_opts.intra_op_num_threads = num_threads
+        logger.debug(f"[onnx] CPU mode: using {num_threads} threads (detected {cpu_count} cores)")
 
     try:
         session = ort.InferenceSession(path, providers=providers, sess_options=sess_opts)

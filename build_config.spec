@@ -63,9 +63,17 @@ try:
 except Exception as e:
     print(f"WARNING: Failed to collect scipy: {e}")
 
+# Collect certifi certificates (needed for SSL in httpx/openai)
+certifi_datas = []
+try:
+    certifi_datas = collect_data_files('certifi')
+    print(f"Collected {len(certifi_datas)} certifi data files")
+except Exception as e:
+    print(f"WARNING: Failed to collect certifi: {e}")
+
 # Combine all collected items
 all_binaries = ort_binaries + ort_root_binaries + sd_binaries + librosa_binaries + scipy_binaries
-all_datas = ort_datas + sd_datas + librosa_datas + scipy_datas
+all_datas = ort_datas + sd_datas + librosa_datas + scipy_datas + certifi_datas
 all_hiddenimports = ort_hiddenimports + sd_hiddenimports + librosa_hiddenimports + scipy_hiddenimports
 
 a = Analysis(
@@ -118,9 +126,10 @@ a = Analysis(
         'pythoncom',
         # Web settings
         'webview',
-        # HTTP
+        # HTTP and SSL
         'httpx',
         'openai',
+        'certifi',
     ] + all_hiddenimports,
     hookspath=['hooks'],
     hooksconfig={},
