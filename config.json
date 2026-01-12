@@ -22,7 +22,7 @@
   "overlay": {
     "enabled": true,
     "position": "bottom",
-    "opacity": 0.4
+    "opacity": 0.62
   },
   "post_processing": {
     "enabled": true,

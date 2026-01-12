@@ -50,7 +50,7 @@ from src.managers.recording_state import (
     State,
 )
 from src.ui.tray import TrayManager
-from src.ui.overlay import RecordingOverlay, StatusOverlay, ensure_app
+from src.ui.overlay import RecordingOverlay, StatusOverlay, RecordingOverlayBar, ensure_app
 try:
     from src.ui.win_overlay import WinOverlayBar
 except Exception:
@@ -586,16 +586,31 @@ def main():
 
     state_machine.set_on_queue_change(on_queue_change)
 
-    # Inicializar Win32 overlay
-    try:
-        if overlay_cfg.get("enabled", True) and os.name == "nt" and WinOverlayBar is not None:
-            print("[overlay] Inicializando Win32 overlay...")
-            win_bar = WinOverlayBar(position=overlay_cfg.get("position", "bottom"), opacity=overlay_cfg.get("opacity", 0.5))
-            win_bar.start()
-            print("[overlay] Backend: Win32 iniciado correctamente")
-    except Exception as exc:
-        print(f"[overlay] Win32 falló: {exc}")
-        win_bar = None
+    # Inicializar overlay (PyQt6 preferido, Win32 como fallback)
+    if overlay_cfg.get("enabled", True):
+        # Intentar PyQt6 primero (tiene antialiasing)
+        try:
+            print("[overlay] Inicializando PyQt6 overlay...")
+            win_bar = RecordingOverlayBar(
+                position=overlay_cfg.get("position", "bottom"),
+                opacity=overlay_cfg.get("opacity", 0.5)
+            )
+            print("[overlay] Backend: PyQt6 (antialiased)")
+        except Exception as exc:
+            print(f"[overlay] PyQt6 falló: {exc}, intentando Win32...")
+            win_bar = None
+            # Fallback a Win32 si PyQt6 falla
+            if os.name == "nt" and WinOverlayBar is not None:
+                try:
+                    win_bar = WinOverlayBar(
+                        position=overlay_cfg.get("position", "bottom"),
+                        opacity=overlay_cfg.get("opacity", 0.5)
+                    )
+                    win_bar.start()
+                    print("[overlay] Backend: Win32 (fallback)")
+                except Exception as exc2:
+                    print(f"[overlay] Win32 también falló: {exc2}")
+                    win_bar = None
 
     def sync_overlay_settings():
         if not overlay_cfg.get("enabled", True):

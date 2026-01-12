@@ -2,12 +2,11 @@
 Thread-safe recording state machine with worker thread for processing.
 
 States:
-- IDLE: Not recording (but may have jobs processing in background)
+- IDLE: Not recording and not processing any jobs
 - RECORDING: Currently recording audio
 
-Key feature: You can start a new recording while previous recordings are
-still being processed. Results are pasted in FIFO order (first recorded,
-first pasted) even if later recordings finish processing first.
+Key feature: Processing happens in a background worker thread to avoid
+blocking the hotkey callback. Only ONE recording can be processed at a time.
 
 This module solves the critical bug where hotkey callbacks were blocked
 during transcription, causing missed key presses.
@@ -30,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 class State(Enum):
     """Recording state machine states."""
-    IDLE = auto()       # Not recording (may have background jobs)
+    IDLE = auto()       # Not recording and no jobs processing
     RECORDING = auto()  # Currently recording audio
 
 
@@ -53,7 +52,7 @@ class ProcessingJob:
     on_progress: Optional[Callable[[str], None]] = None
     on_complete: Optional[Callable[[dict], None]] = None
     on_error: Optional[Callable[[Exception], None]] = None
-    # Sequence ID for FIFO paste ordering (assigned by state machine)
+    # Sequence ID for logging/debugging (assigned by state machine)
     seq_id: int = 0
     # Audio samples captured (set by state machine before queueing)
     samples: Any = None
@@ -76,12 +75,12 @@ class ProcessingResult:
 
 class RecordingStateMachine:
     """
-    Thread-safe state machine for recording workflow with concurrent processing.
+    Thread-safe state machine for recording workflow with sequential processing.
 
     Key features:
-    - Recording and processing are decoupled: you can record while processing
-    - Jobs are processed in parallel (transcription) but pasted in FIFO order
-    - Queue count is exposed for UI (badge showing pending jobs)
+    - Processing happens in background worker thread (hotkey never blocks)
+    - Only ONE job can be processed at a time (sequential, not concurrent)
+    - Queue count is exposed for UI (0 = idle, 1 = processing)
     - All state transitions are protected by a lock
     - Debounce prevents rapid state changes
     """
@@ -95,18 +94,13 @@ class RecordingStateMachine:
         self._last_transition_time = 0.0
         self._show_level = False
 
-        # Sequence counter for FIFO ordering
+        # Sequence counter for logging/debugging
         self._seq_counter = 0
 
         # Worker thread for async processing
         self._job_queue: queue.Queue[Optional[ProcessingJob]] = queue.Queue()
         self._worker_thread: Optional[threading.Thread] = None
         self._stop_worker = threading.Event()
-
-        # FIFO paste queue: results wait here until their turn
-        self._paste_queue: dict[int, ProcessingResult] = {}
-        self._paste_lock = threading.Lock()
-        self._next_paste_seq = 1  # Next seq_id to paste
 
         # Track pending jobs for UI
         self._pending_count = 0
@@ -116,7 +110,7 @@ class RecordingStateMachine:
         self._on_state_change: Optional[Callable[[State, State], None]] = None
         self._on_queue_change: Optional[Callable[[int], None]] = None
 
-        logger.info("[state] RecordingStateMachine initialized (concurrent mode)")
+        logger.info("[state] RecordingStateMachine initialized (sequential mode)")
 
     def start_worker(self) -> None:
         """Start the background worker thread for processing jobs."""
@@ -205,9 +199,12 @@ class RecordingStateMachine:
 
     @property
     def is_busy(self) -> bool:
-        """Whether we're currently recording. Processing doesn't block new recordings."""
+        """Whether we're currently recording or processing (blocks new recordings)."""
         with self._lock:
-            return self._state == State.RECORDING
+            if self._state == State.RECORDING:
+                return True
+        with self._pending_lock:
+            return self._pending_count > 0
 
     @property
     def has_pending_jobs(self) -> bool:
@@ -261,7 +258,7 @@ class RecordingStateMachine:
         Returns True if recording started, False if not possible.
 
         Thread-safe: can be called from hotkey callback.
-        Note: Can start recording even if previous jobs are still processing.
+        Note: Cannot start recording while previous jobs are still processing.
         """
         with self._lock:
             if not self._check_debounce():
@@ -272,6 +269,14 @@ class RecordingStateMachine:
                     f"[state] Cannot start recording: current state is {self._state.name}"
                 )
                 return False
+
+            # Block new recordings if there are pending jobs
+            with self._pending_lock:
+                if self._pending_count > 0:
+                    logger.warning(
+                        f"[state] Cannot start recording: {self._pending_count} job(s) still processing"
+                    )
+                    return False
 
             if self._transition(State.RECORDING, "hotkey press"):
                 self._show_level = True
@@ -285,7 +290,6 @@ class RecordingStateMachine:
 
         Thread-safe: can be called from hotkey callback.
         The actual processing happens in the worker thread.
-        Results are pasted in FIFO order.
         """
         with self._lock:
             if not self._check_debounce():
@@ -557,23 +561,13 @@ class RecordingStateMachine:
 
     def _queue_result_and_paste(self, result: ProcessingResult, job: ProcessingJob) -> None:
         """
-        Add result to queue and paste all ready results in FIFO order.
+        Paste result immediately (no FIFO queue needed with sequential jobs).
 
-        This ensures that even if job #2 finishes before job #1, we wait
-        for job #1 to complete and paste first.
+        With sequential-only processing, results always arrive in order,
+        so we can paste immediately instead of queueing.
         """
-        progress = job.on_progress or (lambda *_: None)
-
-        with self._paste_lock:
-            # Add this result to the queue
-            self._paste_queue[result.seq_id] = result
-            logger.debug(f"[paste] Queued result seq={result.seq_id}, next_paste={self._next_paste_seq}")
-
-            # Try to paste all consecutive ready results
-            while self._next_paste_seq in self._paste_queue:
-                next_result = self._paste_queue.pop(self._next_paste_seq)
-                self._paste_single_result(next_result, job)
-                self._next_paste_seq += 1
+        # No need for FIFO queue - only one job can be processing at a time
+        self._paste_single_result(result, job)
 
     def _paste_single_result(self, result: ProcessingResult, job: ProcessingJob) -> None:
         """Paste a single result and update state."""
