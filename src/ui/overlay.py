@@ -80,13 +80,13 @@ class RecordingOverlayBar(_BaseWidget):
     # Design Constants
     # ─────────────────────────────────────────────────────────────────
 
-    BAR_COUNT = 20
+    BAR_COUNT = 24
     BAR_WIDTH = 1.5
     BAR_GAP = 1.5
     BORDER_WIDTH = 1.5
 
-    WINDOW_WIDTH = 120
-    WINDOW_HEIGHT = 28
+    WINDOW_WIDTH = 145
+    WINDOW_HEIGHT = 32
 
     # Animation (seconds)
     ANIM_DURATION = 0.2
@@ -103,7 +103,7 @@ class RecordingOverlayBar(_BaseWidget):
 
         # Configuration
         self.position = position if position in ("top", "bottom") else "bottom"
-        self._base_opacity = max(0.1, min(1.0, float(opacity)))
+        self._base_opacity = 1.0  # Always 100% opacity
 
         # State
         self._mode = "bars"  # "bars" | "loader" | "error"
@@ -232,7 +232,7 @@ class RecordingOverlayBar(_BaseWidget):
         self._emit_update("mode", normalized)
 
     def set_opacity(self, opacity: float) -> None:
-        self._emit_update("opacity", float(opacity))
+        pass  # Opacity fixed at 100%
 
     def set_pending_count(self, count: int) -> None:
         self._emit_update("pending", int(count))
@@ -298,10 +298,6 @@ class RecordingOverlayBar(_BaseWidget):
                         if self._visible:
                             self._place_window()
                             super().show()
-
-            elif update_type == "opacity":
-                self._base_opacity = max(0.1, min(1.0, float(value)))
-                self.setWindowOpacity(self._base_opacity)
 
             elif update_type == "pending":
                 self._pending_count = int(value)
@@ -441,14 +437,14 @@ class RecordingOverlayBar(_BaseWidget):
         painter.end()
 
     def _draw_bars(self, painter: "QPainter", rect: "QRectF", scale_y: float, alpha: float) -> None:
-        """Draw audio bars - fast, reactive, thin."""
+        """Draw audio bars - fast, reactive, expressive."""
         cx = rect.center().x()
         cy = rect.center().y()
 
         total_w = self.BAR_COUNT * self.BAR_WIDTH + (self.BAR_COUNT - 1) * self.BAR_GAP
         start_x = cx - total_w / 2
 
-        max_h = rect.height() * 0.75
+        max_h = rect.height() * 0.85  # Taller bars
         min_h = 2
 
         level = self._level
@@ -463,25 +459,26 @@ class RecordingOverlayBar(_BaseWidget):
         for i in range(self.BAR_COUNT):
             x = start_x + i * (self.BAR_WIDTH + self.BAR_GAP)
 
-            # Strong center-weighted: center = 1.0, edges = 0.2
+            # Center-weighted: center = 1.0, edges = 0.35
             dist = abs(i - center) / center
-            envelope = 1.0 - dist * 0.8
+            envelope = 1.0 - dist * 0.65
 
             # Fast oscillating wave
             wave = math.sin(t * self._bar_speed[i] + self._bar_phase[i]) * self._bar_amp[i]
 
             if level < 0.03:
-                # Idle: minimal movement
-                bar_h = min_h + max_h * 0.08 * envelope
+                # Idle: just dots
+                bar_h = min_h
             else:
-                # Active: direct level response + fast variation
-                variation = 0.5 + wave * 0.5
-                bar_h = min_h + (max_h - min_h) * level * envelope * variation
+                # Active: amplified response
+                boosted_level = min(1.0, level * 1.4)  # Boost level for more height
+                variation = 0.6 + wave * 0.4
+                bar_h = min_h + (max_h - min_h) * boosted_level * envelope * variation
 
             bar_h = max(min_h, bar_h * scale_y)
 
-            # Draw thin bar
-            self._bar_color.setRgb(cr, cg, cb, int(255 * alpha * 0.9))
+            # Draw bar
+            self._bar_color.setRgb(cr, cg, cb, int(255 * alpha))
             painter.setBrush(self._bar_color)
             painter.drawRect(QRectF(x, cy - bar_h / 2, self.BAR_WIDTH, bar_h))
 
@@ -566,7 +563,7 @@ class RecordingOverlay:
         self._bar.set_level(rms)
 
     def set_opacity(self, opacity: float):
-        self._bar.set_opacity(opacity)
+        pass  # Fixed at 100%
 
     def set_position(self, position: str):
         self._bar.position = position
@@ -589,7 +586,7 @@ class StatusOverlay:
         pass
 
     def set_opacity(self, opacity: float):
-        self._bar.set_opacity(opacity)
+        pass  # Fixed at 100%
 
     def set_position(self, position: str):
         self._bar.position = position
