@@ -1,7 +1,7 @@
 [Setup]
 AppId={{88fc68fb-965d-4dce-a0a8-b1eeb65fb47a}}
 AppName=Whisper Cheap
-AppVersion=1.6.0
+AppVersion=1.6.1
 AppPublisher=Whisper Cheap
 DefaultDirName={autopf}\Whisper Cheap
 DefaultGroupName=Whisper Cheap

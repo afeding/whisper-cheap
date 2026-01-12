@@ -53,7 +53,7 @@ class _Update:
 class WinOverlayBar:
     def __init__(self, position: str = "bottom", opacity: float = 0.5) -> None:
         if win32gui is None or win32con is None or win32api is None:
-            raise RuntimeError("pywin32 no disponible para overlay nativo")
+            raise RuntimeError("pywin32 not available for native overlay")
         self.position = position if position in ("top", "bottom") else "bottom"
         self.opacity = float(opacity)
         self._q: "queue.SimpleQueue[_Update]" = queue.SimpleQueue()
@@ -80,13 +80,13 @@ class WinOverlayBar:
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
             return
-        print("[win_overlay] Iniciando thread...")
+        print("[win_overlay] Starting thread...")
         self._running.set()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
         self._ready.wait(timeout=1.5)
         if not self._ready.is_set():
-            err = self._last_error or "No se pudo inicializar overlay (timeout)"
+            err = self._last_error or "Could not initialize overlay (timeout)"
             print(f"[win_overlay] ERROR: {err}")
             raise RuntimeError(err)
 

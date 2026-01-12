@@ -233,10 +233,22 @@
                         <input type="text" id="hotkey-input" readonly
                             class="flex-1 bg-bg-input border border-border-default rounded-lg px-3 py-2.5 text-sm font-mono text-text-primary focus:border-accent cursor-pointer"
                             placeholder="Click to set">
+                        <!-- Normal state: Record button -->
                         <button onclick="startHotkeyCapture()" id="hotkey-btn"
                             class="px-4 py-2.5 bg-accent text-black text-sm font-semibold rounded-lg hover:bg-accent-hover flex-shrink-0">
                             Record
                         </button>
+                        <!-- Recording state: Stop + Cancel buttons (hidden by default) -->
+                        <div id="hotkey-recording-btns" class="hidden flex-shrink-0 flex items-center gap-2">
+                            <button onclick="confirmHotkey()" id="hotkey-stop-btn"
+                                class="px-4 py-2.5 bg-green-500 text-white text-sm font-semibold rounded-lg hover:bg-green-600">
+                                Stop
+                            </button>
+                            <button onclick="cancelHotkeyCapture()" id="hotkey-cancel-btn"
+                                class="px-3 py-2.5 bg-red-500/20 text-red-400 text-sm rounded-lg hover:bg-red-500/30" title="Cancel">
+                                ✕
+                            </button>
+                        </div>
                     </div>
                 </div>
 

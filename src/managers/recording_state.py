@@ -436,7 +436,7 @@ class RecordingStateMachine:
                     file_name=None,
                     timestamp=None,
                     status="empty",
-                    error_message="No se capturó audio. Mantén presionado el hotkey mientras hablas.",
+                    error_message="No audio captured. Hold the hotkey while speaking.",
                 )
                 self._queue_result_and_paste(result, job)
                 return
@@ -477,15 +477,15 @@ class RecordingStateMachine:
                         else:
                             logger.warning(f"[worker] Empty transcription seq={job.seq_id}")
                             status = "empty"
-                            error_message = "Transcripción vacía. ¿Hablaste lo suficientemente alto?"
+                            error_message = "Empty transcription. Did you speak loud enough?"
                     except TimeoutError as e:
                         logger.error(f"[worker] Transcription timeout seq={job.seq_id}: {e}")
                         status = "timeout"
-                        error_message = "Timeout: la transcripción tardó demasiado. Intenta con audio más corto."
+                        error_message = "Timeout: transcription took too long. Try with shorter audio."
                     except Exception as e:
                         logger.exception(f"[worker] Transcription error seq={job.seq_id}: {e}")
                         status = "error"
-                        error_message = f"Error en transcripción: {type(e).__name__}"
+                        error_message = f"Transcription error: {type(e).__name__}"
 
             # Post-process with LLM
             post_text = None
@@ -530,7 +530,7 @@ class RecordingStateMachine:
                     # Set warning status but keep text (transcription still worked)
                     if status == "success":
                         status = "warning"
-                        error_message = f"Audio no guardado: {e}"
+                        error_message = f"Audio not saved: {e}"
 
             # Create result and queue for FIFO paste
             final_text = post_text or text
@@ -544,7 +544,7 @@ class RecordingStateMachine:
                 error_message=error_message,
             )
 
-            # Liberar samples del job (ya están en result)
+            # Release samples from job (already in result)
             job.samples = None
 
             # Add to paste queue and try to paste in order
@@ -628,7 +628,7 @@ class RecordingStateMachine:
                 "error_message": result.error_message,
             })
 
-        # Liberar samples del result (ya no se necesitan)
+        # Release samples from result (no longer needed)
         if result:
             result.samples = None
 

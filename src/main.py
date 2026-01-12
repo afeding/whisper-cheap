@@ -181,7 +181,7 @@ def _set_startup_registry(app_name: str, command: str):
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key_path) as key:
             winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, command)
     except Exception as exc:
-        print(f"No se pudo registrar inicio automatico: {exc}")
+        print(f"Could not register autostart: {exc}")
 
 
 def _remove_startup_registry(app_name: str):
@@ -194,7 +194,7 @@ def _remove_startup_registry(app_name: str):
     except FileNotFoundError:
         return
     except Exception as exc:
-        print(f"No se pudo quitar inicio automatico: {exc}")
+        print(f"Could not remove autostart: {exc}")
 
 
 def _get_startup_registry(app_name: str) -> Optional[str]:
@@ -232,7 +232,7 @@ def _fix_startup_registry_if_wrong(is_frozen: bool):
 
     # If current value doesn't match the correct .exe path, fix it
     if current != correct_command:
-        print(f"Corrigiendo autostart: {current} -> {correct_command}")
+        print(f"Fixing autostart: {current} -> {correct_command}")
         _set_startup_registry(app_name, correct_command)
 
 
@@ -321,12 +321,12 @@ def main():
             last_error = win32api.GetLastError()
 
             if last_error == winerror.ERROR_ALREADY_EXISTS:
-                print("ADVERTENCIA: Whisper Cheap ya esta ejecutandose.")
-                print("Solo se permite una instancia a la vez.")
+                print("WARNING: Whisper Cheap is already running.")
+                print("Only one instance is allowed at a time.")
                 sys.exit(1)
         except Exception as e:
-            print(f"Advertencia: No se pudo crear mutex de instancia unica: {e}")
-            print("Continuando de todos modos...")
+            print(f"Warning: Could not create single instance mutex: {e}")
+            print("Continuing anyway...")
 
     # Define base_dir consistently for both cases
     if is_frozen:
@@ -400,7 +400,7 @@ def main():
         try:
             overlay_app = ensure_app()
         except Exception as exc:
-            print(f"Overlay deshabilitado: {exc}")
+            print(f"Overlay disabled: {exc}")
             overlay_cfg["enabled"] = False
 
     last_stream_status_print = {"t": 0.0}
@@ -447,9 +447,9 @@ def main():
 
     history_manager = HistoryManager(db_path=db_path, recordings_dir=recordings_dir)
     # Clear all history on startup to prevent accumulation
-    print(f"Limpiando historial en: {recordings_dir}")
+    print(f"Clearing history in: {recordings_dir}")
     history_manager.clear_all()
-    print("Historial limpiado.")
+    print("History cleared.")
 
     llm_client = None
     if pp_cfg.get("enabled") and pp_cfg.get("openrouter_api_key") and pp_cfg.get("model"):
@@ -458,47 +458,47 @@ def main():
                 api_key=pp_cfg["openrouter_api_key"],
                 default_model=pp_cfg["model"],
             )
-            print(f"Post-proceso LLM habilitado con modelo: {pp_cfg['model']}")
+            print(f"LLM post-processing enabled with model: {pp_cfg['model']}")
         except Exception as exc:
-            print(f"No se pudo inicializar OpenRouter: {exc}")
+            print(f"Could not initialize OpenRouter: {exc}")
             llm_client = None
     elif pp_cfg.get("enabled"):
-        print("Post-proceso LLM habilitado pero falta API key o modelo en config.")
+        print("LLM post-processing enabled but missing API key or model in config.")
 
     # Ensure model is present; download/extract if missing
     target_model = cfg.get("model", {}).get("default_model", "parakeet-v3-int8")
     try:
         if not model_manager.is_downloaded(target_model):
-            print(f"Descargando modelo {target_model}...")
+            print(f"Downloading model {target_model}...")
             archive = model_manager.download_model(target_model)
-            print("Extrayendo modelo...")
+            print("Extracting model...")
             model_manager.extract_model(target_model)
-            print("Modelo listo.")
+            print("Model ready.")
     except Exception as e:
-        print(f"No se pudo preparar el modelo {target_model}: {e}")
+        print(f"Could not prepare model {target_model}: {e}")
     # Ensure VAD model (optional)
     try:
         audio_manager.ensure_vad_model()
     except Exception as e:
-        print(f"No se pudo preparar VAD Silero: {e}")
+        print(f"Could not prepare VAD Silero: {e}")
 
     # Preload transcription model at startup (avoid delay on first recording)
     try:
-        print(f"Precargando modelo {target_model} en memoria...")
+        print(f"Preloading model {target_model} into memory...")
         transcription_manager.load_model(target_model)
-        print("Calentando kernels ONNX (warmup)...")
+        print("Warming up ONNX kernels (warmup)...")
         transcription_manager.warmup()
-        print("Modelo precargado y listo.")
+        print("Model preloaded and ready.")
     except Exception as e:
-        print(f"No se pudo precargar modelo: {e}")
+        print(f"Could not preload model: {e}")
 
     # Preload sound cues to avoid delay on first hotkey press
     try:
-        print("Precargando sonidos...")
+        print("Preloading sounds...")
         sound_player.preload()
-        print("Sonidos precargados.")
+        print("Sounds preloaded.")
     except Exception as e:
-        print(f"No se pudo precargar sonidos: {e}")
+        print(f"Could not preload sounds: {e}")
 
     # Check for updates in background (non-blocking)
     try:
@@ -538,7 +538,7 @@ def main():
             try:
                 open_web_settings(config_path, history_manager=history_manager)
             except Exception as e:
-                print(f"No se pudo abrir la ventana de Settings ({e}). Abre config.json manualmente: {config_path}")
+                print(f"Could not open Settings window ({e}). Open config.json manually: {config_path}")
         _main_thread_queue.put(_open)
 
     tray = TrayManager(
@@ -586,20 +586,20 @@ def main():
 
     state_machine.set_on_queue_change(on_queue_change)
 
-    # Inicializar overlay (PyQt6 preferido, Win32 como fallback)
+    # Initialize overlay (PyQt6 preferred, Win32 as fallback)
     if overlay_cfg.get("enabled", True):
-        # Intentar PyQt6 primero (tiene antialiasing)
+        # Try PyQt6 first (has antialiasing)
         try:
-            print("[overlay] Inicializando PyQt6 overlay...")
+            print("[overlay] Initializing PyQt6 overlay...")
             win_bar = RecordingOverlayBar(
                 position=overlay_cfg.get("position", "bottom"),
                 opacity=overlay_cfg.get("opacity", 0.5)
             )
             print("[overlay] Backend: PyQt6 (antialiased)")
         except Exception as exc:
-            print(f"[overlay] PyQt6 falló: {exc}, intentando Win32...")
+            print(f"[overlay] PyQt6 failed: {exc}, trying Win32...")
             win_bar = None
-            # Fallback a Win32 si PyQt6 falla
+            # Fallback to Win32 if PyQt6 fails
             if os.name == "nt" and WinOverlayBar is not None:
                 try:
                     win_bar = WinOverlayBar(
@@ -609,7 +609,7 @@ def main():
                     win_bar.start()
                     print("[overlay] Backend: Win32 (fallback)")
                 except Exception as exc2:
-                    print(f"[overlay] Win32 también falló: {exc2}")
+                    print(f"[overlay] Win32 also failed: {exc2}")
                     win_bar = None
 
     def sync_overlay_settings():
@@ -638,7 +638,7 @@ def main():
             elif rec_overlay:
                 try:
                     sync_overlay_settings()
-                    rec_overlay.set_text("Grabando...")
+                    rec_overlay.set_text("Recording...")
                     rec_overlay.show()
                 except Exception as e:
                     logging.error(f"[overlay] ERROR en rec_overlay: {e}")
@@ -659,7 +659,7 @@ def main():
                 win_bar.show("")
                 # Don't hide on "done" - on_queue_change handles visibility
             except Exception as e:
-                print(f"[overlay] ERROR al mostrar {phase}: {e}")
+                print(f"[overlay] ERROR showing {phase}: {e}")
         elif status_overlay:
             try:
                 sync_overlay_settings()
@@ -668,7 +668,7 @@ def main():
                 print(f"[overlay] show: {phase} OK (PyQt6)")
                 # Don't hide on "done" - let queue state handle it
             except Exception as e:
-                print(f"[overlay] ERROR al mostrar {phase} (PyQt6): {e}")
+                print(f"[overlay] ERROR showing {phase} (PyQt6): {e}")
 
     def show_error_overlay(message: str):
         """Show error overlay - persistent until user clicks to dismiss."""
@@ -680,7 +680,7 @@ def main():
             try:
                 win_bar.show_error(message)
             except Exception as e:
-                logging.error(f"[overlay] ERROR al mostrar error: {e}")
+                logging.error(f"[overlay] ERROR showing error: {e}")
         elif status_overlay:
             try:
                 status_overlay.show_error(message)
@@ -763,7 +763,7 @@ def main():
                 state_machine.force_idle()  # Reset state machine
                 hide_recording_overlay()
                 tray.set_state("idle")
-                show_error_overlay(f"Error de micrófono:\n{str(audio_err)[:60]}")
+                show_error_overlay(f"Microphone error:\n{str(audio_err)[:60]}")
                 return
 
             logging.info("[hotkey] on_press completed")
@@ -878,7 +878,7 @@ def main():
                 show_error_overlay(error_message)
             else:
                 logging.warning("[complete] No text transcribed")
-                show_error_overlay("Transcripción vacía - no se detectó audio/voz")
+                show_error_overlay("Empty transcription - no audio/voice detected")
 
         def on_error(exc: Exception):
             """Called when processing fails."""
@@ -949,13 +949,13 @@ def main():
             logging.info(f"[hotkey] Registering toggle hotkey: {hotkey_combo}")
             hotkeys.register_hotkey(hotkey_combo, on_press_callback=toggle)
     except Exception as e:
-        print(f"No se pudo registrar hotkey ({hotkey_combo}): {e}")
+        print(f"Could not register hotkey ({hotkey_combo}): {e}")
 
-    # Mostrar ajustes al arrancar (no bloquea el programa)
+    # Show settings on startup (non-blocking)
     open_settings()
 
-    # Hilo de mantenimiento para descargar el modelo por inactividad (si se configura)
-    # y para detectar cambios en el hotkey
+    # Maintenance thread for unloading model on inactivity (if configured)
+    # and for detecting hotkey changes
     def _maintenance():
         nonlocal current_hotkey_state
 
@@ -998,7 +998,7 @@ def main():
 
     threading.Thread(target=_maintenance, daemon=True).start()
 
-    print("Whisper Cheap en ejecucion. Pulsa Ctrl+C para salir.")
+    print("Whisper Cheap running. Press Ctrl+C to exit.")
     try:
         while not stop_event.is_set():
             # Process Qt events

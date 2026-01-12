@@ -20,6 +20,8 @@ let defaultPromptTemplate = ''; // Loaded from API
 let capturingHotkey = false;
 let capturedKeys = new Set();
 let originalHotkey = '';
+let hotkeyInputTimeout = null;
+const HOTKEY_TIMEOUT_MS = 1500; // 1.5 seconds of inactivity to confirm
 
 // Auto-save debounce
 let saveTimer = null;
@@ -252,14 +254,15 @@ function startHotkeyCapture() {
     originalHotkey = document.getElementById('hotkey-input').value;
 
     const input = document.getElementById('hotkey-input');
-    const btn = document.getElementById('hotkey-btn');
+    const recordBtn = document.getElementById('hotkey-btn');
+    const recordingBtns = document.getElementById('hotkey-recording-btns');
 
     input.value = 'Press keys...';
     input.classList.add('border-accent');
-    btn.textContent = 'CANCEL';
-    btn.classList.remove('bg-accent', 'hover:bg-accent-hover');
-    btn.classList.add('bg-red-500', 'hover:bg-red-600');
-    btn.onclick = cancelHotkeyCapture;
+
+    // Hide Record button, show Stop + Cancel buttons
+    recordBtn.classList.add('hidden');
+    recordingBtns.classList.remove('hidden');
 
     document.addEventListener('keydown', captureKeyDown);
     document.addEventListener('keyup', captureKeyUp);
@@ -270,32 +273,42 @@ function captureKeyDown(e) {
     e.preventDefault();
     e.stopPropagation();
 
+    // Escape to cancel (check first, before mapping)
+    if (e.key === 'Escape') {
+        clearTimeout(hotkeyInputTimeout);
+        cancelHotkeyCapture();
+        return;
+    }
+
+    // Enter to confirm immediately (if we have keys)
+    if (e.key === 'Enter' && capturedKeys.size > 0) {
+        clearTimeout(hotkeyInputTimeout);
+        confirmHotkey();
+        return;
+    }
+
     // Map key
     let key = mapKey(e);
     if (key) {
         capturedKeys.add(key);
         updateHotkeyDisplay();
-    }
 
-    // Enter to confirm
-    if (e.key === 'Enter' && capturedKeys.size > 0) {
-        confirmHotkey();
-    }
-
-    // Escape to cancel
-    if (e.key === 'Escape') {
-        cancelHotkeyCapture();
+        // Reset timeout on each key press - confirm after inactivity
+        clearTimeout(hotkeyInputTimeout);
+        hotkeyInputTimeout = setTimeout(() => {
+            if (capturedKeys.size > 0) {
+                confirmHotkey();
+            }
+        }, HOTKEY_TIMEOUT_MS);
     }
 }
 
 function captureKeyUp(e) {
     if (!capturingHotkey) return;
-
-    // When a non-modifier key is released, confirm if we have keys
-    const key = mapKey(e);
-    if (key && !['ctrl', 'shift', 'alt', 'win'].includes(key) && capturedKeys.size > 0) {
-        confirmHotkey();
-    }
+    e.preventDefault();
+    e.stopPropagation();
+    // Do NOT confirm here - let the timeout handle confirmation
+    // This allows users to press multiple keys before confirming
 }
 
 function mapKey(e) {
@@ -345,6 +358,7 @@ function updateHotkeyDisplay() {
 
 function confirmHotkey() {
     if (!capturingHotkey) return;
+    clearTimeout(hotkeyInputTimeout);
 
     const hotkey = Array.from(capturedKeys).join('+');
     if (hotkey) {
@@ -363,15 +377,18 @@ function cancelHotkeyCapture() {
 function resetHotkeyCapture() {
     capturingHotkey = false;
     capturedKeys.clear();
+    clearTimeout(hotkeyInputTimeout);
+    hotkeyInputTimeout = null;
 
     const input = document.getElementById('hotkey-input');
-    const btn = document.getElementById('hotkey-btn');
+    const recordBtn = document.getElementById('hotkey-btn');
+    const recordingBtns = document.getElementById('hotkey-recording-btns');
 
     input.classList.remove('border-accent');
-    btn.textContent = 'RECORD';
-    btn.classList.remove('bg-red-500', 'hover:bg-red-600');
-    btn.classList.add('bg-accent', 'hover:bg-accent-hover');
-    btn.onclick = startHotkeyCapture;
+
+    // Show Record button, hide Stop + Cancel buttons
+    recordBtn.classList.remove('hidden');
+    recordingBtns.classList.add('hidden');
 
     document.removeEventListener('keydown', captureKeyDown);
     document.removeEventListener('keyup', captureKeyUp);
