@@ -1692,7 +1692,288 @@
       },
       "toc": {
         "label": "Tabla de Contenidos",
-        "items": []
+        "items": [
+          {
+            "id": "what-is-ai-dictation",
+            "title": "¿Qué es el Dictado por IA?"
+          },
+          {
+            "id": "benefits",
+            "title": "Ventajas de la Escritura por Voz"
+          },
+          {
+            "id": "getting-started",
+            "title": "Primeros Pasos (5 Minutos)"
+          },
+          {
+            "id": "best-practices",
+            "title": "Mejores Prácticas"
+          },
+          {
+            "id": "common-mistakes",
+            "title": "Errores Comunes"
+          },
+          {
+            "id": "advanced-tips",
+            "title": "Consejos Avanzados"
+          },
+          {
+            "id": "faq",
+            "title": "Preguntas Frecuentes"
+          }
+        ]
+      },
+      "sections": {
+        "whatIs": {
+          "title": "¿Qué es el Dictado por IA?",
+          "subtitle": "El dictado por IA es una tecnología de reconocimiento de voz impulsada por inteligencia artificial que convierte tu voz en texto escrito al instante.",
+          "content": "A diferencia del dictado tradicional (como el Reconocimiento de Voz de Windows), el dictado por IA moderno utiliza redes neuronales profundas entrenadas en millones de horas de audio para entender contexto, acentos y lenguaje natural con alta precisión. Whisper Cheap utiliza la arquitectura optimizada Parakeet V3, que funciona 100% en tu computadora.",
+          "points": [
+            "Convierte tu voz en texto en tiempo real",
+            "Funciona completamente local en tu PC (sin cargas a la nube)",
+            "Soporta más de 100 idiomas con buena precisión",
+            "Optimizado para inglés y español",
+            "Se actualiza automáticamente mientras hablas"
+          ]
+        },
+        "benefits": {
+          "title": "Ventajas de la Escritura por Voz",
+          "intro": "La dictación por voz no es solo más rápida, sino que cambia fundamentalmente cómo piensas y trabajas. Aquí están los beneficios clave.",
+          "items": [
+            {
+              "title": "Escribe 3x Más Rápido",
+              "description": "Hablas a ~150 palabras por minuto. Escribes a ~40. La dictación cierra esa brecha dramáticamente.",
+              "metric": "3x"
+            },
+            {
+              "title": "Reduce RSI y Dolor en las Manos",
+              "description": "Tus manos permanecen relajadas. Menos síndrome del túnel carpiano, menos dolor de muñeca, menos fatiga por tipeo.",
+              "metric": "↓100%"
+            },
+            {
+              "title": "Captura Ideas Naturalmente",
+              "description": "Tu voz fluye naturalmente. No pierdes ideas mientras buscas las palabras correctas en el teclado.",
+              "metric": "∞"
+            },
+            {
+              "title": "Mejora la Claridad",
+              "description": "Hablar en voz alta te obliga a organizar tus pensamientos mejor. Las ideas falsas se hacen obvias inmediatamente.",
+              "metric": "+40%"
+            },
+            {
+              "title": "Mejor Accesibilidad",
+              "description": "Los usuarios con dislexia, artritis o problemas de movilidad pueden expresarse sin dolor.",
+              "metric": "✓"
+            },
+            {
+              "title": "Multitarea Más Fácil",
+              "description": "Sigue dictando mientras caminas, giras la cabeza o cambias de posición. Tu voz viaja contigo.",
+              "metric": "✓"
+            }
+          ]
+        },
+        "gettingStarted": {
+          "title": "Primeros Pasos (5 Minutos)",
+          "intro": "La configuración es simple. Te guiaremos en cada paso para que estés dictando en 5 minutos.",
+          "steps": [
+            {
+              "num": "1",
+              "title": "Elige tu Software",
+              "description": "Descarga Whisper Cheap (gratis, sin cuenta necesaria) o elige otra herramienta de dictación. Recomendamos Whisper Cheap porque es completamente local y gratuito.",
+              "tips": [
+                "Asegúrate de que tu software soporta tu idioma",
+                "Verifica compatibilidad con tus aplicaciones (Word, Google Docs, etc.)",
+                "Considera privacidad: ¿se carga tu voz a la nube?"
+              ]
+            },
+            {
+              "num": "2",
+              "title": "Configura tu Micrófono",
+              "description": "Usa un micrófono decente. Los auriculares integrados funcionan, pero un micrófono USB o un auricular proporciona mejor precisión.",
+              "tips": [
+                "Posiciona el micrófono a 15-20 cm de tu boca",
+                "Limpia los auriculares regularmente para eliminar polvo",
+                "Prueba primero en un ambiente silencioso",
+                "Ajusta los niveles de volumen en Configuración"
+              ]
+            },
+            {
+              "num": "3",
+              "title": "Configura tus Ajustes",
+              "description": "Abre la ventana de configuración. Elige tu atajo de teclado (Ctrl+Espacio es el predeterminado), idioma y cualquier ajuste avanzado como VAD (Detección de Actividad de Voz).",
+              "tips": [
+                "Personaliza tu atajo de teclado a algo cómodo",
+                "Habilita VAD para ignorar ruido de fondo",
+                "Prueba modos de conversión de texto automático versus manual"
+              ]
+            },
+            {
+              "num": "4",
+              "title": "Tu Primer Dictado",
+              "description": "Abre un editor de texto (Word, Notion, Google Docs). Presiona tu atajo de teclado, habla claramente durante 10-15 segundos, suelta. El texto debe aparecer al instante.",
+              "tips": [
+                "Habla a un ritmo normal, como si estuvieras conversando",
+                "Usa un tono natural (ni demasiado lento ni demasiado rápido)",
+                "Prueba diferentes frases para sentirte cómodo"
+              ]
+            }
+          ]
+        },
+        "bestPractices": {
+          "title": "Mejores Prácticas para Mayor Precisión",
+          "intro": "Algunos hábitos simples mejoran dramáticamente tu precisión y experiencia de dictación.",
+          "practices": [
+            {
+              "title": "Habla Claro y Naturalmente",
+              "description": "No necesitas gritar, pero sé claro. Articula bien sin sonar robótico. Habla como lo harías con un amigo.",
+              "icon": "📢"
+            },
+            {
+              "title": "Usa Buena Calidad de Micrófono",
+              "description": "La calidad del micrófono importa. Un auricular USB decente o un micrófono dedicado supera a los auriculares integrados. Mantenlo limpio.",
+              "icon": "🎙️"
+            },
+            {
+              "title": "Minimiza el Ruido de Fondo",
+              "description": "Dicta en espacios silenciosos. Si hay ruido, habilita VAD en los ajustes para ignorarlo. Cierra ventanas, apaga TV, silencia teléfono.",
+              "icon": "🔇"
+            },
+            {
+              "title": "Dicta en Sesiones Cortas",
+              "description": "Tu voz se cansa. Dicta en ráfagas cortas (15-20 min), luego tómate un descanso. Más productivo que una sola sesión larga.",
+              "icon": "⏱️"
+            },
+            {
+              "title": "Edita en una Pasada Separada",
+              "description": "No intentes editar mientras dictas. Dicta todo primero en modo borrador, luego edita como lo harías con texto tipado.",
+              "icon": "✏️"
+            },
+            {
+              "title": "Di la Puntuación Cuando Sea Necesario",
+              "description": "Di \"punto\", \"coma\", \"signo de interrogación\" o simplemente edita después. La mayoría de usuarios encuentran que editar puntuación es lo más rápido.",
+              "icon": "🗣️"
+            }
+          ]
+        },
+        "commonMistakes": {
+          "title": "Errores Comunes a Evitar",
+          "intro": "Incluso los usuarios experimentados cometen estos errores. Aquí está cómo evitarlos.",
+          "mistakes": [
+            {
+              "title": "Hablar Demasiado Rápido",
+              "description": "Si hablas muy rápido, la IA no puede seguir el ritmo. Las palabras se superponen o se pierden.",
+              "solution": "Habla a un ritmo de conversación normal. Si cometes muchos errores, reduce la velocidad ligeramente."
+            },
+            {
+              "title": "Murmullar o Habla Poco Clara",
+              "description": "La IA necesita sonido claro. Murmullar, omitir sonidos o arrastrarse causa errores.",
+              "solution": "Articula cada palabra claramente. Sé claro sin ser exagerado. Practica con frases cortas."
+            },
+            {
+              "title": "Parar a Mitad de Frase",
+              "description": "Si paras abruptamente, la IA no puede procesar la oración completa.",
+              "solution": "Completa tus pensamientos. Si necesitas una pausa, hazla natural (una coma o punto)."
+            },
+            {
+              "title": "Editar Mientras Dictas",
+              "description": "Intentar corregirte mientras hablas rompe tu flujo y confunde el reconocimiento.",
+              "solution": "Dicta todo primero. Edita después en una pasada separada. Tu velocidad total es más rápida."
+            },
+            {
+              "title": "Esperar Perfección",
+              "description": "La IA no es perfecta. Algunos errores (homónimos, nombres propios) necesitan corrección manual.",
+              "solution": "Espera 2-5% de errores. Aún es mucho más rápido que escribir. Edita rápidamente después."
+            },
+            {
+              "title": "Usar Micrófono Pobre",
+              "description": "Los auriculares integrados, micrófonos dañados o sucios afectan significativamente la precisión.",
+              "solution": "Invierte en un micrófono USB decente o auricular. Completamente vale la pena."
+            }
+          ]
+        },
+        "advancedTips": {
+          "title": "Consejos Avanzados",
+          "intro": "Una vez que dominas lo básico, aquí hay técnicas para exprimir aún más valor de la dictación.",
+          "tips": [
+            {
+              "title": "Vocabularios Personalizados",
+              "description": "Muchas herramientas (incluyendo Whisper Cheap) te permiten entrenar vocabularios personalizados. Agrega términos especializados, nombres de compañías o jerga técnica."
+            },
+            {
+              "title": "Combina con Expansores de Texto",
+              "description": "Usa un expansor de texto (como TextExpander) junto con dictación. Escribe abreviaturas que se expandan a párrafos completos. Ahorra tiempo en frases repetidas."
+            },
+            {
+              "title": "Usa Números y Símbolos Correctamente",
+              "description": "Di \"dos punto cinco\" para 2.5, \"arroba\" para @, \"almohadilla\" para #. Practica para hacerlo rápido."
+            },
+            {
+              "title": "Depuración Pato de Goma",
+              "description": "Para desarrolladores: explica tu código en voz alta como si le hablaras a un pato de goma. La dictación captura el hilo de pensamiento."
+            },
+            {
+              "title": "Dictación para Lluvia de Ideas",
+              "description": "La dictación es excelente para lluvia de ideas porque no editas mientras piensas. Captura el flujo natural sin autocrítica."
+            }
+          ]
+        },
+        "faq": {
+          "title": "Preguntas Frecuentes",
+          "items": [
+            {
+              "q": "¿Qué software de dictación debo usar?",
+              "a": "Existen varias opciones. Whisper Cheap es gratis, local y sin suscripción. Otras opciones incluyen Wispr Flow (pago), Dictación por Voz de Google Docs (nube) y Dragon (caro). Elige basado en tu presupuesto, necesidades de privacidad y requerimientos."
+            },
+            {
+              "q": "¿Funciona en mi idioma?",
+              "a": "Whisper Cheap está optimizado para inglés y español, pero soporta más de 100 idiomas con buena precisión. Si tu idioma no está soportado, considera Dictación por Voz de Google Docs o Wispr Flow."
+            },
+            {
+              "q": "¿Qué tan preciso es realmente?",
+              "a": "Para inglés y español, la precisión es 95-98% en audio claro. Eso significa 2-5 errores por cada 100 palabras, aún mucho más rápido que escribir y editar después. Los errores disminuyen con mejor micrófono y práctica."
+            },
+            {
+              "q": "¿Puedo usar dictación para trabajo profesional?",
+              "a": "Absolutamente. Muchos escritores, abogados, médicos y profesionales dependen de la dictación. Solo asegúrate de usar una herramienta privada/local si manejas información sensible."
+            },
+            {
+              "q": "¿Cuánto tiempo tarda en sentirme cómodo?",
+              "a": "La mayoría de usuarios se sienten cómodos en 1-2 sesiones. Tu velocidad aumenta después de una semana de práctica regular. Después de un mes, muchos usuarios dictan más rápido que escriben."
+            },
+            {
+              "q": "¿Puedo usar dictación para programación?",
+              "a": "No para sintaxis de código (para eso está el teclado). Pero sí para documentación, comentarios, mensajes de commit y escritura técnica. Extremadamente útil."
+            },
+            {
+              "q": "¿Funciona en teléfono?",
+              "a": "Whisper Cheap es solo para Windows. Pero la mayoría de teléfonos tienen dictación integrada (iOS Siri, Android Google Assistant). Algunos servicios como Wispr Flow ofrecen aplicaciones móviles."
+            },
+            {
+              "q": "¿Es seguro?",
+              "a": "Depende de tu software. Las herramientas locales como Whisper Cheap son más seguras (tu voz nunca sale de tu PC). Los servicios en la nube como Wispr Flow dependen de su política de privacidad."
+            }
+          ]
+        },
+        "cta": {
+          "title": "Comienza Ahora",
+          "description": "La mejor forma de aprender es haciendo. Descarga Whisper Cheap (gratis, sin cuenta) y dicta tu primer párrafo hoy.",
+          "buttonText": "Descargar"
+        }
+      },
+      "relatedArticles": {
+        "label": "Artículos Relacionados",
+        "articles": [
+          {
+            "title": "Dictado por IA para Escritores",
+            "description": "Cómo los escritores usan dictación para escribir 3x más rápido",
+            "url": "/es/casos-de-uso/escritores"
+          },
+          {
+            "title": "Voz a Texto Privado: Tu Privacidad Garantizada",
+            "description": "Por qué el procesamiento local protege tu privacidad",
+            "url": "/es/caracteristicas/privacidad"
+          }
+        ]
       }
     }
   }
