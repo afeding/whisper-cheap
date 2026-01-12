@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://whispercheap.com'
+  const baseUrl = 'https://whispercheap.net'
   const lastModified = new Date()
 
   // Helper function to create bilingual route entries
