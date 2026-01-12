@@ -77,7 +77,11 @@
     "q3": "Does it work in all apps?",
     "a3": "Yes. Word, Chrome, Notion, Slack, email... any app where you can paste text.",
     "q4": "Mac or Linux?",
-    "a4": "Windows only for now. Cross-platform in development."
+    "a4": "Windows only for now. Cross-platform in development.",
+    "q5": "Does it work offline?",
+    "a5": "Yes. 100% offline after installation. No internet required. Your voice never leaves your computer.",
+    "q6": "Is there a word limit?",
+    "a6": "No word limit. Dictate as much as you want, forever. Completely unlimited."
   },
   "cta": {
     "title": "Ready?",

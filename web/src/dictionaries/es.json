@@ -77,7 +77,11 @@
     "q3": "¿Funciona en todas las aplicaciones?",
     "a3": "Sí. Word, Chrome, Notion, Slack... cualquier aplicación.",
     "q4": "¿Mac o Linux?",
-    "a4": "Solo Windows por ahora. Multiplataforma en desarrollo."
+    "a4": "Solo Windows por ahora. Multiplataforma en desarrollo.",
+    "q5": "¿Funciona sin internet?",
+    "a5": "Sí. 100% offline después de la instalación. No necesitas internet. Tu voz nunca sale de tu computadora.",
+    "q6": "¿Hay límite de palabras?",
+    "a6": "Sin límite de palabras. Dicta todo lo que quieras, para siempre. Completamente ilimitado."
   },
   "cta": {
     "title": "¿Listo?",
